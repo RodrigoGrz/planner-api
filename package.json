@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node dist/http/server.mjs",
     "dev:start": "tsx --watch src/server.ts",
-    "build": "tsup src --format esm",
+    "build": "tsup src --format cjs",
     "test": "vitest run",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "db:migrate": "prisma migrate dev",
