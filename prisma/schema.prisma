@@ -1,0 +1,76 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Trip {
+  id           String    @id @default(uuid())
+  destination  String
+  starts_at    DateTime
+  ends_at      DateTime
+  owner_id     String
+  is_confirmed Boolean   @default(false)
+  created_at   DateTime  @default(now())
+  updated_at   DateTime? @default(now())
+
+  activities   Activity[]
+  links        Link[]
+  owner        Traveler      @relation(fields: [owner_id], references: [id])
+  participants Participant[] @relation(name: "member_on_trip")
+
+  @@map("trips")
+}
+
+model Participant {
+  id           String  @id @default(uuid())
+  name         String?
+  email        String
+  is_confirmed Boolean @default(false)
+  trip_id      String
+  traveler_id  String?
+
+  trip     Trip      @relation(fields: [trip_id], references: [id], name: "member_on_trip")
+  traveler Traveler? @relation(fields: [traveler_id], references: [id])
+
+  @@unique([trip_id, email])
+  @@map("participants")
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  title     String
+  occurs_at DateTime
+  trip_id   String
+
+  trip Trip @relation(fields: [trip_id], references: [id])
+
+  @@map("activities")
+}
+
+model Link {
+  id      String @id @default(uuid())
+  title   String
+  url     String
+  trip_id String
+
+  trip Trip @relation(fields: [trip_id], references: [id])
+
+  @@map("links")
+}
+
+model Traveler {
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  phone    String
+  password String
+
+  trips        Trip[]
+  participants Participant[]
+
+  @@map("travelers")
+}
