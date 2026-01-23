@@ -13,7 +13,7 @@ describe('Create Trip (E2E)', () => {
   })
 
   test('[POST] /trips/register', async () => {
-    const { token, traveler } = await createAndAuthenticateTraveler(app)
+    const { token } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
       .post('/trips/register')
@@ -22,7 +22,6 @@ describe('Create Trip (E2E)', () => {
         destination: 'Test',
         startsAt: dayjs().add(1, 'month'),
         endsAt: dayjs().add(1, 'month').add(4, 'day'),
-        ownerId: traveler.id,
         emailsToInvite: ['test@planner.com'],
       })
 

@@ -1,17 +1,76 @@
-# plann.er
+# Planner API
 
-## Routes
+Backend da aplicação **Planner**, um app para **planejamento e organização de viagens em grupo**.
 
-- [x] Create new trip (`POST /trips`);
-- [x] Register user (`POST /users`);
-- [x] Authenticate user by magic link (`GET /authenticate`);
-- [x] Confirm trip (`PATCH /trips/:id/confirm`);
-- [x] Trip details (`GET /trips/:id`);
-- [x] Update trip (`PUT /trips/:id`);
-- [x] Get trip activities (`GET /trips/:id/activities`);
-- [x] Create trip activity (`POST /trips/:id/activities`);
-- [x] Get trip links (`GET /trips/:id/links`);
-- [x] Create trip link (`POST /trips/:id/links`);
-- [x] Get the trip participants (`GET /trips/:id/participants`);
-- [x] Create a new invite (`POST /trips/:id/invites`);
-- [x] Get user confirmation status for trip (`GET /trips/:id/confirmation-status`);
+A API é responsável por gerenciar usuários, viagens, atividades, links úteis e convidados, oferecendo uma base sólida e extensível para evoluções futuras da aplicação mobile.
+
+## 🎯 Objetivo do app
+
+O Planner tem como objetivo facilitar o planejamento de viagens, centralizando em um único lugar:
+
+- Informações da viagem
+- Atividades organizadas por dia
+- Links importantes (reservas, mapas, documentos, etc.)
+- Pessoas convidadas para a viagem
+
+A ideia é evitar o uso de várias ferramentas soltas (anotações, mensagens, links perdidos) e manter tudo organizado de forma simples e acessível.
+
+## 🏗️ Arquitetura
+
+O backend foi estruturado com foco em:
+
+- Separação clara de responsabilidades
+- Regras de negócio bem definidas
+- Facilidade para manutenção e evolução
+- Segurança para refatorações
+
+Estrutura baseada em princípios de **Clean Architecture**, separando:
+
+- **Domain**: entidades e regras de negócio
+- **Application / Use Cases**: casos de uso da aplicação
+- **Infra**: banco de dados, ORM e serviços externos
+- **Presentation**: controllers HTTP e rotas
+- **Tests**: testes unitários e de integração
+
+## 🚀 Tecnologias
+
+- Node.js
+- TypeScript
+- Fastify
+- Prisma
+- PostgreSQL
+- Docker
+- Vitest
+
+## ⚙️ Requisitos
+
+- Node.js >= 20
+- Docker e Docker Compose
+- npm
+
+## ▶️ Como rodar o projeto
+
+### 1. Clone o repositório
+
+```bash
+git clone https://github.com/RodrigoGrz/planner-api
+cd backend
+```
+
+### 2. Suba o banco de dados
+
+```bash
+docker-compose up -d
+```
+### 3. Rodar testes
+
+```bash
+npm run test
+npm run test:e2e
+```
+
+### 4. Rodar em dev
+
+```bash
+npm run dev:start
+```

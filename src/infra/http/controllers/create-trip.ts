@@ -10,7 +10,6 @@ const createTripBody = z.object({
   destination: z.string().min(3),
   startsAt: z.coerce.date(),
   endsAt: z.coerce.date(),
-  ownerId: z.uuid(),
   emailsToInvite: z.array(z.string()),
 })
 
@@ -18,7 +17,8 @@ export async function createTripController(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const { destination, startsAt, endsAt, ownerId, emailsToInvite } =
+  const { sub } = request.user
+  const { destination, startsAt, endsAt, emailsToInvite } =
     createTripBody.parse(request.body)
 
   const createTripUseCase = await createTripFactory()
@@ -27,7 +27,7 @@ export async function createTripController(
     destination,
     startsAt,
     endsAt,
-    ownerId,
+    ownerId: sub,
     emailsToInvite,
   })
 
