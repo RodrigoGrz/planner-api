@@ -54,7 +54,7 @@ Estrutura baseada em princípios de **Clean Architecture**, separando:
 
 ```bash
 git clone https://github.com/RodrigoGrz/planner-api
-cd backend
+cd planner-api
 ```
 
 ### 2. Suba o banco de dados
