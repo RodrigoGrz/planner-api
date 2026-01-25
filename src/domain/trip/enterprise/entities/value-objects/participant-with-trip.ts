@@ -6,6 +6,7 @@ export interface ParticipantWithTripProps {
   tripId: UniqueEntityID
   name?: string | null
   email: string
+  coverImageUrl?: string | null
   isConfirmed: boolean
   destination: string
   startsAt: Date
@@ -27,6 +28,10 @@ export class ParticipantWithTrip extends ValueObject<ParticipantWithTripProps> {
 
   get email() {
     return this.props.email
+  }
+
+  get coverImageUrl() {
+    return this.props.coverImageUrl
   }
 
   get isConfirmed() {

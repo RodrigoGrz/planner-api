@@ -52,6 +52,7 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
         startsAt: item.trip.starts_at,
         endsAt: item.trip.ends_at,
         tripId: new UniqueEntityID(item.trip.id),
+        coverImageUrl: item.trip.cover_image_url,
       }),
     )
   }
@@ -91,6 +92,7 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
       startsAt: participant.trip.starts_at,
       endsAt: participant.trip.ends_at,
       tripId: new UniqueEntityID(participant.trip.id),
+      coverImageUrl: participant.trip.cover_image_url,
     })
   }
 }

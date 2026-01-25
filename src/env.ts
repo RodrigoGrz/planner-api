@@ -15,6 +15,12 @@ export const envSchema = z.object({
   MAIL_PORT: z.coerce.number().default(587),
   MAIL_USER: z.string().optional(),
   MAIL_PASS: z.string().optional(),
+
+  CLOUDFLARE_URL: z.string(),
+  CLOUDFLARE_ACCOUNT_ID: z.string(),
+  AWS_BUCKET_NAME: z.string(),
+  AWS_ACCESS_KEY_ID: z.string(),
+  AWS_SECRET_ACCESS_KEY: z.string(),
 })
 
 const _env = envSchema.safeParse(process.env)

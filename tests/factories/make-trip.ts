@@ -13,6 +13,7 @@ export async function makeTrip(override: Partial<TripProps> = {}, id?: string) {
       startsAt: dayjs().add(1, 'month').toDate(),
       endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
       ownerId: new UniqueEntityID(),
+      coverImageUrl: null,
       ...override,
     },
     new UniqueEntityID(id),

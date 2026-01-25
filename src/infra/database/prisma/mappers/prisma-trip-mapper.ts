@@ -12,6 +12,7 @@ export class PrismaTripMapper {
         ownerId: new UniqueEntityID(raw.owner_id),
         createdAt: raw.created_at,
         updatedAt: raw.updated_at,
+        coverImageUrl: raw.cover_image_url,
       },
       new UniqueEntityID(raw.id),
     )
@@ -24,6 +25,7 @@ export class PrismaTripMapper {
       starts_at: trip.startsAt,
       ends_at: trip.endsAt,
       owner_id: trip.ownerId.toString(),
+      cover_image_url: trip.coverImageUrl,
       created_at: trip.createdAt,
       updated_at: trip.updatedAt,
     }

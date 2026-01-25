@@ -7,6 +7,7 @@ export interface TripProps {
   startsAt: Date
   endsAt: Date
   ownerId: UniqueEntityID
+  coverImageUrl?: string | null
   createdAt: Date
   updatedAt?: Date | null
 }
@@ -26,6 +27,10 @@ export class Trip extends Entity<TripProps> {
 
   get ownerId() {
     return this.props.ownerId
+  }
+
+  get coverImageUrl() {
+    return this.props.coverImageUrl
   }
 
   get createdAt() {
@@ -48,6 +53,11 @@ export class Trip extends Entity<TripProps> {
 
   set endsAt(endsAt: Date) {
     this.props.endsAt = endsAt
+    this.touch()
+  }
+
+  set coverImageUrl(coverImageUrl: string | null | undefined) {
+    this.props.coverImageUrl = coverImageUrl
     this.touch()
   }
 

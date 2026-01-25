@@ -25,7 +25,7 @@ describe('Create Trip', () => {
       travelersRepository,
       activitiesRepository,
     )
-    participantsRepository = new FakeParticipantsRepository()
+    participantsRepository = new FakeParticipantsRepository(tripsRepository)
     mailer = new FakeMailer()
     createTripUseCase = new CreateTripUseCase(
       tripsRepository,
