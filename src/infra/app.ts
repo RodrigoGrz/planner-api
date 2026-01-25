@@ -1,6 +1,7 @@
 import fastifyCors from '@fastify/cors'
 import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUI from '@fastify/swagger-ui'
+import fastifyMultipart from '@fastify/multipart'
 import { fastify } from 'fastify'
 import {
   jsonSchemaTransform,
@@ -41,6 +42,12 @@ app.register(fastifySwagger, {
 
 app.register(fastifySwaggerUI, {
   routePrefix: '/docs',
+})
+
+app.register(fastifyMultipart, {
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10 MB
+  },
 })
 
 app.register(fastifyCors, {

@@ -21,7 +21,7 @@ describe('Get Trip Participants', () => {
       travelersRepository,
       activitiesRepository,
     )
-    participantsRepository = new FakeParticipantsRepository()
+    participantsRepository = new FakeParticipantsRepository(tripsRepository)
     getTripParticipantsUseCase = new GetTripParticipantsUseCase(
       participantsRepository,
     )

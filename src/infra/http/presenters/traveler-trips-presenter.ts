@@ -1,4 +1,5 @@
 import { ParticipantWithTripProps } from '@/domain/trip/enterprise/entities/value-objects/participant-with-trip'
+import { env } from '@/env'
 
 export class TravelerTripsPresenter {
   static toHTTP(participant: ParticipantWithTripProps) {
@@ -11,6 +12,9 @@ export class TravelerTripsPresenter {
       destination: participant.destination,
       startsAt: participant.startsAt,
       endsAt: participant.endsAt,
+      coverImageUrl: participant.coverImageUrl
+        ? `${env.CLOUDFLARE_URL}/${participant.coverImageUrl}`
+        : null,
     }
   }
 }

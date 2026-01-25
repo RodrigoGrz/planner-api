@@ -11,6 +11,7 @@ import { getTripParticipantsController } from '../controllers/get-trip-participa
 import { verifyJWT } from '../middlewares/verify-jwt'
 import { getAllTravelerTripsController } from '../controllers/get-all-traveler-trips'
 import { getNextTripTravelerController } from '../controllers/get-next-trip-traveler'
+import { uploadTripCoverImageController } from '../controllers/upload-trip-cover-image'
 
 export async function tripsRoute(app: FastifyInstance) {
   app.addHook('onRequest', verifyJWT)
@@ -25,4 +26,5 @@ export async function tripsRoute(app: FastifyInstance) {
   app.get('/traveler/trips', getAllTravelerTripsController)
   app.get('/traveler/next/trip', getNextTripTravelerController)
   app.put('/trips/:tripId/update', updateTripController)
+  app.post('/trips/:tripId/image', uploadTripCoverImageController)
 }
