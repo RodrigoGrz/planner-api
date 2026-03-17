@@ -44,7 +44,7 @@ Estrutura baseada em princípios de **Clean Architecture**, separando:
 
 ## ⚙️ Requisitos
 
-- Node.js >= 20
+- Node.js >= 24
 - Docker e Docker Compose
 - npm
 
