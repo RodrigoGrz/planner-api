@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/infra/database/prisma/prisma'
 
 async function seed() {}
 

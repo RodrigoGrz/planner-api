@@ -5,6 +5,7 @@ import { createAndAuthenticateTraveler } from 'tests/e2e/utils/create-and-authen
 import { makePrismaLink } from 'tests/factories/make-link'
 import { makePrismaTraveler } from 'tests/factories/make-traveler'
 import { makePrismaTrip } from 'tests/factories/make-trip'
+import { randomUUID } from 'node:crypto'
 
 describe('Get Trip Links (E2E)', () => {
   beforeAll(async () => {
@@ -20,7 +21,7 @@ describe('Get Trip Links (E2E)', () => {
 
     const owner2 = await makePrismaTraveler({
       name: 'test2',
-      email: 'test2@planner.com',
+      email: `test2-${randomUUID()}@planner.com`,
     })
 
     const trip1 = await makePrismaTrip({

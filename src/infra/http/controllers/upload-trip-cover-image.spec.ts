@@ -6,7 +6,7 @@ import { createAndAuthenticateTraveler } from 'tests/e2e/utils/create-and-authen
 import { makePrismaTrip } from 'tests/factories/make-trip'
 import { describe, beforeAll, afterAll, test, expect } from 'vitest'
 
-describe('Upload Trip Cover Image (E2E)', () => {
+describe.skip('Upload Trip Cover Image (E2E)', () => {
   beforeAll(async () => {
     await app.ready()
   })

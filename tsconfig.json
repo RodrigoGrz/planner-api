@@ -4,8 +4,9 @@
   "_version": "20.1.0",
 
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2020",
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "target": "ES2023",
     "strictNullChecks": true,  
     "strict": true,
     "esModuleInterop": true,

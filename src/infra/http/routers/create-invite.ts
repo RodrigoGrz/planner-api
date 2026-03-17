@@ -5,7 +5,6 @@ import nodemailer from 'nodemailer'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { env } from '@/env'
 
 export const createInvite = async (app: FastifyInstance) => {
   app.withTypeProvider<ZodTypeProvider>().post(
