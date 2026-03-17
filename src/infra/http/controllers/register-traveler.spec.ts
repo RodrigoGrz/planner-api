@@ -1,4 +1,5 @@
 import { app } from '@/infra/app'
+import { faker } from '@faker-js/faker'
 import request from 'supertest'
 
 describe('Register Traveler (E2E)', () => {
@@ -14,10 +15,10 @@ describe('Register Traveler (E2E)', () => {
     const travelerResponse = await request(app.server)
       .post('/travelers/register')
       .send({
-        name: 'John Doe',
-        email: 'johndoe@planner.com',
-        password: '123456',
-        phone: '5500999999999',
+        name: faker.person.fullName(),
+        email: faker.internet.email(),
+        password: '1234567',
+        phone: faker.phone.number(),
       })
 
     expect(travelerResponse.statusCode).toBe(201)
