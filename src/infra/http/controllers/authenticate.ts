@@ -1,16 +1,14 @@
 import { CredentialsIncorrectError } from '@/domain/trip/application/use-cases/errors/credentials-incorrect-error'
 import { authenticateFactory } from '@/domain/trip/application/use-cases/factory/authenticate-factory'
 import { FastifyReply, FastifyRequest } from 'fastify'
-import z from 'zod'
 import { TravelerPresenter } from '../presenters/traveler-presenter'
+import { authenticateBody } from '../routers/documentation/travelers/authenticate-schema'
+import z from 'zod'
 
-const authenticateBody = z.object({
-  email: z.email(),
-  password: z.string().min(6),
-})
+type AuthenticateBody = z.infer<typeof authenticateBody>
 
 export async function authenticateController(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Body: AuthenticateBody }>,
   reply: FastifyReply,
 ) {
   const { email, password } = authenticateBody.parse(request.body)
@@ -27,9 +25,9 @@ export async function authenticateController(
 
     switch (error.constructor) {
       case CredentialsIncorrectError:
-        return reply.status(401).send(error.message)
+        return reply.status(401).send({ message: error.message })
       default:
-        return reply.status(400).send(error.message)
+        return reply.status(400).send({ message: error.message })
     }
   }
 
