@@ -31,9 +31,8 @@ app.register(fastifySwagger, {
   openapi: {
     openapi: '3.0.0',
     info: {
-      title: 'plann.er',
-      description:
-        'Especificações da API para o back-end da aplicação plann.er',
+      title: 'planner',
+      description: 'Especificações da API para o back-end da aplicação planner',
       version: '1.0.0',
     },
   },

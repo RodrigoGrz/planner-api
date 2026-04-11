@@ -1,17 +1,13 @@
 import { TravelerAlreadyExistsError } from '@/domain/trip/application/use-cases/errors/traveler-already-exists-error'
 import { registerTravelerFactory } from '@/domain/trip/application/use-cases/factory/register-traveler-factory'
 import { FastifyReply, FastifyRequest } from 'fastify'
+import { registerTravelerBody } from '../routers/documentation/travelers/register-traveler-schema'
 import z from 'zod'
 
-const registerTravelerBody = z.object({
-  name: z.string(),
-  email: z.email(),
-  password: z.string().min(6),
-  phone: z.string(),
-})
+type RegisterTravelerBody = z.infer<typeof registerTravelerBody>
 
 export async function registerTravelerController(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Body: RegisterTravelerBody }>,
   reply: FastifyReply,
 ) {
   const { name, email, password, phone } = registerTravelerBody.parse(
@@ -32,9 +28,9 @@ export async function registerTravelerController(
 
     switch (error.constructor) {
       case TravelerAlreadyExistsError:
-        return reply.status(409).send(error.message)
+        return reply.status(409).send({ message: error.message })
       default:
-        return reply.status(400).send(error.message)
+        return reply.status(400).send({ message: error.message })
     }
   }
 

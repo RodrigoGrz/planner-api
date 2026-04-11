@@ -18,7 +18,9 @@ describe('Register Traveler (E2E)', () => {
         name: faker.person.fullName(),
         email: faker.internet.email(),
         password: '1234567',
-        phone: faker.phone.number(),
+        phone: faker.phone.number({
+          style: 'international',
+        }),
       })
 
     expect(travelerResponse.statusCode).toBe(201)
