@@ -12,11 +12,12 @@ import { verifyJWT } from '../middlewares/verify-jwt'
 import { getAllTravelerTripsController } from '../controllers/get-all-traveler-trips'
 import { getNextTripTravelerController } from '../controllers/get-next-trip-traveler'
 import { uploadTripCoverImageController } from '../controllers/upload-trip-cover-image'
+import { getTripDetailsSchema } from './documentation/trips/get-trip-details-schema'
 
 export async function tripsRoute(app: FastifyInstance) {
   app.addHook('onRequest', verifyJWT)
 
-  app.get('/trips/:id', getTripDetailsController)
+  app.get('/trips/:id', getTripDetailsSchema, getTripDetailsController)
   app.post('/trips/register', createTripController)
   app.post('/trips/link/register', createTripLinkController)
   app.post('/trips/activity/register', createTripActivityController)

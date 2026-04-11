@@ -1,18 +1,17 @@
 import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/errors/resource-not-exists-error'
 import { getTripDetailsFactory } from '@/domain/trip/application/use-cases/factory/get-trip-details-factory'
 import { FastifyReply, FastifyRequest } from 'fastify'
-import z from 'zod'
 import { TripWithOwnerPresenter } from '../presenters/trip-with-owner-presenter'
+import z from 'zod'
+import { getTripsDetailsParams } from '../routers/documentation/trips/get-trip-details-schema'
 
-const getTripsDetailsParams = z.object({
-  id: z.uuid(),
-})
+type GetTripsDetailsParams = z.infer<typeof getTripsDetailsParams>
 
 export async function getTripDetailsController(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Params: GetTripsDetailsParams }>,
   reply: FastifyReply,
 ) {
-  const { id } = getTripsDetailsParams.parse(request.params)
+  const { id } = request.params
 
   const getTripDetailsUseCase = getTripDetailsFactory()
 
@@ -25,9 +24,9 @@ export async function getTripDetailsController(
 
     switch (error.constructor) {
       case ResourceNotExistsError:
-        return reply.status(409).send(error.message)
+        return reply.status(409).send({ message: error.message })
       default:
-        return reply.status(400).send(error.message)
+        return reply.status(400).send({ message: error.message })
     }
   }
 

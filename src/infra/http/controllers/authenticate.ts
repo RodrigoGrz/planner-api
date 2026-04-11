@@ -11,7 +11,7 @@ export async function authenticateController(
   request: FastifyRequest<{ Body: AuthenticateBody }>,
   reply: FastifyReply,
 ) {
-  const { email, password } = authenticateBody.parse(request.body)
+  const { email, password } = request.body
 
   const authenticateUseCase = authenticateFactory()
 
