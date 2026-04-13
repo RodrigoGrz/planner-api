@@ -1,15 +1,19 @@
 import z from 'zod'
 
 export const getAllTravelersByTripResponse = z.object({
-  participantId: z.uuidv4(),
-  tripId: z.uuidv4(),
-  name: z.string(),
-  email: z.email(),
-  isConfirmed: z.boolean(),
-  destination: z.string(),
-  startsAt: z.date(),
-  endsAt: z.date(),
-  coverImageUrl: z.url().nullable(),
+  trips: z.array(
+    z.object({
+      participantId: z.uuidv4(),
+      tripId: z.uuidv4(),
+      name: z.string(),
+      email: z.email(),
+      isConfirmed: z.boolean(),
+      destination: z.string(),
+      startsAt: z.date(),
+      endsAt: z.date(),
+      coverImageUrl: z.url().nullable(),
+    }),
+  ),
 })
 
 export const getAllTravelersByTripSchema = {

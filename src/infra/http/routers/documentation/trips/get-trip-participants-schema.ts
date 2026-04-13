@@ -4,14 +4,16 @@ export const getTripParticipantsParams = z.object({
   tripId: z.uuid(),
 })
 
-export const getTripParticipantsResponse = z.array(
-  z.object({
-    id: z.uuidv4(),
-    name: z.string(),
-    email: z.email(),
-    isConfirmed: z.boolean(),
-  }),
-)
+export const getTripParticipantsResponse = z.object({
+  participants: z.array(
+    z.object({
+      id: z.uuidv4(),
+      name: z.string(),
+      email: z.email(),
+      isConfirmed: z.boolean(),
+    }),
+  ),
+})
 
 export const getTripParticipantsSchema = {
   schema: {

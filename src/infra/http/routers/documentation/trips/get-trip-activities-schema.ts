@@ -4,19 +4,20 @@ export const getTripActivitiesParams = z.object({
   tripId: z.uuid(),
 })
 
-export const getTripActivitiesResponse = z.array(
-  z.object({
-    date: z.date(),
-    activities: z.array(
-      z.object({
-        id: z.uuidv4(),
-        title: z.string(),
-        occursAt: z.date(),
-      }),
-    ),
-  }),
-)
-
+export const getTripActivitiesResponse = z.object({
+  activities: z.array(
+    z.object({
+      date: z.date(),
+      activities: z.array(
+        z.object({
+          id: z.uuidv4(),
+          title: z.string(),
+          occursAt: z.date(),
+        }),
+      ),
+    }),
+  ),
+})
 export const getTripActivitiesSchema = {
   schema: {
     tags: ['Trip'],

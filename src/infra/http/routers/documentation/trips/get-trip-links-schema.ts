@@ -4,13 +4,15 @@ export const getTripLinksParams = z.object({
   tripId: z.uuid().describe('Trip unique identifier'),
 })
 
-export const getTripLinksResponse = z.array(
-  z.object({
-    id: z.uuidv4(),
-    title: z.string(),
-    url: z.url(),
-  }),
-)
+export const getTripLinksResponse = z.object({
+  links: z.array(
+    z.object({
+      id: z.uuid(),
+      title: z.string(),
+      url: z.url(),
+    }),
+  ),
+})
 
 export const getTripLinksSchema = {
   schema: {
@@ -19,7 +21,7 @@ export const getTripLinksSchema = {
     security: [{ bearerAuth: [] }],
     params: getTripLinksParams,
     response: {
-      200: getTripLinksResponse.describe('Trip links found successfully'),
+      200: getTripLinksResponse,
     },
   },
 }
