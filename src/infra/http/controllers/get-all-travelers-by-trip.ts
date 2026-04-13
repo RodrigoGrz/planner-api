@@ -1,17 +1,17 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
-import { getAllTravelerTripsFactory } from '@/domain/trip/application/use-cases/factory/get-all-traveler-trips-factory'
 import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/errors/resource-not-exists-error'
 import { TravelerTripsPresenter } from '../presenters/traveler-trips-presenter'
+import { getAllTravelersByTripFactory } from '@/domain/trip/application/use-cases/factory/get-all-travelers-by-trip-factory'
 
-export async function getAllTravelerTripsController(
+export async function getAllTravelersByTripController(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
   const { sub } = request.user
 
-  const getAllTravelerTripsUseCase = getAllTravelerTripsFactory()
+  const getAllTravelersByTripUseCase = getAllTravelersByTripFactory()
 
-  const result = await getAllTravelerTripsUseCase.execute({
+  const result = await getAllTravelersByTripUseCase.execute({
     travelerId: sub,
   })
 
@@ -20,9 +20,9 @@ export async function getAllTravelerTripsController(
 
     switch (error.constructor) {
       case ResourceNotExistsError:
-        return reply.status(409).send(error.message)
+        return reply.status(409).send({ message: error.message })
       default:
-        return reply.status(400).send(error.message)
+        return reply.status(400).send({ message: error.message })
     }
   }
 

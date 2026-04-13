@@ -6,7 +6,7 @@ import { createAndAuthenticateTraveler } from 'tests/e2e/utils/create-and-authen
 import { makePrismaParticipant } from 'tests/factories/make-participant'
 import { makePrismaTrip } from 'tests/factories/make-trip'
 
-describe('Get All Traveler Trips (E2E)', () => {
+describe('Get All Travelers By Trip (E2E)', () => {
   beforeAll(async () => {
     await app.ready()
   })
@@ -15,7 +15,7 @@ describe('Get All Traveler Trips (E2E)', () => {
     await app.close()
   })
 
-  test('[GET] /trips/:tripId/participants', async () => {
+  test('[GET] /traveler/trips', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip1 = await makePrismaTrip({

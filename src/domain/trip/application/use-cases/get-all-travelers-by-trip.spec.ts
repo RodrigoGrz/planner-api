@@ -1,19 +1,19 @@
 import { FakeParticipantsRepository } from 'tests/repositories/fake-participants-repository'
-import { GetAllTravelerTripsUseCase } from './get-all-traveler-trips'
 import { FakeTripsRepository } from 'tests/repositories/fake-trips-repository'
 import { FakeTravelersRepository } from 'tests/repositories/fake-travelers-repository'
 import { FakeActivitiesRepository } from 'tests/repositories/fake-activities-repository'
 import { makeTraveler } from 'tests/factories/make-traveler'
 import { makeTrip } from 'tests/factories/make-trip'
 import { makeParticipant } from 'tests/factories/make-participant'
+import { GetAllTravelersByTripUseCase } from './get-all-travelers-by-trips'
 
 let activitiesRepository: FakeActivitiesRepository
 let travelersRepository: FakeTravelersRepository
 let tripsRepository: FakeTripsRepository
 let participantsRepository: FakeParticipantsRepository
-let getAllTravelerTripsUseCase: GetAllTravelerTripsUseCase
+let getAllTravelersByTripUseCase: GetAllTravelersByTripUseCase
 
-describe('Get All Traveler Trips', () => {
+describe('Get All Travelers By Trip', () => {
   beforeEach(() => {
     activitiesRepository = new FakeActivitiesRepository()
     travelersRepository = new FakeTravelersRepository()
@@ -22,7 +22,7 @@ describe('Get All Traveler Trips', () => {
       activitiesRepository,
     )
     participantsRepository = new FakeParticipantsRepository(tripsRepository)
-    getAllTravelerTripsUseCase = new GetAllTravelerTripsUseCase(
+    getAllTravelersByTripUseCase = new GetAllTravelersByTripUseCase(
       participantsRepository,
       travelersRepository,
     )
@@ -96,7 +96,7 @@ describe('Get All Traveler Trips', () => {
     participantsRepository.items.push(participant5)
     participantsRepository.items.push(participant6)
 
-    const result = await getAllTravelerTripsUseCase.execute({
+    const result = await getAllTravelersByTripUseCase.execute({
       travelerId: traveler.id.toString(),
     })
 
