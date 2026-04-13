@@ -14,13 +14,18 @@ import { getNextTripTravelerController } from '../controllers/get-next-trip-trav
 import { uploadTripCoverImageController } from '../controllers/upload-trip-cover-image'
 import { getTripDetailsSchema } from './documentation/trips/get-trip-details-schema'
 import { createTripSchema } from './documentation/trips/create-trip-schema'
+import { createTripLinkSchema } from './documentation/trips/create-trip-link-schema'
 
 export async function tripsRoute(app: FastifyInstance) {
   app.addHook('onRequest', verifyJWT)
 
   app.get('/trips/:id', getTripDetailsSchema, getTripDetailsController)
   app.post('/trips/register', createTripSchema, createTripController)
-  app.post('/trips/link/register', createTripLinkController)
+  app.post(
+    '/trips/link/register',
+    createTripLinkSchema,
+    createTripLinkController,
+  )
   app.post('/trips/activity/register', createTripActivityController)
   app.get('/trips/:tripId/links', getTripLinksController)
   app.get('/trips/:tripId/activities', getTripActivitiesController)

@@ -9,7 +9,7 @@ export const createTripBody = z.object({
 
 export const createTripSchema = {
   schema: {
-    tags: ['Traveler'],
+    tags: ['Trip'],
     summary: 'Create a new trip.',
     body: createTripBody,
     response: {
