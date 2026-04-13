@@ -10,6 +10,7 @@ export const createTripLinkSchema = {
   schema: {
     tags: ['Trip'],
     summary: 'Create a new trip link.',
+    security: [{ bearerAuth: [] }],
     body: createTripLinkBody,
     response: {
       201: z.null().describe('Trip link created successfully'),

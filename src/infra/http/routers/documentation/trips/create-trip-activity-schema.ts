@@ -10,6 +10,7 @@ export const createTripActivitySchema = {
   schema: {
     tags: ['Trip'],
     summary: 'Create a trip activity.',
+    security: [{ bearerAuth: [] }],
     body: createTripActivityBody,
     response: {
       201: z.null().describe('Trip activity created successfully'),

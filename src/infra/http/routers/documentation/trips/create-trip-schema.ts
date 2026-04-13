@@ -11,6 +11,7 @@ export const createTripSchema = {
   schema: {
     tags: ['Trip'],
     summary: 'Create a new trip.',
+    security: [{ bearerAuth: [] }],
     body: createTripBody,
     response: {
       201: z
