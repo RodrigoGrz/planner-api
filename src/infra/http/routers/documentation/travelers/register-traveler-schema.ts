@@ -23,7 +23,7 @@ export const registerTravelerSchema = {
         .object({
           message: z.string(),
         })
-        .describe('Traveler already exists'),
+        .describe('Esse usuário já está cadastrado.'),
     },
   },
 }
