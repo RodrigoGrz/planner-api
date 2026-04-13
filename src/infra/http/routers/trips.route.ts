@@ -18,6 +18,7 @@ import { createTripLinkSchema } from './documentation/trips/create-trip-link-sch
 import { createTripActivitySchema } from './documentation/trips/create-trip-activity-schema'
 import { getTripLinksSchema } from './documentation/trips/get-trip-links-schema'
 import { getTripActivitiesSchema } from './documentation/trips/get-trip-activities-schema'
+import { getTripParticipantsSchema } from './documentation/trips/get-trip-participants-schema'
 
 export async function tripsRoute(app: FastifyInstance) {
   app.addHook('onRequest', verifyJWT)
@@ -40,7 +41,11 @@ export async function tripsRoute(app: FastifyInstance) {
     getTripActivitiesSchema,
     getTripActivitiesController,
   )
-  app.get('/trips/:tripId/participants', getTripParticipantsController)
+  app.get(
+    '/trips/:tripId/participants',
+    getTripParticipantsSchema,
+    getTripParticipantsController,
+  )
   app.get('/traveler/trips', getAllTravelerTripsController)
   app.get('/traveler/next/trip', getNextTripTravelerController)
   app.put('/trips/:tripId/update', updateTripController)
