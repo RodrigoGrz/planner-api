@@ -1,26 +1,26 @@
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { InvalidTripEndDate } from '@/domain/trip/application/use-cases/errors/invalid-trip-end-date-error'
 import { InvalidTripStartDate } from '@/domain/trip/application/use-cases/errors/invalid-trip-start-date-error'
 import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/errors/resource-not-exists-error'
 import { updateTripFactory } from '@/domain/trip/application/use-cases/factory/update-trip-factory'
-import { FastifyReply, FastifyRequest } from 'fastify'
+import {
+  updateTripBody,
+  updateTripParams,
+} from '../routers/documentation/trips/update-trip-schema'
 import z from 'zod'
 
-const updateTripParams = z.object({
-  tripId: z.uuid(),
-})
-
-const updateTripBody = z.object({
-  destination: z.string(),
-  startsAt: z.coerce.date(),
-  endsAt: z.coerce.date(),
-})
+type UpdateTripParams = z.infer<typeof updateTripParams>
+type UpdateTripBody = z.infer<typeof updateTripBody>
 
 export async function updateTripController(
-  request: FastifyRequest,
+  request: FastifyRequest<{
+    Params: UpdateTripParams
+    Body: UpdateTripBody
+  }>,
   reply: FastifyReply,
 ) {
-  const { tripId } = updateTripParams.parse(request.params)
-  const { destination, startsAt, endsAt } = updateTripBody.parse(request.body)
+  const { tripId } = request.params
+  const { destination, startsAt, endsAt } = request.body
 
   const updateTripUseCase = updateTripFactory()
 
@@ -36,13 +36,13 @@ export async function updateTripController(
 
     switch (error.constructor) {
       case InvalidTripStartDate:
-        return reply.status(409).send(error.message)
+        return reply.status(409).send({ message: error.message })
       case InvalidTripEndDate:
-        return reply.status(409).send(error.message)
+        return reply.status(409).send({ message: error.message })
       case ResourceNotExistsError:
-        return reply.status(409).send(error.message)
+        return reply.status(409).send({ message: error.message })
       default:
-        return reply.status(400).send(error.message)
+        return reply.status(400).send({ message: error.message })
     }
   }
 

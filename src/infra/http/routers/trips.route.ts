@@ -21,6 +21,7 @@ import { getTripActivitiesSchema } from './documentation/trips/get-trip-activiti
 import { getTripParticipantsSchema } from './documentation/trips/get-trip-participants-schema'
 import { getAllTravelersByTripSchema } from './documentation/trips/get-all-travelers-by-trip-schema'
 import { getNextTripTravelerSchema } from './documentation/trips/get-next-trip-traveler-schema'
+import { updateTripSchema } from './documentation/trips/update-trip-schema'
 
 export async function tripsRoute(app: FastifyInstance) {
   app.addHook('onRequest', verifyJWT)
@@ -58,6 +59,6 @@ export async function tripsRoute(app: FastifyInstance) {
     getNextTripTravelerSchema,
     getNextTripTravelerController,
   )
-  app.put('/trips/:tripId/update', updateTripController)
+  app.put('/trips/:tripId/update', updateTripSchema, updateTripController)
   app.post('/trips/:tripId/image', uploadTripCoverImageController)
 }
