@@ -1,20 +1,18 @@
+import { FastifyReply, FastifyRequest } from 'fastify'
+
 import { InvalidDate } from '@/domain/trip/application/use-cases/errors/invalid-date-error'
 import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/errors/resource-not-exists-error'
 import { createTripActivityFactory } from '@/domain/trip/application/use-cases/factory/create-trip-activity-factory'
-import { FastifyReply, FastifyRequest } from 'fastify'
+import { createTripActivityBody } from '../routers/documentation/trips/create-trip-activity-schema'
 import z from 'zod'
 
-const createTripActivityBody = z.object({
-  title: z.string(),
-  occursAt: z.coerce.date(),
-  tripId: z.uuid(),
-})
+type CreateTripActivityBody = z.infer<typeof createTripActivityBody>
 
 export async function createTripActivityController(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Body: CreateTripActivityBody }>,
   reply: FastifyReply,
 ) {
-  const { title, occursAt, tripId } = createTripActivityBody.parse(request.body)
+  const { title, occursAt, tripId } = request.body
 
   const createTripActivityUseCase = createTripActivityFactory()
 
@@ -29,11 +27,11 @@ export async function createTripActivityController(
 
     switch (error.constructor) {
       case ResourceNotExistsError:
-        return reply.status(409).send(error.message)
+        return reply.status(409).send({ message: error.message })
       case InvalidDate:
-        return reply.status(409).send(error.message)
+        return reply.status(409).send({ message: error.message })
       default:
-        return reply.status(400).send(error.message)
+        return reply.status(400).send({ message: error.message })
     }
   }
 

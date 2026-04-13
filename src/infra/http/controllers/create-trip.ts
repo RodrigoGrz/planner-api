@@ -3,23 +3,19 @@ import { FastifyReply, FastifyRequest } from 'fastify'
 import { InvalidTripEndDate } from '@/domain/trip/application/use-cases/errors/invalid-trip-end-date-error'
 import { InvalidTripStartDate } from '@/domain/trip/application/use-cases/errors/invalid-trip-start-date-error'
 import { createTripFactory } from '@/domain/trip/application/use-cases/factory/create-trip-factory'
-import z from 'zod'
 import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/errors/resource-not-exists-error'
+import { createTripBody } from '../routers/documentation/trips/create-trip-schema'
 
-const createTripBody = z.object({
-  destination: z.string().min(3),
-  startsAt: z.coerce.date(),
-  endsAt: z.coerce.date(),
-  emailsToInvite: z.array(z.string()),
-})
+import z from 'zod'
+
+type CreateTripBody = z.infer<typeof createTripBody>
 
 export async function createTripController(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Body: CreateTripBody }>,
   reply: FastifyReply,
 ) {
   const { sub } = request.user
-  const { destination, startsAt, endsAt, emailsToInvite } =
-    createTripBody.parse(request.body)
+  const { destination, startsAt, endsAt, emailsToInvite } = request.body
 
   const createTripUseCase = await createTripFactory()
 
@@ -36,13 +32,13 @@ export async function createTripController(
 
     switch (error.constructor) {
       case InvalidTripStartDate:
-        return reply.status(409).send(error.message)
+        return reply.status(409).send({ message: error.message })
       case InvalidTripEndDate:
-        return reply.status(409).send(error.message)
+        return reply.status(409).send({ message: error.message })
       case ResourceNotExistsError:
-        return reply.status(409).send(error.message)
+        return reply.status(409).send({ message: error.message })
       default:
-        return reply.status(400).send(error.message)
+        return reply.status(400).send({ message: error.message })
     }
   }
 

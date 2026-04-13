@@ -7,6 +7,7 @@ import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 
+// VALIDAR SE PODE DELETAR ESSA ROTA!!!
 export const confirmTrip = async (app: FastifyInstance) => {
   app.withTypeProvider<ZodTypeProvider>().get(
     '/trips/:tripId/confirm',

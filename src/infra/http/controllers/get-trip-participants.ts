@@ -1,17 +1,16 @@
-import { getTripParticipantsFactory } from '@/domain/trip/application/use-cases/factory/get-trip-participants-factory'
 import { FastifyReply, FastifyRequest } from 'fastify'
-import z from 'zod'
+import { getTripParticipantsFactory } from '@/domain/trip/application/use-cases/factory/get-trip-participants-factory'
 import { ParticipantPresenter } from '../presenters/participant-presenter'
+import { getTripParticipantsParams } from '../routers/documentation/trips/get-trip-participants-schema'
+import z from 'zod'
 
-const getTripParticipantsParams = z.object({
-  tripId: z.uuid(),
-})
+type GetTripParticipantsParams = z.infer<typeof getTripParticipantsParams>
 
 export async function getTripParticipantsController(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Params: GetTripParticipantsParams }>,
   reply: FastifyReply,
 ) {
-  const { tripId } = getTripParticipantsParams.parse(request.params)
+  const { tripId } = request.params
 
   const getTripParticipantsUseCase = getTripParticipantsFactory()
 

@@ -1,18 +1,17 @@
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { FileTypeInvalidError } from '@/domain/trip/application/use-cases/errors/file-type-invalid-error'
 import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/errors/resource-not-exists-error'
 import { uploadTripCoverImageFactory } from '@/domain/trip/application/use-cases/factory/upload-trip-cover-image-factory'
-import { FastifyReply, FastifyRequest } from 'fastify'
+import { uploadTripCoverImageParams } from '../routers/documentation/trips/upload-trip-cover-image-schema'
 import z from 'zod'
 
-const uploadParams = z.object({
-  tripId: z.uuid(),
-})
+type UploadTripCoverImageParams = z.infer<typeof uploadTripCoverImageParams>
 
 export async function uploadTripCoverImageController(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Params: UploadTripCoverImageParams }>,
   reply: FastifyReply,
 ) {
-  const { tripId } = uploadParams.parse(request.params)
+  const { tripId } = request.params
   const file = await request.file()
 
   if (!file) {
@@ -35,11 +34,11 @@ export async function uploadTripCoverImageController(
 
     switch (error.constructor) {
       case FileTypeInvalidError:
-        return reply.status(415).send(error.message)
+        return reply.status(415).send({ message: error.message })
       case ResourceNotExistsError:
-        return reply.status(409).send(error.message)
+        return reply.status(409).send({ message: error.message })
       default:
-        return reply.status(400).send(error.message)
+        return reply.status(400).send({ message: error.message })
     }
   }
 

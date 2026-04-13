@@ -1,14 +1,14 @@
 import { PrismaParticipantsRepository } from '@/infra/database/prisma/repositories/prisma-participants-repository'
-import { GetAllTravelerTripsUseCase } from '../get-all-traveler-trips'
 import { PrismaTravelersRepository } from '@/infra/database/prisma/repositories/prisma-travelers-repository'
+import { GetAllTravelersByTripUseCase } from '../get-all-travelers-by-trips'
 
-export function getAllTravelerTripsFactory() {
+export function getAllTravelersByTripFactory() {
   const participantsRepository = new PrismaParticipantsRepository()
   const travelersRepository = new PrismaTravelersRepository()
-  const getAllTravelerTripsUseCase = new GetAllTravelerTripsUseCase(
+  const getAllTravelersByTripUseCase = new GetAllTravelersByTripUseCase(
     participantsRepository,
     travelersRepository,
   )
 
-  return getAllTravelerTripsUseCase
+  return getAllTravelersByTripUseCase
 }

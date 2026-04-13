@@ -4,16 +4,16 @@ import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { ParticipantWithTripProps } from '../../enterprise/entities/value-objects/participant-with-trip'
 import { TravelersRepository } from '../repositories/travelers-repository'
 
-interface GetAllTravelerTripsUseCaseRequest {
+interface GetAllTravelersByTripUseCaseRequest {
   travelerId: string
 }
 
-type GetAllTravelerTripsUseCaseResponse = Either<
+type GetAllTravelersByTripUseCaseResponse = Either<
   ResourceNotExistsError,
   { participantsWithTrip: ParticipantWithTripProps[] }
 >
 
-export class GetAllTravelerTripsUseCase {
+export class GetAllTravelersByTripUseCase {
   constructor(
     private participantsRepository: ParticipantsRepository,
     private travelersRepository: TravelersRepository,
@@ -21,7 +21,7 @@ export class GetAllTravelerTripsUseCase {
 
   async execute({
     travelerId,
-  }: GetAllTravelerTripsUseCaseRequest): Promise<GetAllTravelerTripsUseCaseResponse> {
+  }: GetAllTravelersByTripUseCaseRequest): Promise<GetAllTravelersByTripUseCaseResponse> {
     const traveler = await this.travelersRepository.findById(travelerId)
 
     if (!traveler) {
