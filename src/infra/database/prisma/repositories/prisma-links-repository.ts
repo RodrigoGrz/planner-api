@@ -10,6 +10,20 @@ export class PrismaLinksRepository implements LinksRepository {
     })
   }
 
+  async findById(id: string): Promise<Link | null> {
+    const link = await prisma.link.findUnique({
+      where: {
+        id,
+      },
+    })
+
+    if (!link) {
+      return null
+    }
+
+    return PrismaLinksMapper.toDomain(link)
+  }
+
   async findAllByTripId(tripId: string): Promise<Link[]> {
     const links = await prisma.link.findMany({
       where: {
@@ -18,5 +32,13 @@ export class PrismaLinksRepository implements LinksRepository {
     })
 
     return links.map(PrismaLinksMapper.toDomain)
+  }
+
+  async delete(id: string): Promise<void> {
+    await prisma.link.delete({
+      where: {
+        id,
+      },
+    })
   }
 }

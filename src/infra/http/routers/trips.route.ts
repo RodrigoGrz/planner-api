@@ -23,6 +23,8 @@ import { getAllTravelersByTripSchema } from './documentation/trips/get-all-trave
 import { getNextTripTravelerSchema } from './documentation/trips/get-next-trip-traveler-schema'
 import { updateTripSchema } from './documentation/trips/update-trip-schema'
 import { uploadTripCoverImageSchema } from './documentation/trips/upload-trip-cover-image-schema'
+import { deleteTripLinkSchema } from './documentation/trips/delete-trip-link-schema'
+import { deleteTripLinkController } from '../controllers/delete-trip-link'
 
 export async function tripsRoute(app: FastifyInstance) {
   app.addHook('onRequest', verifyJWT)
@@ -65,5 +67,10 @@ export async function tripsRoute(app: FastifyInstance) {
     '/trips/:tripId/image',
     uploadTripCoverImageSchema,
     uploadTripCoverImageController,
+  )
+  app.delete(
+    '/trip/link/:linkId',
+    deleteTripLinkSchema,
+    deleteTripLinkController,
   )
 }
