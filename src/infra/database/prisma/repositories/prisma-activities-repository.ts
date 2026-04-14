@@ -10,6 +10,20 @@ export class PrismaActivitiesRepository implements ActivitiesRepository {
     })
   }
 
+  async findById(id: string): Promise<Activity | null> {
+    const activity = await prisma.activity.findUnique({
+      where: {
+        id,
+      },
+    })
+
+    if (!activity) {
+      return null
+    }
+
+    return PrismaActivityMapper.toDomain(activity)
+  }
+
   async deleteOutsideTripPeriod(
     tripId: string,
     startsAt: Date,
@@ -19,6 +33,14 @@ export class PrismaActivitiesRepository implements ActivitiesRepository {
       where: {
         trip_id: tripId,
         OR: [{ occurs_at: { lt: startsAt } }, { occurs_at: { gt: endsAt } }],
+      },
+    })
+  }
+
+  async delete(id: string): Promise<void> {
+    await prisma.activity.delete({
+      where: {
+        id,
       },
     })
   }
