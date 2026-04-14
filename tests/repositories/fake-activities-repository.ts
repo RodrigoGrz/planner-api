@@ -9,6 +9,16 @@ export class FakeActivitiesRepository implements ActivitiesRepository {
     this.items.push(activity)
   }
 
+  async findById(id: string): Promise<Activity | null> {
+    const activity = this.items.find((item) => item.id.toString() === id)
+
+    if (!activity) {
+      return null
+    }
+
+    return activity
+  }
+
   async deleteOutsideTripPeriod(
     tripId: string,
     startsAt: Date,
@@ -25,5 +35,13 @@ export class FakeActivitiesRepository implements ActivitiesRepository {
 
       return !outsidePeriod
     })
+  }
+
+  async delete(id: string): Promise<void> {
+    const activityIndex = this.items.findIndex(
+      (value) => value.id.toString() === id,
+    )
+
+    this.items.splice(activityIndex, 1)
   }
 }

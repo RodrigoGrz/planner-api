@@ -1,21 +1,19 @@
-import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
-import { DeleteTripLinkUseCase } from './delete-trip-link'
 import { FakeActivitiesRepository } from 'tests/repositories/fake-activities-repository'
 import { FakeTripsRepository } from 'tests/repositories/fake-trips-repository'
 import { FakeTravelersRepository } from 'tests/repositories/fake-travelers-repository'
 import { makeTraveler } from 'tests/factories/make-traveler'
 import { makeTrip } from 'tests/factories/make-trip'
-import { makeLink } from 'tests/factories/make-link'
 import dayjs from 'dayjs'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
+import { DeleteTripActivityUseCase } from './delete-trip-activity'
+import { makeActivity } from 'tests/factories/make-activity'
 
-let activitiesRepository: FakeActivitiesRepository
 let tripsRepository: FakeTripsRepository
 let travelersRepository: FakeTravelersRepository
-let linksRepository: FakeLinksRepository
-let deleteTripLinkUseCase: DeleteTripLinkUseCase
+let activitiesRepository: FakeActivitiesRepository
+let deleteTripActivityUseCase: DeleteTripActivityUseCase
 
-describe('Delete trip link', () => {
+describe('Delete trip activity', () => {
   beforeEach(() => {
     activitiesRepository = new FakeActivitiesRepository()
     travelersRepository = new FakeTravelersRepository()
@@ -23,11 +21,12 @@ describe('Delete trip link', () => {
       travelersRepository,
       activitiesRepository,
     )
-    linksRepository = new FakeLinksRepository()
-    deleteTripLinkUseCase = new DeleteTripLinkUseCase(linksRepository)
+    deleteTripActivityUseCase = new DeleteTripActivityUseCase(
+      activitiesRepository,
+    )
   })
 
-  it('should be able to delete a trip link', async () => {
+  it('should be able to delete a trip activity', async () => {
     const owner = await makeTraveler()
 
     travelersRepository.items.push(owner)
@@ -41,23 +40,23 @@ describe('Delete trip link', () => {
 
     tripsRepository.items.push(trip)
 
-    const link = await makeLink({
+    const activity = await makeActivity({
       tripId: trip.id,
     })
 
-    linksRepository.items.push(link)
+    activitiesRepository.items.push(activity)
 
-    const result = await deleteTripLinkUseCase.execute({
-      id: link.id.toString(),
+    const result = await deleteTripActivityUseCase.execute({
+      id: activity.id.toString(),
     })
 
     expect(result.isRight()).toBeTruthy()
     expect(result.value).toBeNull()
-    expect(linksRepository.items.length).toBe(0)
+    expect(activitiesRepository.items.length).toBe(0)
   })
 
-  it('should not be able to delete a trip link if ID is wrong', async () => {
-    const result = await deleteTripLinkUseCase.execute({
+  it('should not be able to delete a trip activity if ID is wrong', async () => {
+    const result = await deleteTripActivityUseCase.execute({
       id: 'wrong-id',
     })
 
