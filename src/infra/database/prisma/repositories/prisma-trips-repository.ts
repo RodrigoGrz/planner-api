@@ -100,4 +100,12 @@ export class PrismaTripsRepository implements TripsRepository {
       data: PrismaTripMapper.toPrisma(trip),
     })
   }
+
+  async delete(id: string): Promise<void> {
+    await prisma.trip.delete({
+      where: {
+        id,
+      },
+    })
+  }
 }

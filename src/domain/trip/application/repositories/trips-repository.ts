@@ -8,4 +8,5 @@ export interface TripsRepository {
   findByIdWithOwner(id: string): Promise<TripWithOwnerProps | null>
   findByIdWithActivities(id: string): Promise<TripWithActivitiesProps | null>
   update(trip: Trip): Promise<void>
+  delete(id: string): Promise<void>
 }

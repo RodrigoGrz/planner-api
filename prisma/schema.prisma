@@ -34,7 +34,7 @@ model Participant {
   trip_id      String
   traveler_id  String?
 
-  trip     Trip      @relation(fields: [trip_id], references: [id], name: "member_on_trip")
+  trip     Trip      @relation(fields: [trip_id], references: [id], name: "member_on_trip", onDelete: Cascade)
   traveler Traveler? @relation(fields: [traveler_id], references: [id])
 
   @@unique([trip_id, email])
@@ -47,7 +47,7 @@ model Activity {
   occurs_at DateTime
   trip_id   String
 
-  trip Trip @relation(fields: [trip_id], references: [id])
+  trip Trip @relation(fields: [trip_id], references: [id], onDelete: Cascade)
 
   @@map("activities")
 }
@@ -58,7 +58,7 @@ model Link {
   url     String
   trip_id String
 
-  trip Trip @relation(fields: [trip_id], references: [id])
+  trip Trip @relation(fields: [trip_id], references: [id], onDelete: Cascade)
 
   @@map("links")
 }

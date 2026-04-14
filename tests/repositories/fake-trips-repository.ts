@@ -10,6 +10,7 @@ import {
   TripWithActivitiesProps,
 } from '@/domain/trip/enterprise/entities/value-objects/trip-with-activities'
 import { FakeActivitiesRepository } from './fake-activities-repository'
+import { FakeLinksRepository } from './fake-links-repository'
 
 export class FakeTripsRepository implements TripsRepository {
   public items: Trip[] = []
@@ -17,6 +18,7 @@ export class FakeTripsRepository implements TripsRepository {
   constructor(
     private fakeTravelersRepository: FakeTravelersRepository,
     private fakeActivitiesRepository: FakeActivitiesRepository,
+    private fakeLinksRepository: FakeLinksRepository,
   ) {}
 
   async create(trip: Trip): Promise<void> {
@@ -93,5 +95,18 @@ export class FakeTripsRepository implements TripsRepository {
       trip.startsAt = data.startsAt
       trip.endsAt = data.endsAt
     }
+  }
+
+  async delete(id: string): Promise<void> {
+    this.items = this.items.filter((item) => item.id.toString() !== id)
+
+    this.fakeActivitiesRepository.items =
+      this.fakeActivitiesRepository.items.filter(
+        (item) => item.tripId.toString() !== id,
+      )
+
+    this.fakeLinksRepository.items = this.fakeLinksRepository.items.filter(
+      (item) => item.tripId.toString() !== id,
+    )
   }
 }

@@ -90,4 +90,8 @@ export class FakeParticipantsRepository implements ParticipantsRepository {
       .filter((trip) => dayjs(trip.startsAt).isAfter(now, 'day'))
       .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())[0]
   }
+
+  deleteByTripId(tripId: string): void {
+    this.items = this.items.filter((item) => item.tripId.toString() !== tripId)
+  }
 }

@@ -19,11 +19,12 @@ describe('Delete trip link', () => {
   beforeEach(() => {
     activitiesRepository = new FakeActivitiesRepository()
     travelersRepository = new FakeTravelersRepository()
+    linksRepository = new FakeLinksRepository()
     tripsRepository = new FakeTripsRepository(
       travelersRepository,
       activitiesRepository,
+      linksRepository,
     )
-    linksRepository = new FakeLinksRepository()
     deleteTripLinkUseCase = new DeleteTripLinkUseCase(linksRepository)
   })
 
