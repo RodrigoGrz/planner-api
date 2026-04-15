@@ -9,7 +9,6 @@ import {
   validatorCompiler,
   ZodTypeProvider,
 } from 'fastify-type-provider-zod'
-import { confirmTrip } from './http/routers/confirm-trip'
 import { createInvite } from './http/routers/create-invite'
 import { confirmParticipant } from './http/routers/confirm-participant'
 import fastifyJwt from '@fastify/jwt'
@@ -121,6 +120,5 @@ app.register(fastifyCors, {
 app.register(travelersRoute)
 app.register(tripsRoute)
 
-app.register(confirmTrip)
 app.register(confirmParticipant)
 app.register(createInvite)
