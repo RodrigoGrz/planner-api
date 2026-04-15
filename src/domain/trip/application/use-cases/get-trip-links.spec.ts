@@ -17,11 +17,12 @@ describe('Get Trip Links', () => {
   beforeEach(() => {
     activitiesRepository = new FakeActivitiesRepository()
     travelersRepository = new FakeTravelersRepository()
+    linksRepository = new FakeLinksRepository()
     tripsRepository = new FakeTripsRepository(
       travelersRepository,
       activitiesRepository,
+      linksRepository,
     )
-    linksRepository = new FakeLinksRepository()
     getTripLinksUseCase = new GetTripLinksUseCase(linksRepository)
   })
 

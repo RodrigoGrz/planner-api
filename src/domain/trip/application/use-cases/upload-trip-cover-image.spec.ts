@@ -7,10 +7,12 @@ import { Trip } from '../../enterprise/entities/trip'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { FileTypeInvalidError } from './errors/file-type-invalid-error'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
+import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
 
 let travelersRepository: FakeTravelersRepository
 let activitiesRepository: FakeActivitiesRepository
 let tripsRepository: FakeTripsRepository
+let linksRepository: FakeLinksRepository
 let uploader: FakeUploader
 let sut: UploadTripCoverImageUseCase
 
@@ -18,9 +20,11 @@ describe('Upload Trip Cover Image', () => {
   beforeEach(() => {
     travelersRepository = new FakeTravelersRepository()
     activitiesRepository = new FakeActivitiesRepository()
+    linksRepository = new FakeLinksRepository()
     tripsRepository = new FakeTripsRepository(
       travelersRepository,
       activitiesRepository,
+      linksRepository,
     )
     uploader = new FakeUploader()
     sut = new UploadTripCoverImageUseCase(tripsRepository, uploader)

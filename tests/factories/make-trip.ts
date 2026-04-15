@@ -4,7 +4,7 @@ import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { prisma } from '@/infra/database/prisma/prisma'
 import { Trip, TripProps } from '@/domain/trip/enterprise/entities/trip'
 import { PrismaTripMapper } from '@/infra/database/prisma/mappers/prisma-trip-mapper'
-import dayjs from 'dayjs'
+import { dayjs } from '@/lib/dayjs'
 
 export async function makeTrip(override: Partial<TripProps> = {}, id?: string) {
   const trip = Trip.create(

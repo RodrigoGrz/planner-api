@@ -1,7 +1,7 @@
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { app } from '@/infra/app'
 import { prisma } from '@/infra/database/prisma/prisma'
-import dayjs from 'dayjs'
+import { dayjs } from '@/lib/dayjs'
 import request from 'supertest'
 import { createAndAuthenticateTraveler } from 'tests/e2e/utils/create-and-authenticate-traveler'
 

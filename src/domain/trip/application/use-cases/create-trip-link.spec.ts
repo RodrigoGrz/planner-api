@@ -22,6 +22,7 @@ describe('Create Trip Link', () => {
     tripsRepository = new FakeTripsRepository(
       travelersRepository,
       activitiesRepository,
+      linksRepository,
     )
     createTripLinkUseCase = new CreateTripLinkUseCase(
       linksRepository,
