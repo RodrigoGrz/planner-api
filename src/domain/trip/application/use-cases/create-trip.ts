@@ -72,38 +72,47 @@ export class CreateTripUseCase {
     await this.tripsRepository.create(trip)
     await this.participantsRepository.create(participantOwner)
 
-    if (emailsToInvite.length > 0) {
-      for (const email of emailsToInvite) {
-        if (email === owner.email) continue
+    const filteredEmails = [
+      ...new Set(emailsToInvite.filter((email) => email !== owner.email)),
+    ]
 
-        const traveler = await this.travelersRepository.findByEmail(email)
+    if (filteredEmails.length === 0) {
+      return right({ trip })
+    }
 
-        const participant = Participant.create({
-          email,
-          name: traveler?.name ?? null,
-          tripId: trip.id,
-          travelerId: traveler ? traveler.id : undefined,
-          isConfirmed: false,
-        })
+    const travelers =
+      await this.travelersRepository.findManyByEmails(filteredEmails)
 
-        await this.participantsRepository.create(participant)
+    const travelerMap = new Map(travelers.map((t) => [t.email, t]))
 
-        const { html, subject } = createTripFormat({
-          destination,
-          startsAt,
-          endsAt,
-          tripId: trip.id.toString(),
-        })
+    const mailTemplate = createTripFormat({
+      destination,
+      startsAt,
+      endsAt,
+      tripId: trip.id.toString(),
+    })
 
-        await this.mailer.send({
-          html,
-          subject,
-          to: {
-            name: participant.name,
-            address: participant.email,
-          },
-        })
-      }
+    for (const email of filteredEmails) {
+      const traveler = travelerMap.get(email)
+
+      const participant = Participant.create({
+        email,
+        name: traveler?.name ?? null,
+        tripId: trip.id,
+        travelerId: traveler ? traveler.id : undefined,
+        isConfirmed: false,
+      })
+
+      await this.participantsRepository.create(participant)
+
+      await this.mailer.send({
+        html: mailTemplate.html,
+        subject: mailTemplate.subject,
+        to: {
+          name: participant.name,
+          address: participant.email,
+        },
+      })
     }
 
     return right({

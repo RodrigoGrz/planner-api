@@ -9,11 +9,13 @@ import { InvalidTripStartDate } from './errors/invalid-trip-start-date-error'
 import { InvalidTripEndDate } from './errors/invalid-trip-end-date-error'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { FakeActivitiesRepository } from 'tests/repositories/fake-activities-repository'
+import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
 
 let activitiesRepository: FakeActivitiesRepository
 let tripsRepository: FakeTripsRepository
 let travelersRepository: FakeTravelersRepository
 let participantsRepository: FakeParticipantsRepository
+let linksRepository: FakeLinksRepository
 let createTripUseCase: CreateTripUseCase
 let mailer: FakeMailer
 
@@ -21,9 +23,11 @@ describe('Create Trip', () => {
   beforeEach(() => {
     activitiesRepository = new FakeActivitiesRepository()
     travelersRepository = new FakeTravelersRepository()
+    linksRepository = new FakeLinksRepository()
     tripsRepository = new FakeTripsRepository(
       travelersRepository,
       activitiesRepository,
+      linksRepository,
     )
     participantsRepository = new FakeParticipantsRepository(tripsRepository)
     mailer = new FakeMailer()
@@ -40,8 +44,9 @@ describe('Create Trip', () => {
     const endsAt = dayjs().add(1, 'month').add(4, 'day').toDate()
 
     const owner = await makeTraveler()
-
     travelersRepository.items.push(owner)
+
+    const findManySpy = vi.spyOn(travelersRepository, 'findManyByEmails')
 
     const result = await createTripUseCase.execute({
       destination: 'Punta Cana',
@@ -52,10 +57,13 @@ describe('Create Trip', () => {
     })
 
     expect(result.isRight()).toBeTruthy()
-    expect(result.isRight() && result.value.trip).toHaveProperty('id')
+    if (result.isRight()) {
+      expect(result.value.trip).toHaveProperty('id')
+    }
     expect(travelersRepository.items.length).toBe(1)
     expect(participantsRepository.items.length).toBe(3)
     expect(mailer.sentMails.length).toBe(2)
+    expect(findManySpy).toHaveBeenCalledTimes(1)
   })
 
   it('should not be able to create a trip if starts at is before today', async () => {

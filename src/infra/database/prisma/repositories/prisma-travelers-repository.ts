@@ -37,4 +37,16 @@ export class PrismaTravelersRepository implements TravelersRepository {
 
     return PrismaTravelerMapper.toDomain(traveler)
   }
+
+  async findManyByEmails(emails: string[]): Promise<Traveler[]> {
+    const travelers = await prisma.traveler.findMany({
+      where: {
+        email: {
+          in: emails,
+        },
+      },
+    })
+
+    return travelers.map(PrismaTravelerMapper.toDomain)
+  }
 }
