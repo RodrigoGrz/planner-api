@@ -6,19 +6,23 @@ import { makeTraveler } from 'tests/factories/make-traveler'
 import { makeTrip } from 'tests/factories/make-trip'
 import { makeActivity } from 'tests/factories/make-activity'
 import dayjs from 'dayjs'
+import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
 
 let activitiesRepository: FakeActivitiesRepository
 let travelersRepository: FakeTravelersRepository
 let tripsRepository: FakeTripsRepository
+let linksRepository: FakeLinksRepository
 let getTripActivitiesUseCase: GetTripActivitiesUseCase
 
 describe('Get Trip Activities', () => {
   beforeEach(() => {
     activitiesRepository = new FakeActivitiesRepository()
     travelersRepository = new FakeTravelersRepository()
+    linksRepository = new FakeLinksRepository()
     tripsRepository = new FakeTripsRepository(
       travelersRepository,
       activitiesRepository,
+      linksRepository,
     )
     getTripActivitiesUseCase = new GetTripActivitiesUseCase(tripsRepository)
   })

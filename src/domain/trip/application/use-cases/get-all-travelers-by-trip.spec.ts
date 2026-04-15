@@ -6,20 +6,24 @@ import { makeTraveler } from 'tests/factories/make-traveler'
 import { makeTrip } from 'tests/factories/make-trip'
 import { makeParticipant } from 'tests/factories/make-participant'
 import { GetAllTravelersByTripUseCase } from './get-all-travelers-by-trips'
+import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
 
 let activitiesRepository: FakeActivitiesRepository
 let travelersRepository: FakeTravelersRepository
 let tripsRepository: FakeTripsRepository
 let participantsRepository: FakeParticipantsRepository
+let linksRepository: FakeLinksRepository
 let getAllTravelersByTripUseCase: GetAllTravelersByTripUseCase
 
 describe('Get All Travelers By Trip', () => {
   beforeEach(() => {
     activitiesRepository = new FakeActivitiesRepository()
     travelersRepository = new FakeTravelersRepository()
+    linksRepository = new FakeLinksRepository()
     tripsRepository = new FakeTripsRepository(
       travelersRepository,
       activitiesRepository,
+      linksRepository,
     )
     participantsRepository = new FakeParticipantsRepository(tripsRepository)
     getAllTravelersByTripUseCase = new GetAllTravelersByTripUseCase(

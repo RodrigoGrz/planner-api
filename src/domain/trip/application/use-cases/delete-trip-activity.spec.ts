@@ -7,19 +7,23 @@ import dayjs from 'dayjs'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { DeleteTripActivityUseCase } from './delete-trip-activity'
 import { makeActivity } from 'tests/factories/make-activity'
+import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
 
 let tripsRepository: FakeTripsRepository
 let travelersRepository: FakeTravelersRepository
 let activitiesRepository: FakeActivitiesRepository
+let linksRepository: FakeLinksRepository
 let deleteTripActivityUseCase: DeleteTripActivityUseCase
 
 describe('Delete trip activity', () => {
   beforeEach(() => {
     activitiesRepository = new FakeActivitiesRepository()
     travelersRepository = new FakeTravelersRepository()
+    linksRepository = new FakeLinksRepository()
     tripsRepository = new FakeTripsRepository(
       travelersRepository,
       activitiesRepository,
+      linksRepository,
     )
     deleteTripActivityUseCase = new DeleteTripActivityUseCase(
       activitiesRepository,

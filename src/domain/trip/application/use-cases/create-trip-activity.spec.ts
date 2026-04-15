@@ -8,19 +8,23 @@ import dayjs from 'dayjs'
 import { InvalidDate } from './errors/invalid-date-error'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
+import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
 
 let travelersRepository: FakeTravelersRepository
 let activitiesRepository: FakeActivitiesRepository
 let tripsRepository: FakeTripsRepository
+let linksRepository: FakeLinksRepository
 let createTripActivityUseCase: CreateTripActivityUseCase
 
 describe('Create Trip Activity', () => {
   beforeEach(() => {
     travelersRepository = new FakeTravelersRepository()
     activitiesRepository = new FakeActivitiesRepository()
+    linksRepository = new FakeLinksRepository()
     tripsRepository = new FakeTripsRepository(
       travelersRepository,
       activitiesRepository,
+      linksRepository,
     )
     createTripActivityUseCase = new CreateTripActivityUseCase(
       activitiesRepository,
