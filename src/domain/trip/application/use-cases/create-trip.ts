@@ -54,6 +54,17 @@ export class CreateTripUseCase {
       return left(new ResourceNotExistsError())
     }
 
+    const filteredEmails = [
+      ...new Set(emailsToInvite.filter((email) => email !== owner.email)),
+    ]
+
+    const travelers =
+      filteredEmails.length > 0
+        ? await this.travelersRepository.findManyByEmails(filteredEmails)
+        : []
+
+    const travelerMap = new Map(travelers.map((t) => [t.email, t]))
+
     const trip = Trip.create({
       destination,
       ownerId: new UniqueEntityID(ownerId),
@@ -69,50 +80,45 @@ export class CreateTripUseCase {
       travelerId: new UniqueEntityID(ownerId),
     })
 
-    await this.tripsRepository.create(trip)
-    await this.participantsRepository.create(participantOwner)
-
-    const filteredEmails = [
-      ...new Set(emailsToInvite.filter((email) => email !== owner.email)),
-    ]
-
-    if (filteredEmails.length === 0) {
-      return right({ trip })
-    }
-
-    const travelers =
-      await this.travelersRepository.findManyByEmails(filteredEmails)
-
-    const travelerMap = new Map(travelers.map((t) => [t.email, t]))
-
-    const mailTemplate = createTripFormat({
-      destination,
-      startsAt,
-      endsAt,
-      tripId: trip.id.toString(),
-    })
-
-    for (const email of filteredEmails) {
+    const inviteParticipants: Participant[] = filteredEmails.map((email) => {
       const traveler = travelerMap.get(email)
 
-      const participant = Participant.create({
+      return Participant.create({
         email,
         name: traveler?.name ?? null,
         tripId: trip.id,
         travelerId: traveler ? traveler.id : undefined,
         isConfirmed: false,
       })
+    })
 
-      await this.participantsRepository.create(participant)
+    await this.tripsRepository.runInTransaction(async () => {
+      await this.tripsRepository.create(trip)
+      await this.participantsRepository.create(participantOwner)
 
-      await this.mailer.send({
-        html: mailTemplate.html,
-        subject: mailTemplate.subject,
-        to: {
-          name: participant.name,
-          address: participant.email,
-        },
+      for (const participant of inviteParticipants) {
+        await this.participantsRepository.create(participant)
+      }
+    })
+
+    if (inviteParticipants.length > 0) {
+      const mailTemplate = createTripFormat({
+        destination,
+        startsAt,
+        endsAt,
+        tripId: trip.id.toString(),
       })
+
+      for (const participant of inviteParticipants) {
+        await this.mailer.send({
+          html: mailTemplate.html,
+          subject: mailTemplate.subject,
+          to: {
+            name: participant.name,
+            address: participant.email,
+          },
+        })
+      }
     }
 
     return right({
