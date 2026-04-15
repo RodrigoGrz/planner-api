@@ -14,6 +14,14 @@ export class FakeParticipantsRepository implements ParticipantsRepository {
   constructor(private tripsRepository: FakeTripsRepository) {}
 
   async create(participant: Participant): Promise<void> {
+    const exists = this.items.find(
+      (p) =>
+        p.tripId.toString() === participant.tripId.toString() &&
+        p.email === participant.email,
+    )
+
+    if (exists) return
+
     this.items.push(participant)
   }
 
