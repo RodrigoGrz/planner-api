@@ -4,7 +4,10 @@ export const createTripBody = z.object({
   destination: z.string().min(3),
   startsAt: z.coerce.date(),
   endsAt: z.coerce.date(),
-  emailsToInvite: z.array(z.string()),
+  emailsToInvite: z
+    .array(z.email('Invalid e-mail format'))
+    .max(20, 'You can invite up to 20 participants per trip')
+    .transform((emails) => [...new Set(emails)]),
 })
 
 export const createTripSchema = {

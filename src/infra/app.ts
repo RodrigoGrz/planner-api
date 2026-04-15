@@ -9,7 +9,6 @@ import {
   validatorCompiler,
   ZodTypeProvider,
 } from 'fastify-type-provider-zod'
-
 import { confirmTrip } from './http/routers/confirm-trip'
 import { createInvite } from './http/routers/create-invite'
 import { confirmParticipant } from './http/routers/confirm-participant'
@@ -22,6 +21,62 @@ export const app = fastify().withTypeProvider<ZodTypeProvider>()
 
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
+
+type FastifyValidationError = {
+  validation: Array<{
+    instancePath?: string
+    message: string
+    params?: {
+      missingProperty?: string
+    }
+  }>
+}
+
+app.setErrorHandler((error, _, reply) => {
+  function isValidationError(error: unknown): error is FastifyValidationError {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'validation' in error &&
+      Array.isArray((error as { validation?: unknown }).validation)
+    )
+  }
+
+  if (isValidationError(error)) {
+    const errors = error.validation.reduce<Record<string, string[]>>(
+      (acc, err) => {
+        const path =
+          err.instancePath?.replace('/body/', '').replaceAll('/', '.') ||
+          err.params?.missingProperty ||
+          'unknown'
+
+        if (!acc[path]) {
+          acc[path] = []
+        }
+
+        acc[path].push(err.message)
+
+        return acc
+      },
+      {},
+    )
+
+    return reply.status(400).send({
+      message: 'Validation error',
+      errors,
+    })
+  }
+
+  if (error instanceof Error) {
+    return reply.status(500).send({
+      message: error.message,
+    })
+  }
+
+  return reply.status(500).send({
+    message: 'Internal server error',
+  })
+})
 
 app.register(fastifyJwt, {
   secret: env.JWT_SECRET,
