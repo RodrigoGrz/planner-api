@@ -6,7 +6,7 @@ import { FakeTravelersRepository } from 'tests/repositories/fake-travelers-repos
 import { makeTraveler } from 'tests/factories/make-traveler'
 import { makeTrip } from 'tests/factories/make-trip'
 import { makeLink } from 'tests/factories/make-link'
-import dayjs from 'dayjs'
+import { dayjs } from '@/lib/dayjs'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 
 let activitiesRepository: FakeActivitiesRepository

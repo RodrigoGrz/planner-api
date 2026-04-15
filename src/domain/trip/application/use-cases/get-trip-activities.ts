@@ -1,6 +1,6 @@
 import { Either, left, right } from '@/core/either'
 import { Activity } from '../../enterprise/entities/activity'
-import dayjs from 'dayjs'
+import { dayjs } from '@/lib/dayjs'
 import { TripsRepository } from '../repositories/trips-repository'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 

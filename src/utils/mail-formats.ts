@@ -1,5 +1,5 @@
 import { env } from '@/env'
-import dayjs from 'dayjs'
+import { dayjs } from '@/lib/dayjs'
 
 interface CreateTripFormatProps {
   tripId: string

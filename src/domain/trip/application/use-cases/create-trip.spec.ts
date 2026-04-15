@@ -1,4 +1,4 @@
-import dayjs from 'dayjs'
+import { dayjs } from '@/lib/dayjs'
 import { makeTraveler } from 'tests/factories/make-traveler'
 import { CreateTripUseCase } from './create-trip'
 import { FakeMailer } from 'tests/mail/faker-mailer'

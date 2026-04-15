@@ -6,7 +6,7 @@ import {
 } from '@/domain/trip/enterprise/entities/value-objects/participant-with-trip'
 import { FakeTripsRepository } from './fake-trips-repository'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
-import dayjs from 'dayjs'
+import { dayjs } from '@/lib/dayjs'
 
 export class FakeParticipantsRepository implements ParticipantsRepository {
   public items: Participant[] = []

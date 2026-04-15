@@ -1,6 +1,6 @@
 import { ActivitiesRepository } from '@/domain/trip/application/repositories/activities-repository'
 import { Activity } from '@/domain/trip/enterprise/entities/activity'
-import dayjs from 'dayjs'
+import { dayjs } from '@/lib/dayjs'
 
 export class FakeActivitiesRepository implements ActivitiesRepository {
   public items: Activity[] = []

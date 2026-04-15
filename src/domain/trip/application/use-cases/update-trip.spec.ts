@@ -4,7 +4,7 @@ import { FakeTripsRepository } from 'tests/repositories/fake-trips-repository'
 import { UpdateTripUseCase } from './update-trip'
 import { makeTraveler } from 'tests/factories/make-traveler'
 import { makeTrip } from 'tests/factories/make-trip'
-import dayjs from 'dayjs'
+import { dayjs } from '@/lib/dayjs'
 import { Activity } from '../../enterprise/entities/activity'
 import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
 

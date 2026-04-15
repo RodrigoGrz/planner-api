@@ -5,7 +5,7 @@ import { FakeActivitiesRepository } from 'tests/repositories/fake-activities-rep
 import { makeTraveler } from 'tests/factories/make-traveler'
 import { makeTrip } from 'tests/factories/make-trip'
 import { makeActivity } from 'tests/factories/make-activity'
-import dayjs from 'dayjs'
+import { dayjs } from '@/lib/dayjs'
 import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
 
 let activitiesRepository: FakeActivitiesRepository
