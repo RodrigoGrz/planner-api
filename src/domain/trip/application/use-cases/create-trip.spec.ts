@@ -123,4 +123,19 @@ describe('Create Trip', () => {
     expect(result.isLeft()).toBeTruthy()
     expect(result.value).toBeInstanceOf(ResourceNotExistsError)
   })
+
+  it('should prevent duplicate participants per trip', async () => {
+    const owner = await makeTraveler()
+    travelersRepository.items.push(owner)
+
+    await createTripUseCase.execute({
+      destination: 'Test',
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id.toString(),
+      emailsToInvite: ['test@planner.com', 'test@planner.com'],
+    })
+
+    expect(participantsRepository.items.length).toBe(2)
+  })
 })

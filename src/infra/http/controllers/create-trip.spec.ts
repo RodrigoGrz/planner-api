@@ -69,8 +69,10 @@ describe('Create Trip (E2E)', () => {
     expect(result.statusCode).toBe(400)
   })
 
-  test('[POST] /trips/register should ignore duplicated e-mails', async () => {
+  test('[POST] /trips/register should not create duplicate participants per trip', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
+
+    const emails = ['test@planner.com', 'test@planner.com', 'test@planner.com']
 
     const result = await request(app.server)
       .post('/trips/register')
@@ -79,9 +81,27 @@ describe('Create Trip (E2E)', () => {
         destination: 'Test',
         startsAt: dayjs().add(1, 'month'),
         endsAt: dayjs().add(1, 'month').add(4, 'day'),
-        emailsToInvite: ['test@planner.com', 'test@planner.com'],
+        emailsToInvite: emails,
       })
 
     expect(result.statusCode).toBe(201)
+
+    const trip = await prisma.trip.findFirst({
+      orderBy: { created_at: 'desc' },
+    })
+
+    expect(trip).toBeTruthy()
+
+    const participants = await prisma.participant.findMany({
+      where: {
+        trip_id: trip!.id,
+      },
+    })
+
+    expect(participants.length).toBe(2)
+
+    const emailsInDb = participants.map((p) => p.email)
+
+    expect(new Set(emailsInDb).size).toBe(emailsInDb.length)
   })
 })
