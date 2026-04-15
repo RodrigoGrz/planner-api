@@ -27,4 +27,8 @@ export class FakeTravelersRepository implements TravelersRepository {
 
     return traveler
   }
+
+  async findManyByEmails(emails: string[]): Promise<Traveler[]> {
+    return this.items.filter((traveler) => emails.includes(traveler.email))
+  }
 }
