@@ -1,6 +1,5 @@
 import { Either, left, right } from '@/core/either'
 import { TripsRepository } from '../repositories/trips-repository'
-import dayjs from 'dayjs'
 import { InvalidTripStartDate } from './errors/invalid-trip-start-date-error'
 import { InvalidTripEndDate } from './errors/invalid-trip-end-date-error'
 import { Trip } from '../../enterprise/entities/trip'
@@ -10,7 +9,9 @@ import { Participant } from '../../enterprise/entities/participant'
 import { TravelersRepository } from '../repositories/travelers-repository'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { Mailer } from '../mail/mailer'
+import { dayjs } from '@/lib/dayjs'
 import { createTripFormat } from '@/utils/mail-formats'
+import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
 
 interface CreateTripUseCaseRequest {
   destination: string
@@ -40,12 +41,20 @@ export class CreateTripUseCase {
     ownerId,
     emailsToInvite,
   }: CreateTripUseCaseRequest): Promise<CreateTripUseCaseResponse> {
-    if (dayjs(startsAt).isBefore(new Date())) {
+    const now = dayjs().utc().startOf('day')
+    const start = dayjs(startsAt).utc().startOf('day')
+    const end = dayjs(endsAt).utc().startOf('day')
+
+    if (start.isBefore(now)) {
       return left(new InvalidTripStartDate())
     }
 
-    if (dayjs(endsAt).isBefore(startsAt)) {
+    if (end.isBefore(start)) {
       return left(new InvalidTripEndDate())
+    }
+
+    if (end.diff(start, 'days') > 30) {
+      return left(new InvalidTripDuration())
     }
 
     const owner = await this.travelersRepository.findById(ownerId)

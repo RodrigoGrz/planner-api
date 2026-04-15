@@ -10,6 +10,7 @@ import { InvalidTripEndDate } from './errors/invalid-trip-end-date-error'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { FakeActivitiesRepository } from 'tests/repositories/fake-activities-repository'
 import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
+import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
 
 let activitiesRepository: FakeActivitiesRepository
 let tripsRepository: FakeTripsRepository
@@ -137,5 +138,61 @@ describe('Create Trip', () => {
     })
 
     expect(participantsRepository.items.length).toBe(2)
+  })
+
+  it('should allow trip starting today at midnight', async () => {
+    const owner = await makeTraveler()
+    travelersRepository.items.push(owner)
+
+    const todayMidnight = dayjs().startOf('day').toDate()
+
+    const result = await createTripUseCase.execute({
+      destination: 'Test',
+      startsAt: todayMidnight,
+      endsAt: dayjs(todayMidnight).add(1, 'day').toDate(),
+      ownerId: owner.id.toString(),
+      emailsToInvite: [],
+    })
+
+    expect(result.isRight()).toBe(true)
+  })
+
+  it('should not allow trip with duration greater than 30 days', async () => {
+    const startsAt = dayjs().add(1, 'month').toDate()
+    const endsAt = dayjs(startsAt).add(31, 'day').toDate()
+
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const result = await createTripUseCase.execute({
+      destination: 'Long Trip',
+      startsAt,
+      endsAt,
+      ownerId: owner.id.toString(),
+      emailsToInvite: [],
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(InvalidTripDuration)
+  })
+
+  it('should allow trip with exactly 30 days duration', async () => {
+    const startsAt = dayjs().add(1, 'month').toDate()
+    const endsAt = dayjs(startsAt).add(30, 'day').toDate()
+
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const result = await createTripUseCase.execute({
+      destination: 'Exact Limit Trip',
+      startsAt,
+      endsAt,
+      ownerId: owner.id.toString(),
+      emailsToInvite: [],
+    })
+
+    expect(result.isRight()).toBeTruthy()
   })
 })
