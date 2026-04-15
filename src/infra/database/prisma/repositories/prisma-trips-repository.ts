@@ -92,6 +92,12 @@ export class PrismaTripsRepository implements TripsRepository {
     })
   }
 
+  async runInTransaction<T>(fn: () => Promise<T>): Promise<T> {
+    return prisma.$transaction(async () => {
+      return fn()
+    })
+  }
+
   async update(trip: Trip): Promise<void> {
     await prisma.trip.update({
       where: {

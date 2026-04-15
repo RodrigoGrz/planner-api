@@ -85,6 +85,10 @@ export class FakeTripsRepository implements TripsRepository {
     })
   }
 
+  async runInTransaction<T>(fn: () => Promise<T>): Promise<T> {
+    return fn()
+  }
+
   async update(data: Trip): Promise<void> {
     const trip = this.items.find(
       (item) => item.id.toString() === data.id.toString(),
