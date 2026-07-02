@@ -13,7 +13,11 @@ export const createTripActivitySchema = {
     security: [{ bearerAuth: [] }],
     body: createTripActivityBody,
     response: {
-      201: z.null().describe('Trip activity created successfully'),
+      201: z
+        .object({
+          activityId: z.uuid(),
+        })
+        .describe('Trip activity created successfully'),
       400: z
         .object({
           message: z.string(),

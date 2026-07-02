@@ -31,5 +31,7 @@ export async function createTripLinkController(
     }
   }
 
-  return reply.status(201).send()
+  return reply.status(201).send({
+    linkId: result.value.link.id.toString(),
+  })
 }

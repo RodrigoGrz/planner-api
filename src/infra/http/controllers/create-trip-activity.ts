@@ -35,5 +35,7 @@ export async function createTripActivityController(
     }
   }
 
-  return reply.status(201).send()
+  return reply.status(201).send({
+    activityId: result.value.activity.id.toString(),
+  })
 }
