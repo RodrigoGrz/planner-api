@@ -3,6 +3,7 @@ import { deleteTripLinkParams } from '../routers/documentation/trips/delete-trip
 import { deleteTripLinkFactory } from '@/domain/trip/application/use-cases/factory/delete-trip-link-factory'
 import z from 'zod'
 import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/errors/resource-not-exists-error'
+import { NotAllowedError } from '@/domain/trip/application/use-cases/errors/not-allowed-error'
 
 type DeleteTripLinkParams = z.infer<typeof deleteTripLinkParams>
 
@@ -11,11 +12,13 @@ export async function deleteTripLinkController(
   reply: FastifyReply,
 ) {
   const { linkId } = request.params
+  const { sub } = request.user
 
   const deleteTripLinkUseCase = deleteTripLinkFactory()
 
   const result = await deleteTripLinkUseCase.execute({
     id: linkId,
+    travelerId: sub,
   })
 
   if (result.isLeft()) {
@@ -24,6 +27,8 @@ export async function deleteTripLinkController(
     switch (error.constructor) {
       case ResourceNotExistsError:
         return reply.status(409).send({ message: error.message })
+      case NotAllowedError:
+        return reply.status(403).send({ message: error.message })
       default:
         return reply.status(400).send({ message: error.message })
     }

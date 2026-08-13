@@ -2,14 +2,18 @@ import { Either, left, right } from '@/core/either'
 import { Activity } from '../../enterprise/entities/activity'
 import { dayjs } from '@/lib/dayjs'
 import { TripsRepository } from '../repositories/trips-repository'
+import { ParticipantsRepository } from '../repositories/participants-repository'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
+import { NotAllowedError } from './errors/not-allowed-error'
+import { canAccessTrip } from '../authorization/trip-access'
 
 interface GetTripActivitiesUseCaseRequest {
   tripId: string
+  travelerId: string
 }
 
 type GetTripActivitiesUseCaseResponse = Either<
-  ResourceNotExistsError,
+  ResourceNotExistsError | NotAllowedError,
   {
     activities: {
       date: Date
@@ -19,11 +23,31 @@ type GetTripActivitiesUseCaseResponse = Either<
 >
 
 export class GetTripActivitiesUseCase {
-  constructor(private tripsRepository: TripsRepository) {}
+  constructor(
+    private tripsRepository: TripsRepository,
+    private participantsRepository: ParticipantsRepository,
+  ) {}
 
   async execute({
     tripId,
+    travelerId,
   }: GetTripActivitiesUseCaseRequest): Promise<GetTripActivitiesUseCaseResponse> {
+    const tripForAccess = await this.tripsRepository.findById(tripId)
+
+    if (!tripForAccess) {
+      return left(new ResourceNotExistsError())
+    }
+
+    const hasAccess = await canAccessTrip(
+      tripForAccess,
+      travelerId,
+      this.participantsRepository,
+    )
+
+    if (!hasAccess) {
+      return left(new NotAllowedError())
+    }
+
     const trip = await this.tripsRepository.findByIdWithActivities(tripId)
 
     if (!trip) {

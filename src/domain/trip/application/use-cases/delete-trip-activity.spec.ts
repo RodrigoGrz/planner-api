@@ -5,6 +5,7 @@ import { makeTraveler } from 'tests/factories/make-traveler'
 import { makeTrip } from 'tests/factories/make-trip'
 import { dayjs } from '@/lib/dayjs'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
+import { NotAllowedError } from './errors/not-allowed-error'
 import { DeleteTripActivityUseCase } from './delete-trip-activity'
 import { makeActivity } from 'tests/factories/make-activity'
 import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
@@ -27,6 +28,7 @@ describe('Delete trip activity', () => {
     )
     deleteTripActivityUseCase = new DeleteTripActivityUseCase(
       activitiesRepository,
+      tripsRepository,
     )
   })
 
@@ -52,6 +54,7 @@ describe('Delete trip activity', () => {
 
     const result = await deleteTripActivityUseCase.execute({
       id: activity.id.toString(),
+      travelerId: owner.id.toString(),
     })
 
     expect(result.isRight()).toBeTruthy()
@@ -62,9 +65,38 @@ describe('Delete trip activity', () => {
   it('should not be able to delete a trip activity if ID is wrong', async () => {
     const result = await deleteTripActivityUseCase.execute({
       id: 'wrong-id',
+      travelerId: 'any-traveler',
     })
 
     expect(result.isLeft()).toBeTruthy()
     expect(result.value).toBeInstanceOf(ResourceNotExistsError)
+  })
+
+  it('should not be able to delete a trip activity if the traveler is not the trip owner', async () => {
+    const owner = await makeTraveler()
+    const intruder = await makeTraveler()
+
+    travelersRepository.items.push(owner, intruder)
+
+    const trip = await makeTrip({
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const activity = await makeActivity({
+      tripId: trip.id,
+    })
+
+    activitiesRepository.items.push(activity)
+
+    const result = await deleteTripActivityUseCase.execute({
+      id: activity.id.toString(),
+      travelerId: intruder.id.toString(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(NotAllowedError)
+    expect(activitiesRepository.items).toHaveLength(1)
   })
 })

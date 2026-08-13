@@ -55,6 +55,7 @@ export class FakeTripsRepository implements TripsRepository {
       destination: trip.destination,
       startsAt: trip.startsAt,
       endsAt: trip.endsAt,
+      ownerId: trip.ownerId,
       ownerName: owner.name,
       createdAt: trip.createdAt,
       updatedAt: trip.updatedAt,

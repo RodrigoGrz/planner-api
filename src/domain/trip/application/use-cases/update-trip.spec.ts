@@ -7,6 +7,9 @@ import { makeTrip } from 'tests/factories/make-trip'
 import { dayjs } from '@/lib/dayjs'
 import { Activity } from '../../enterprise/entities/activity'
 import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
+import { UniqueEntityID } from '@/core/entities/unique-entity-id'
+import { NotAllowedError } from './errors/not-allowed-error'
+import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 
 let activitiesRepository: FakeActivitiesRepository
 let tripsRepository: FakeTripsRepository
@@ -45,6 +48,7 @@ describe('Update Trip', () => {
 
     const result = await updateTripUseCase.execute({
       tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
       destination: 'London',
       startsAt: dayjs().add(2, 'month').toDate(),
       endsAt: dayjs().add(2, 'month').add(4, 'day').toDate(),
@@ -96,6 +100,7 @@ describe('Update Trip', () => {
 
     const result = await updateTripUseCase.execute({
       tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
       destination: 'London',
       startsAt: newStartsAt,
       endsAt: newEndsAt,
@@ -104,5 +109,46 @@ describe('Update Trip', () => {
     expect(result.isRight()).toBeTruthy()
     expect(activitiesRepository.items).toHaveLength(1)
     expect(activitiesRepository.items[0].id).toEqual(activityInside.id)
+  })
+
+  it('should not be able to update a trip if the traveler is not the owner', async () => {
+    const owner = await makeTraveler()
+    const intruder = await makeTraveler()
+
+    travelersRepository.items.push(owner, intruder)
+
+    const trip = await makeTrip({
+      destination: 'Norway',
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: intruder.id.toString(),
+      destination: 'London',
+      startsAt: dayjs().add(2, 'month').toDate(),
+      endsAt: dayjs().add(2, 'month').add(4, 'day').toDate(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(NotAllowedError)
+    expect(trip.destination).toBe('Norway')
+  })
+
+  it('should not be able to update a trip that does not exist', async () => {
+    const result = await updateTripUseCase.execute({
+      tripId: new UniqueEntityID().toString(),
+      travelerId: new UniqueEntityID().toString(),
+      destination: 'London',
+      startsAt: dayjs().add(2, 'month').toDate(),
+      endsAt: dayjs().add(2, 'month').add(4, 'day').toDate(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(ResourceNotExistsError)
   })
 })

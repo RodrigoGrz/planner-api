@@ -3,6 +3,7 @@ import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/erro
 import { getTripActivitiesFactory } from '@/domain/trip/application/use-cases/factory/get-trip-activities-factory'
 import { TripActivitiesByDayPresenter } from '../presenters/trip-activities-by-day-presenter'
 import { getTripActivitiesParams } from '../routers/documentation/trips/get-trip-activities-schema'
+import { NotAllowedError } from '@/domain/trip/application/use-cases/errors/not-allowed-error'
 import z from 'zod'
 
 type GetTripActivitiesParams = z.infer<typeof getTripActivitiesParams>
@@ -12,11 +13,13 @@ export async function getTripActivitiesController(
   reply: FastifyReply,
 ) {
   const { tripId } = request.params
+  const { sub } = request.user
 
   const getTripActivitiesUseCase = getTripActivitiesFactory()
 
   const result = await getTripActivitiesUseCase.execute({
     tripId,
+    travelerId: sub,
   })
 
   if (result.isLeft()) {
@@ -25,6 +28,8 @@ export async function getTripActivitiesController(
     switch (error.constructor) {
       case ResourceNotExistsError:
         return reply.status(409).send({ message: error.message })
+      case NotAllowedError:
+        return reply.status(403).send({ message: error.message })
       default:
         return reply.status(400).send({ message: error.message })
     }

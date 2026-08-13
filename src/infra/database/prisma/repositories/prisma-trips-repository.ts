@@ -53,6 +53,7 @@ export class PrismaTripsRepository implements TripsRepository {
       destination: trip.destination,
       startsAt: trip.starts_at,
       endsAt: trip.ends_at,
+      ownerId: new UniqueEntityID(trip.owner_id),
       ownerName: trip.owner.name,
       createdAt: trip.created_at,
       updatedAt: trip.updated_at,

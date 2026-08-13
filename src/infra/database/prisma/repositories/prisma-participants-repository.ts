@@ -41,6 +41,24 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
     return PrismaParticipantsMapper.toDomain(participant)
   }
 
+  async findByTripAndTravelerId(
+    tripId: string,
+    travelerId: string,
+  ): Promise<Participant | null> {
+    const participant = await prisma.participant.findFirst({
+      where: {
+        trip_id: tripId,
+        traveler_id: travelerId,
+      },
+    })
+
+    if (!participant) {
+      return null
+    }
+
+    return PrismaParticipantsMapper.toDomain(participant)
+  }
+
   async findAllByTripId(tripId: string): Promise<Participant[]> {
     const participants = await prisma.participant.findMany({
       where: {

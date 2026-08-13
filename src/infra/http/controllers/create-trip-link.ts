@@ -2,6 +2,7 @@ import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/erro
 import { createTripLinkFactory } from '@/domain/trip/application/use-cases/factory/create-trip-link-factory'
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { createTripLinkBody } from '../routers/documentation/trips/create-trip-link-schema'
+import { NotAllowedError } from '@/domain/trip/application/use-cases/errors/not-allowed-error'
 import z from 'zod'
 
 type CreateLinkBody = z.infer<typeof createTripLinkBody>
@@ -11,6 +12,7 @@ export async function createTripLinkController(
   reply: FastifyReply,
 ) {
   const { title, url, tripId } = request.body
+  const { sub } = request.user
 
   const createTripLinkUseCase = createTripLinkFactory()
 
@@ -18,6 +20,7 @@ export async function createTripLinkController(
     title,
     url,
     tripId,
+    travelerId: sub,
   })
 
   if (result.isLeft()) {
@@ -26,6 +29,8 @@ export async function createTripLinkController(
     switch (error.constructor) {
       case ResourceNotExistsError:
         return reply.status(409).send({ message: error.message })
+      case NotAllowedError:
+        return reply.status(403).send({ message: error.message })
       default:
         return reply.status(400).send({ message: error.message })
     }

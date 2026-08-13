@@ -25,6 +25,21 @@ export const getTripParticipantsSchema = {
       200: getTripParticipantsResponse.describe(
         'Trip participants found successfully',
       ),
+      400: z
+        .object({
+          message: z.string(),
+        })
+        .describe('Bad request'),
+      403: z
+        .object({
+          message: z.string(),
+        })
+        .describe('Não permitido'),
+      409: z
+        .object({
+          message: z.string(),
+        })
+        .describe('Recurso não encontrado.'),
     },
   },
 }

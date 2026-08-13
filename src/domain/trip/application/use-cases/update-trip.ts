@@ -6,16 +6,22 @@ import { dayjs } from '@/lib/dayjs'
 import { InvalidTripStartDate } from './errors/invalid-trip-start-date-error'
 import { InvalidTripEndDate } from './errors/invalid-trip-end-date-error'
 import { ActivitiesRepository } from '../repositories/activities-repository'
+import { NotAllowedError } from './errors/not-allowed-error'
+import { isTripOwner } from '../authorization/trip-access'
 
 interface UpdateTripUseCaseRequest {
   tripId: string
+  travelerId: string
   destination: string
   startsAt: Date
   endsAt: Date
 }
 
 type UpdateTripUseCaseResponse = Either<
-  ResourceNotExistsError | InvalidTripStartDate | InvalidTripEndDate,
+  | ResourceNotExistsError
+  | InvalidTripStartDate
+  | InvalidTripEndDate
+  | NotAllowedError,
   { trip: Trip }
 >
 
@@ -27,6 +33,7 @@ export class UpdateTripUseCase {
 
   async execute({
     tripId,
+    travelerId,
     startsAt,
     endsAt,
     destination,
@@ -35,6 +42,10 @@ export class UpdateTripUseCase {
 
     if (!trip) {
       return left(new ResourceNotExistsError())
+    }
+
+    if (!isTripOwner(trip, travelerId)) {
+      return left(new NotAllowedError())
     }
 
     if (dayjs(startsAt).isBefore(new Date())) {

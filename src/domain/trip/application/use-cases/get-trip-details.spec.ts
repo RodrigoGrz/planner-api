@@ -3,13 +3,19 @@ import { GetTripDetailsUseCase } from './get-trip-details'
 import { FakeTravelersRepository } from 'tests/repositories/fake-travelers-repository'
 import { makeTraveler } from 'tests/factories/make-traveler'
 import { makeTrip } from 'tests/factories/make-trip'
+import { makeParticipant } from 'tests/factories/make-participant'
 import { FakeActivitiesRepository } from 'tests/repositories/fake-activities-repository'
 import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
+import { FakeParticipantsRepository } from 'tests/repositories/fake-participants-repository'
+import { UniqueEntityID } from '@/core/entities/unique-entity-id'
+import { ResourceNotExistsError } from './errors/resource-not-exists-error'
+import { NotAllowedError } from './errors/not-allowed-error'
 
 let activitiesRepository: FakeActivitiesRepository
 let travelersRepository: FakeTravelersRepository
 let tripsRepository: FakeTripsRepository
 let linksRepository: FakeLinksRepository
+let participantsRepository: FakeParticipantsRepository
 let getTripDetailsUseCase: GetTripDetailsUseCase
 
 describe('Get Trip Details', () => {
@@ -22,7 +28,11 @@ describe('Get Trip Details', () => {
       activitiesRepository,
       linksRepository,
     )
-    getTripDetailsUseCase = new GetTripDetailsUseCase(tripsRepository)
+    participantsRepository = new FakeParticipantsRepository(tripsRepository)
+    getTripDetailsUseCase = new GetTripDetailsUseCase(
+      tripsRepository,
+      participantsRepository,
+    )
   })
 
   it('should be able to get trip details', async () => {
@@ -40,11 +50,70 @@ describe('Get Trip Details', () => {
 
     const result = await getTripDetailsUseCase.execute({
       id: trip.id.toString(),
+      travelerId: owner.id.toString(),
     })
 
     expect(result.isRight()).toBeTruthy()
     expect(result.isRight() && result.value.tripWithOwner.ownerName).toBe(
       'Teste',
     )
+  })
+
+  it('should be able to get trip details as a linked participant', async () => {
+    const owner = await makeTraveler({ name: 'Teste' })
+    const guest = await makeTraveler()
+
+    travelersRepository.items.push(owner, guest)
+
+    const trip = await makeTrip({
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const participant = await makeParticipant({
+      tripId: trip.id,
+      travelerId: guest.id,
+    })
+
+    participantsRepository.items.push(participant)
+
+    const result = await getTripDetailsUseCase.execute({
+      id: trip.id.toString(),
+      travelerId: guest.id.toString(),
+    })
+
+    expect(result.isRight()).toBeTruthy()
+  })
+
+  it('should not be able to get trip details of someone else trip', async () => {
+    const owner = await makeTraveler()
+    const intruder = await makeTraveler()
+
+    travelersRepository.items.push(owner, intruder)
+
+    const trip = await makeTrip({
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const result = await getTripDetailsUseCase.execute({
+      id: trip.id.toString(),
+      travelerId: intruder.id.toString(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(NotAllowedError)
+  })
+
+  it('should not be able to get details of a trip that does not exist', async () => {
+    const result = await getTripDetailsUseCase.execute({
+      id: new UniqueEntityID().toString(),
+      travelerId: new UniqueEntityID().toString(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(ResourceNotExistsError)
   })
 })
