@@ -25,6 +25,37 @@ export class FakeParticipantsRepository implements ParticipantsRepository {
     this.items.push(participant)
   }
 
+  async update(participant: Participant): Promise<void> {
+    const index = this.items.findIndex(
+      (item) => item.id.toString() === participant.id.toString(),
+    )
+
+    if (index < 0) return
+
+    this.items[index] = participant
+  }
+
+  async findByConfirmationToken(token: string): Promise<Participant | null> {
+    const participant = this.items.find(
+      (item) => item.confirmationToken === token,
+    )
+
+    return participant ?? null
+  }
+
+  async findByTripAndTravelerId(
+    tripId: string,
+    travelerId: string,
+  ): Promise<Participant | null> {
+    const participant = this.items.find(
+      (item) =>
+        item.tripId.toString() === tripId &&
+        item.travelerId?.toString() === travelerId,
+    )
+
+    return participant ?? null
+  }
+
   async findAllByTripId(tripId: string): Promise<Participant[]> {
     return this.items.filter((item) => item.tripId.toString() === tripId)
   }

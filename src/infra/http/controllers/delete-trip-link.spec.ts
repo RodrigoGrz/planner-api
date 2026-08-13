@@ -45,4 +45,15 @@ describe('Delete Trip Links (E2E)', () => {
     expect(linkResponse.statusCode).toBe(204)
     expect(afterUpdated.length).toBe(1)
   })
+
+  test('[DELETE] /trip/link/:linkId returns 409 when the link does not exist', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const linkResponse = await request(app.server)
+      .delete(`/trip/link/${new UniqueEntityID().toString()}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(linkResponse.statusCode).toBe(409)
+  })
 })

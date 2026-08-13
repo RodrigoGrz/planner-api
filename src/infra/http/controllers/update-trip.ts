@@ -7,6 +7,7 @@ import {
   updateTripBody,
   updateTripParams,
 } from '../routers/documentation/trips/update-trip-schema'
+import { NotAllowedError } from '@/domain/trip/application/use-cases/errors/not-allowed-error'
 import z from 'zod'
 
 type UpdateTripParams = z.infer<typeof updateTripParams>
@@ -20,6 +21,7 @@ export async function updateTripController(
   reply: FastifyReply,
 ) {
   const { tripId } = request.params
+  const { sub } = request.user
   const { destination, startsAt, endsAt } = request.body
 
   const updateTripUseCase = updateTripFactory()
@@ -29,6 +31,7 @@ export async function updateTripController(
     startsAt,
     endsAt,
     tripId,
+    travelerId: sub,
   })
 
   if (result.isLeft()) {
@@ -41,6 +44,8 @@ export async function updateTripController(
         return reply.status(409).send({ message: error.message })
       case ResourceNotExistsError:
         return reply.status(409).send({ message: error.message })
+      case NotAllowedError:
+        return reply.status(403).send({ message: error.message })
       default:
         return reply.status(400).send({ message: error.message })
     }

@@ -3,6 +3,7 @@ import { FileTypeInvalidError } from '@/domain/trip/application/use-cases/errors
 import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/errors/resource-not-exists-error'
 import { uploadTripCoverImageFactory } from '@/domain/trip/application/use-cases/factory/upload-trip-cover-image-factory'
 import { uploadTripCoverImageParams } from '../routers/documentation/trips/upload-trip-cover-image-schema'
+import { NotAllowedError } from '@/domain/trip/application/use-cases/errors/not-allowed-error'
 import z from 'zod'
 
 type UploadTripCoverImageParams = z.infer<typeof uploadTripCoverImageParams>
@@ -12,6 +13,7 @@ export async function uploadTripCoverImageController(
   reply: FastifyReply,
 ) {
   const { tripId } = request.params
+  const { sub } = request.user
   const file = await request.file()
 
   if (!file) {
@@ -24,6 +26,7 @@ export async function uploadTripCoverImageController(
 
   const result = await uploadTripCoverImageUseCase.execute({
     tripId,
+    travelerId: sub,
     fileName: file.filename,
     fileType: file.mimetype,
     body,
@@ -37,6 +40,8 @@ export async function uploadTripCoverImageController(
         return reply.status(415).send({ message: error.message })
       case ResourceNotExistsError:
         return reply.status(409).send({ message: error.message })
+      case NotAllowedError:
+        return reply.status(403).send({ message: error.message })
       default:
         return reply.status(400).send({ message: error.message })
     }

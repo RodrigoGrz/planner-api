@@ -1,18 +1,22 @@
-import { dayjs } from '@/lib/dayjs'
 import { prisma } from '@/infra/database/prisma/prisma'
 import { getMailClient } from '@/mail'
+import { participantInviteFormat } from '@/utils/mail-formats'
+import { randomUUID } from 'node:crypto'
 import nodemailer from 'nodemailer'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { verifyJWT } from '../middlewares/verify-jwt'
 import z from 'zod'
 
 export const createInvite = async (app: FastifyInstance) => {
   app.withTypeProvider<ZodTypeProvider>().post(
     '/trips/:tripId/invites',
     {
+      onRequest: [verifyJWT],
       schema: {
         tags: ['participants'],
         summary: 'Invite someone to the trip.',
+        security: [{ bearerAuth: [] }],
         params: z.object({
           tripId: z.string().uuid(),
         }),
@@ -22,37 +26,48 @@ export const createInvite = async (app: FastifyInstance) => {
         response: {
           201: z.null(),
           400: z.object({ message: z.string() }).describe('Bad request'),
+          403: z.object({ message: z.string() }).describe('Não permitido'),
+          409: z
+            .object({ message: z.string() })
+            .describe('Recurso não encontrado.'),
         },
       },
     },
     async (request, reply) => {
       const { tripId } = request.params
       const { email } = request.body
+      const { sub } = request.user
 
       const trip = await prisma.trip.findUnique({
         where: { id: tripId },
       })
 
       if (!trip) {
-        throw new Error('Trip not found.')
+        return reply.status(409).send({ message: 'Recurso não encontrado.' })
       }
+
+      if (trip.owner_id !== sub) {
+        return reply.status(403).send({ message: 'Não permitido.' })
+      }
+
+      const confirmationToken = randomUUID()
 
       const participant = await prisma.participant.create({
         data: {
           trip_id: tripId,
           email,
+          confirmation_token: confirmationToken,
         },
       })
 
       const mail = await getMailClient()
 
-      const formattedTripStartDate = dayjs(trip.starts_at).format('D[ de ]MMMM')
-      const formattedTripEndDate = dayjs(trip.ends_at).format('D[ de ]MMMM')
-
-      const confirmationLink = new URL(
-        `planner://trip/${trip.id}?participants=${participant.id}`,
-        'http://10.1.1.58:3000',
-      )
+      const mailTemplate = participantInviteFormat({
+        destination: trip.destination,
+        startsAt: trip.starts_at,
+        endsAt: trip.ends_at,
+        confirmationToken,
+      })
 
       const message = await mail.sendMail({
         from: {
@@ -60,19 +75,8 @@ export const createInvite = async (app: FastifyInstance) => {
           address: 'oi@plann.er',
         },
         to: participant.email,
-        subject: `Confirme sua presença na viagem para ${trip.destination} em ${formattedTripStartDate}`,
-        html: `
-        <div style="font-family: sans-serif; font-size: 16px; line-height: 1.6;">
-          <p>Você foi convidado(a) para participar de uma viagem para <strong>${trip.destination}</strong> nas datas de <strong>${formattedTripStartDate} até ${formattedTripEndDate}</strong>.</p>
-          <p></p>
-          <p>Para confirmar sua presença na viagem, clique no link abaixo:</p>
-          <p></p>
-          <p>
-            <a href="${confirmationLink.toString()}">Confirmar viagem</a>
-          </p>
-          <p>Caso você não saiba do que se trata esse e-mail, apenas ignore esse e-mail.</p>
-        </div>
-      `.trim(),
+        subject: mailTemplate.subject,
+        html: mailTemplate.html,
       })
 
       console.log(nodemailer.getTestMessageUrl(message))

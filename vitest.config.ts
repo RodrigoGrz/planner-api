@@ -6,7 +6,11 @@ export default defineConfig({
   test: {
     globals: true,
     root: './',
-    include: ['./src/domain/**/*.spec.ts', './src/core/*.spec.ts'],
+    include: [
+      './src/domain/**/*.spec.ts',
+      './src/core/*.spec.ts',
+      './src/utils/*.spec.ts',
+    ],
   },
   plugins: [
     tsConfigPaths(),

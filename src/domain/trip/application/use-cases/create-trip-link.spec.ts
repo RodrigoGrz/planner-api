@@ -6,6 +6,7 @@ import { makeTrip } from 'tests/factories/make-trip'
 import { makeTraveler } from 'tests/factories/make-traveler'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
+import { NotAllowedError } from './errors/not-allowed-error'
 import { FakeActivitiesRepository } from 'tests/repositories/fake-activities-repository'
 
 let activitiesRepository: FakeActivitiesRepository
@@ -45,6 +46,7 @@ describe('Create Trip Link', () => {
       title: 'test',
       url: 'https://google.com',
       tripId: trip.id.toString(),
+      travelerId: traveler.id.toString(),
     })
 
     expect(result.isRight()).toBeTruthy()
@@ -56,9 +58,34 @@ describe('Create Trip Link', () => {
       title: 'wrong',
       url: 'https://google.com',
       tripId: new UniqueEntityID().toString(),
+      travelerId: new UniqueEntityID().toString(),
     })
 
     expect(result.isLeft()).toBeTruthy()
     expect(result.value).toBeInstanceOf(ResourceNotExistsError)
+  })
+
+  it('should not be able to create a trip link if the traveler is not the trip owner', async () => {
+    const owner = await makeTraveler()
+    const intruder = await makeTraveler()
+
+    travelersRepository.items.push(owner, intruder)
+
+    const trip = await makeTrip({
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const result = await createTripLinkUseCase.execute({
+      title: 'test',
+      url: 'https://google.com',
+      tripId: trip.id.toString(),
+      travelerId: intruder.id.toString(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(NotAllowedError)
+    expect(linksRepository.items).toHaveLength(0)
   })
 })

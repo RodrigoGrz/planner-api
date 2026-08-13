@@ -8,6 +8,7 @@ import { makeTrip } from 'tests/factories/make-trip'
 import { makeLink } from 'tests/factories/make-link'
 import { dayjs } from '@/lib/dayjs'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
+import { NotAllowedError } from './errors/not-allowed-error'
 
 let activitiesRepository: FakeActivitiesRepository
 let tripsRepository: FakeTripsRepository
@@ -25,7 +26,10 @@ describe('Delete trip link', () => {
       activitiesRepository,
       linksRepository,
     )
-    deleteTripLinkUseCase = new DeleteTripLinkUseCase(linksRepository)
+    deleteTripLinkUseCase = new DeleteTripLinkUseCase(
+      linksRepository,
+      tripsRepository,
+    )
   })
 
   it('should be able to delete a trip link', async () => {
@@ -50,6 +54,7 @@ describe('Delete trip link', () => {
 
     const result = await deleteTripLinkUseCase.execute({
       id: link.id.toString(),
+      travelerId: owner.id.toString(),
     })
 
     expect(result.isRight()).toBeTruthy()
@@ -60,9 +65,38 @@ describe('Delete trip link', () => {
   it('should not be able to delete a trip link if ID is wrong', async () => {
     const result = await deleteTripLinkUseCase.execute({
       id: 'wrong-id',
+      travelerId: 'any-traveler',
     })
 
     expect(result.isLeft()).toBeTruthy()
     expect(result.value).toBeInstanceOf(ResourceNotExistsError)
+  })
+
+  it('should not be able to delete a trip link if the traveler is not the trip owner', async () => {
+    const owner = await makeTraveler()
+    const intruder = await makeTraveler()
+
+    travelersRepository.items.push(owner, intruder)
+
+    const trip = await makeTrip({
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const link = await makeLink({
+      tripId: trip.id,
+    })
+
+    linksRepository.items.push(link)
+
+    const result = await deleteTripLinkUseCase.execute({
+      id: link.id.toString(),
+      travelerId: intruder.id.toString(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(NotAllowedError)
+    expect(linksRepository.items).toHaveLength(1)
   })
 })

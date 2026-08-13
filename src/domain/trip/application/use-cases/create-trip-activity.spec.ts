@@ -8,6 +8,7 @@ import { dayjs } from '@/lib/dayjs'
 import { InvalidDate } from './errors/invalid-date-error'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
+import { NotAllowedError } from './errors/not-allowed-error'
 import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
 
 let travelersRepository: FakeTravelersRepository
@@ -49,6 +50,7 @@ describe('Create Trip Activity', () => {
       title: 'Hotel Check-in',
       occursAt: dayjs().add(1, 'month').add(1, 'hour').toDate(),
       tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
     })
 
     expect(result.isRight()).toBeTruthy()
@@ -72,6 +74,7 @@ describe('Create Trip Activity', () => {
       title: 'Hotel Check-in',
       occursAt: dayjs().add(1, 'month').subtract(1, 'hour').toDate(),
       tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
     })
 
     expect(result.isLeft()).toBeTruthy()
@@ -95,6 +98,7 @@ describe('Create Trip Activity', () => {
       title: 'Hotel Check-out',
       occursAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
       tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
     })
 
     expect(result.isLeft()).toBeTruthy()
@@ -106,9 +110,36 @@ describe('Create Trip Activity', () => {
       title: 'Hotel Check-out',
       occursAt: dayjs().toDate(),
       tripId: new UniqueEntityID().toString(),
+      travelerId: new UniqueEntityID().toString(),
     })
 
     expect(result.isLeft()).toBeTruthy()
     expect(result.value).toBeInstanceOf(ResourceNotExistsError)
+  })
+
+  it('should not be able to create a activity if the traveler is not the trip owner', async () => {
+    const owner = await makeTraveler()
+    const intruder = await makeTraveler()
+
+    travelersRepository.items.push(owner, intruder)
+
+    const trip = await makeTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const result = await createTripActivityUseCase.execute({
+      title: 'Hotel Check-in',
+      occursAt: dayjs().add(1, 'month').add(1, 'hour').toDate(),
+      tripId: trip.id.toString(),
+      travelerId: intruder.id.toString(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(NotAllowedError)
+    expect(activitiesRepository.items).toHaveLength(0)
   })
 })

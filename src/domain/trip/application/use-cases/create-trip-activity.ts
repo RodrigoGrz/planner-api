@@ -6,15 +6,18 @@ import { dayjs } from '@/lib/dayjs'
 import { InvalidDate } from './errors/invalid-date-error'
 import { Activity } from '../../enterprise/entities/activity'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
+import { NotAllowedError } from './errors/not-allowed-error'
+import { isTripOwner } from '../authorization/trip-access'
 
 interface CreateTripActivityUseCaseRequest {
   title: string
   occursAt: Date
   tripId: string
+  travelerId: string
 }
 
 type CreateTripActivityUseCaseResponse = Either<
-  ResourceNotExistsError | InvalidDate,
+  ResourceNotExistsError | InvalidDate | NotAllowedError,
   { activity: Activity }
 >
 
@@ -28,11 +31,16 @@ export class CreateTripActivityUseCase {
     title,
     occursAt,
     tripId,
+    travelerId,
   }: CreateTripActivityUseCaseRequest): Promise<CreateTripActivityUseCaseResponse> {
     const trip = await this.tripsRepository.findById(tripId)
 
     if (!trip) {
       return left(new ResourceNotExistsError())
+    }
+
+    if (!isTripOwner(trip, travelerId)) {
+      return left(new NotAllowedError())
     }
 
     if (

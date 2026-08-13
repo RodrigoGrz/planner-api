@@ -10,8 +10,9 @@ import { TravelersRepository } from '../repositories/travelers-repository'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { Mailer } from '../mail/mailer'
 import { dayjs } from '@/lib/dayjs'
-import { createTripFormat } from '@/utils/mail-formats'
+import { participantInviteFormat } from '@/utils/mail-formats'
 import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
+import { randomUUID } from 'node:crypto'
 
 interface CreateTripUseCaseRequest {
   destination: string
@@ -41,9 +42,9 @@ export class CreateTripUseCase {
     ownerId,
     emailsToInvite,
   }: CreateTripUseCaseRequest): Promise<CreateTripUseCaseResponse> {
-    const now = dayjs().utc().startOf('day')
-    const start = dayjs(startsAt).utc().startOf('day')
-    const end = dayjs(endsAt).utc().startOf('day')
+    const now = dayjs().startOf('day')
+    const start = dayjs(startsAt).startOf('day')
+    const end = dayjs(endsAt).startOf('day')
 
     if (start.isBefore(now)) {
       return left(new InvalidTripStartDate())
@@ -89,45 +90,48 @@ export class CreateTripUseCase {
       travelerId: new UniqueEntityID(ownerId),
     })
 
-    const inviteParticipants: Participant[] = filteredEmails.map((email) => {
+    const invites = filteredEmails.map((email) => {
       const traveler = travelerMap.get(email)
+      const confirmationToken = randomUUID()
 
-      return Participant.create({
-        email,
-        name: traveler?.name ?? null,
-        tripId: trip.id,
-        travelerId: traveler ? traveler.id : undefined,
-        isConfirmed: false,
-      })
+      return {
+        confirmationToken,
+        participant: Participant.create({
+          email,
+          name: traveler?.name ?? null,
+          tripId: trip.id,
+          travelerId: traveler ? traveler.id : undefined,
+          isConfirmed: false,
+          confirmationToken,
+        }),
+      }
     })
 
     await this.tripsRepository.runInTransaction(async () => {
       await this.tripsRepository.create(trip)
       await this.participantsRepository.create(participantOwner)
 
-      for (const participant of inviteParticipants) {
+      for (const { participant } of invites) {
         await this.participantsRepository.create(participant)
       }
     })
 
-    if (inviteParticipants.length > 0) {
-      const mailTemplate = createTripFormat({
+    for (const { participant, confirmationToken } of invites) {
+      const mailTemplate = participantInviteFormat({
         destination,
         startsAt,
         endsAt,
-        tripId: trip.id.toString(),
+        confirmationToken,
       })
 
-      for (const participant of inviteParticipants) {
-        await this.mailer.send({
-          html: mailTemplate.html,
-          subject: mailTemplate.subject,
-          to: {
-            name: participant.name,
-            address: participant.email,
-          },
-        })
-      }
+      await this.mailer.send({
+        html: mailTemplate.html,
+        subject: mailTemplate.subject,
+        to: {
+          name: participant.name,
+          address: participant.email,
+        },
+      })
     }
 
     return right({

@@ -15,6 +15,50 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
     })
   }
 
+  async update(participant: Participant): Promise<void> {
+    await prisma.participant.update({
+      where: { id: participant.id.toString() },
+      data: {
+        name: participant.name,
+        email: participant.email,
+        is_confirmed: participant.isConfirmed,
+        confirmation_token: participant.confirmationToken,
+      },
+    })
+  }
+
+  async findByConfirmationToken(token: string): Promise<Participant | null> {
+    const participant = await prisma.participant.findUnique({
+      where: {
+        confirmation_token: token,
+      },
+    })
+
+    if (!participant) {
+      return null
+    }
+
+    return PrismaParticipantsMapper.toDomain(participant)
+  }
+
+  async findByTripAndTravelerId(
+    tripId: string,
+    travelerId: string,
+  ): Promise<Participant | null> {
+    const participant = await prisma.participant.findFirst({
+      where: {
+        trip_id: tripId,
+        traveler_id: travelerId,
+      },
+    })
+
+    if (!participant) {
+      return null
+    }
+
+    return PrismaParticipantsMapper.toDomain(participant)
+  }
+
   async findAllByTripId(tripId: string): Promise<Participant[]> {
     const participants = await prisma.participant.findMany({
       where: {

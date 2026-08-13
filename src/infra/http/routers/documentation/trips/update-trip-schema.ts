@@ -15,6 +15,7 @@ export const updateTripSchema = {
     tags: ['Trip'],
     summary: 'Update a new trip.',
     security: [{ bearerAuth: [] }],
+    params: updateTripParams,
     body: updateTripBody,
     response: {
       204: z.null().describe('Trip update successfully'),
@@ -23,6 +24,11 @@ export const updateTripSchema = {
           message: z.string(),
         })
         .describe('Bad request'),
+      403: z
+        .object({
+          message: z.string(),
+        })
+        .describe('Não permitido'),
       409: z
         .object({
           message: z.string(),

@@ -4,6 +4,7 @@ import { FastifyReply, FastifyRequest } from 'fastify'
 import { TripWithOwnerPresenter } from '../presenters/trip-with-owner-presenter'
 import z from 'zod'
 import { getTripsDetailsParams } from '../routers/documentation/trips/get-trip-details-schema'
+import { NotAllowedError } from '@/domain/trip/application/use-cases/errors/not-allowed-error'
 
 type GetTripsDetailsParams = z.infer<typeof getTripsDetailsParams>
 
@@ -12,11 +13,13 @@ export async function getTripDetailsController(
   reply: FastifyReply,
 ) {
   const { id } = request.params
+  const { sub } = request.user
 
   const getTripDetailsUseCase = getTripDetailsFactory()
 
   const result = await getTripDetailsUseCase.execute({
     id,
+    travelerId: sub,
   })
 
   if (result.isLeft()) {
@@ -25,6 +28,8 @@ export async function getTripDetailsController(
     switch (error.constructor) {
       case ResourceNotExistsError:
         return reply.status(409).send({ message: error.message })
+      case NotAllowedError:
+        return reply.status(403).send({ message: error.message })
       default:
         return reply.status(400).send({ message: error.message })
     }

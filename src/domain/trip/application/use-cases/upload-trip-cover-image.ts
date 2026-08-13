@@ -4,16 +4,19 @@ import { FileTypeInvalidError } from './errors/file-type-invalid-error'
 import { Uploader } from '../storage/uploader'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { Trip } from '../../enterprise/entities/trip'
+import { NotAllowedError } from './errors/not-allowed-error'
+import { isTripOwner } from '../authorization/trip-access'
 
 interface UploadTripCoverImageUseCaseRequest {
   tripId: string
+  travelerId: string
   fileName: string
   fileType: string
   body: Buffer
 }
 
 type UploadTripCoverImageUseCaseResponse = Either<
-  FileTypeInvalidError | ResourceNotExistsError,
+  FileTypeInvalidError | ResourceNotExistsError | NotAllowedError,
   { trip: Trip }
 >
 
@@ -25,6 +28,7 @@ export class UploadTripCoverImageUseCase {
 
   async execute({
     tripId,
+    travelerId,
     fileType,
     fileName,
     body,
@@ -37,6 +41,10 @@ export class UploadTripCoverImageUseCase {
 
     if (!trip) {
       return left(new ResourceNotExistsError())
+    }
+
+    if (!isTripOwner(trip, travelerId)) {
+      return left(new NotAllowedError())
     }
 
     const { url } = await this.uploader.upload({

@@ -7,6 +7,7 @@ export interface ParticipantProps {
   travelerId?: UniqueEntityID | null
   tripId: UniqueEntityID
   isConfirmed: boolean
+  confirmationToken?: string | null
 }
 
 export class Participant extends Entity<ParticipantProps> {
@@ -28,6 +29,15 @@ export class Participant extends Entity<ParticipantProps> {
 
   get isConfirmed() {
     return this.props.isConfirmed
+  }
+
+  get confirmationToken() {
+    return this.props.confirmationToken
+  }
+
+  confirm() {
+    this.props.isConfirmed = true
+    this.props.confirmationToken = null
   }
 
   static create(props: ParticipantProps, id?: UniqueEntityID) {

@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from 'fastify'
 import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/errors/resource-not-exists-error'
 import { deleteTripActivityParams } from '../routers/documentation/trips/delete-trip-activity-schema'
 import { deleteTripActivityFactory } from '@/domain/trip/application/use-cases/factory/delete-trip-activity-factory'
+import { NotAllowedError } from '@/domain/trip/application/use-cases/errors/not-allowed-error'
 import z from 'zod'
 
 type DeleteTripActivityParams = z.infer<typeof deleteTripActivityParams>
@@ -11,11 +12,13 @@ export async function deleteTripActivityController(
   reply: FastifyReply,
 ) {
   const { activityId } = request.params
+  const { sub } = request.user
 
   const deleteTripActivityUseCase = deleteTripActivityFactory()
 
   const result = await deleteTripActivityUseCase.execute({
     id: activityId,
+    travelerId: sub,
   })
 
   if (result.isLeft()) {
@@ -24,6 +27,8 @@ export async function deleteTripActivityController(
     switch (error.constructor) {
       case ResourceNotExistsError:
         return reply.status(409).send({ message: error.message })
+      case NotAllowedError:
+        return reply.status(403).send({ message: error.message })
       default:
         return reply.status(400).send({ message: error.message })
     }

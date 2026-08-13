@@ -10,11 +10,11 @@ import {
   ZodTypeProvider,
 } from 'fastify-type-provider-zod'
 import { createInvite } from './http/routers/create-invite'
-import { confirmParticipant } from './http/routers/confirm-participant'
 import fastifyJwt from '@fastify/jwt'
 import { env } from '@/env'
 import { travelersRoute } from './http/routers/travelers.route'
 import { tripsRoute } from './http/routers/trips.route'
+import { participantsRoute } from './http/routers/participants.route'
 
 export const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -119,6 +119,6 @@ app.register(fastifyCors, {
 
 app.register(travelersRoute)
 app.register(tripsRoute)
+app.register(participantsRoute)
 
-app.register(confirmParticipant)
 app.register(createInvite)

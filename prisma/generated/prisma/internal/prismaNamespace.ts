@@ -837,6 +837,7 @@ export const ParticipantScalarFieldEnum = {
   name: 'name',
   email: 'email',
   is_confirmed: 'is_confirmed',
+  confirmation_token: 'confirmation_token',
   trip_id: 'trip_id',
   traveler_id: 'traveler_id'
 } as const

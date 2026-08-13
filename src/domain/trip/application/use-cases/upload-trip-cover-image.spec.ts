@@ -7,6 +7,7 @@ import { Trip } from '../../enterprise/entities/trip'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { FileTypeInvalidError } from './errors/file-type-invalid-error'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
+import { NotAllowedError } from './errors/not-allowed-error'
 import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
 
 let travelersRepository: FakeTravelersRepository
@@ -45,6 +46,7 @@ describe('Upload Trip Cover Image', () => {
 
     const result = await sut.execute({
       tripId: 'trip-1',
+      travelerId: 'owner-1',
       fileName: 'cover.png',
       fileType: 'image/png',
       body: Buffer.from('fake-image'),
@@ -57,6 +59,7 @@ describe('Upload Trip Cover Image', () => {
   it('should not upload image if file type is invalid', async () => {
     const result = await sut.execute({
       tripId: 'trip-1',
+      travelerId: 'owner-1',
       fileName: 'file.pdf',
       fileType: 'application/pdf',
       body: Buffer.from('fake-pdf'),
@@ -69,6 +72,7 @@ describe('Upload Trip Cover Image', () => {
   it('should not upload image if trip does not exist', async () => {
     const result = await sut.execute({
       tripId: 'non-existing-trip',
+      travelerId: 'owner-1',
       fileName: 'cover.png',
       fileType: 'image/png',
       body: Buffer.from('fake-image'),
@@ -76,5 +80,32 @@ describe('Upload Trip Cover Image', () => {
 
     expect(result.isLeft()).toBe(true)
     expect(result.value).toBeInstanceOf(ResourceNotExistsError)
+  })
+
+  it('should not upload image if the traveler is not the trip owner', async () => {
+    const trip = Trip.create(
+      {
+        destination: 'Paris',
+        startsAt: new Date('2026-01-10'),
+        endsAt: new Date('2026-01-20'),
+        ownerId: new UniqueEntityID('owner-1'),
+      },
+      new UniqueEntityID('trip-1'),
+    )
+
+    await tripsRepository.create(trip)
+
+    const result = await sut.execute({
+      tripId: 'trip-1',
+      travelerId: 'intruder-1',
+      fileName: 'cover.png',
+      fileType: 'image/png',
+      body: Buffer.from('fake-image'),
+    })
+
+    expect(result.isLeft()).toBe(true)
+    expect(result.value).toBeInstanceOf(NotAllowedError)
+    expect(uploader.uploads).toHaveLength(0)
+    expect(trip.coverImageUrl).toBeUndefined()
   })
 })

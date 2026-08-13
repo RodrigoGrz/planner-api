@@ -45,4 +45,15 @@ describe('Delete Trip Activity (E2E)', () => {
     expect(activityResponse.statusCode).toBe(204)
     expect(afterUpdated.length).toBe(1)
   })
+
+  test('[DELETE] /trip/activity/:activityId returns 409 when the activity does not exist', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const activityResponse = await request(app.server)
+      .delete(`/trip/activity/${new UniqueEntityID().toString()}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(activityResponse.statusCode).toBe(409)
+  })
 })

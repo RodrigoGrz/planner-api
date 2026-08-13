@@ -6,6 +6,7 @@ export interface TripWithOwnerProps {
   destination: string
   startsAt: Date
   endsAt: Date
+  ownerId: UniqueEntityID
   ownerName: string
   createdAt: Date
   updatedAt?: Date | null
@@ -26,6 +27,10 @@ export class TripWithOwner extends ValueObject<TripWithOwnerProps> {
 
   get endsAt() {
     return this.props.endsAt
+  }
+
+  get ownerId() {
+    return this.props.ownerId
   }
 
   get ownerName() {

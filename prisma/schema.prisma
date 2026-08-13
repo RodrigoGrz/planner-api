@@ -27,12 +27,13 @@ model Trip {
 }
 
 model Participant {
-  id           String  @id @default(uuid())
-  name         String?
-  email        String
-  is_confirmed Boolean @default(false)
-  trip_id      String
-  traveler_id  String?
+  id                 String  @id @default(uuid())
+  name               String?
+  email              String
+  is_confirmed       Boolean @default(false)
+  confirmation_token String? @unique
+  trip_id            String
+  traveler_id        String?
 
   trip     Trip      @relation(fields: [trip_id], references: [id], name: "member_on_trip", onDelete: Cascade)
   traveler Traveler? @relation(fields: [traveler_id], references: [id])
