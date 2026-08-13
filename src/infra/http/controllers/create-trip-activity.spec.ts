@@ -35,4 +35,19 @@ describe('Create Trip Activity (E2E)', () => {
 
     expect(result.statusCode).toBe(201)
   })
+
+  test('[POST] /trips/activity/register returns 409 when the trip does not exist', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const result = await request(app.server)
+      .post('/trips/activity/register')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title: 'Hotel Check-in',
+        occursAt: dayjs().add(1, 'month').add(1, 'hour').toDate(),
+        tripId: new UniqueEntityID().toString(),
+      })
+
+    expect(result.statusCode).toBe(409)
+  })
 })

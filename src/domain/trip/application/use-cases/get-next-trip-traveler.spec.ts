@@ -120,4 +120,33 @@ describe('Get Next Trip Traveler', () => {
       'Carribean',
     )
   })
+
+  it('should return null when the traveler has no upcoming trip', async () => {
+    const traveler = await makeTraveler()
+
+    travelersRepository.items.push(traveler)
+
+    const pastTrip = await makeTrip({
+      ownerId: traveler.id,
+      destination: 'Lisbon',
+      startsAt: dayjs().subtract(2, 'month').toDate(),
+      endsAt: dayjs().subtract(2, 'month').add(3, 'day').toDate(),
+    })
+
+    tripsRepository.items.push(pastTrip)
+
+    const participant = await makeParticipant({
+      travelerId: traveler.id,
+      tripId: pastTrip.id,
+    })
+
+    participantsRepository.items.push(participant)
+
+    const result = await getNextTripTravelerUseCase.execute({
+      travelerId: traveler.id.toString(),
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(result.isRight() && result.value.nextTrip).toBeUndefined()
+  })
 })

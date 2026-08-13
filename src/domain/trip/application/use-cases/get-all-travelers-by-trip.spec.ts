@@ -7,6 +7,8 @@ import { makeTrip } from 'tests/factories/make-trip'
 import { makeParticipant } from 'tests/factories/make-participant'
 import { GetAllTravelersByTripUseCase } from './get-all-travelers-by-trips'
 import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
+import { UniqueEntityID } from '@/core/entities/unique-entity-id'
+import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 
 let activitiesRepository: FakeActivitiesRepository
 let travelersRepository: FakeTravelersRepository
@@ -111,5 +113,14 @@ describe('Get All Travelers By Trip', () => {
       result.isRight() && result.value.participantsWithTrip[0].destination,
     ).toBe('Miami')
     expect(result.isRight() && result.value.participantsWithTrip.length).toBe(3)
+  })
+
+  it('should not be able to get trips of a traveler that does not exist', async () => {
+    const result = await getAllTravelersByTripUseCase.execute({
+      travelerId: new UniqueEntityID().toString(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(ResourceNotExistsError)
   })
 })

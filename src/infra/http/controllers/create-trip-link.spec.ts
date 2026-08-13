@@ -32,4 +32,19 @@ describe('Create Trip Link (E2E)', () => {
 
     expect(result.statusCode).toBe(201)
   })
+
+  test('[POST] /trips/link/register returns 409 when the trip does not exist', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const result = await request(app.server)
+      .post('/trips/link/register')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title: 'Google',
+        url: 'https://google.com',
+        tripId: new UniqueEntityID().toString(),
+      })
+
+    expect(result.statusCode).toBe(409)
+  })
 })

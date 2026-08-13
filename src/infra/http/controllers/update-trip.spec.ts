@@ -44,4 +44,19 @@ describe('Update Trip (E2E)', () => {
     expect(result.statusCode).toBe(204)
     expect(afterUpdated?.destination).toBe('London')
   })
+
+  test('[PUT] /trips/:tripId/update returns 409 when the trip does not exist', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const result = await request(app.server)
+      .put(`/trips/${new UniqueEntityID().toString()}/update`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        destination: 'London',
+        startsAt: dayjs().add(2, 'month').toDate(),
+        endsAt: dayjs().add(2, 'month').add(3, 'day').toDate(),
+      })
+
+    expect(result.statusCode).toBe(409)
+  })
 })

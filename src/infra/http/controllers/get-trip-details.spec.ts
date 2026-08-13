@@ -30,4 +30,15 @@ describe('Get Trip Details (E2E)', () => {
     expect(tripResponse.body.trip.destination).toBe('Norway')
     expect(tripResponse.body.trip.ownerName).toStrictEqual(expect.any(String))
   })
+
+  test('[GET] /trips/:id returns 409 when the trip does not exist', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const tripResponse = await request(app.server)
+      .get(`/trips/${new UniqueEntityID().toString()}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(tripResponse.statusCode).toBe(409)
+  })
 })
