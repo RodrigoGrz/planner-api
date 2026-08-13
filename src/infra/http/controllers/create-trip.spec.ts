@@ -9,12 +9,6 @@ describe('Create Trip (E2E)', () => {
     await app.ready()
   })
 
-  beforeEach(async () => {
-    await prisma.participant.deleteMany()
-    await prisma.trip.deleteMany()
-    await prisma.traveler.deleteMany()
-  })
-
   afterAll(async () => {
     await app.close()
   })
@@ -86,15 +80,13 @@ describe('Create Trip (E2E)', () => {
 
     expect(result.statusCode).toBe(201)
 
-    const trip = await prisma.trip.findFirst({
-      orderBy: { created_at: 'desc' },
-    })
+    const { tripId } = result.body
 
-    expect(trip).toBeTruthy()
+    expect(tripId).toStrictEqual(expect.any(String))
 
     const participants = await prisma.participant.findMany({
       where: {
-        trip_id: trip!.id,
+        trip_id: tripId,
       },
     })
 
