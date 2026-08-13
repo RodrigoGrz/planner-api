@@ -42,9 +42,9 @@ export class CreateTripUseCase {
     ownerId,
     emailsToInvite,
   }: CreateTripUseCaseRequest): Promise<CreateTripUseCaseResponse> {
-    const now = dayjs().utc().startOf('day')
-    const start = dayjs(startsAt).utc().startOf('day')
-    const end = dayjs(endsAt).utc().startOf('day')
+    const now = dayjs().startOf('day')
+    const start = dayjs(startsAt).startOf('day')
+    const end = dayjs(endsAt).startOf('day')
 
     if (start.isBefore(now)) {
       return left(new InvalidTripStartDate())
