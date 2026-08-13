@@ -5,15 +5,18 @@ import { randomUUID } from 'node:crypto'
 import nodemailer from 'nodemailer'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { verifyJWT } from '../middlewares/verify-jwt'
 import z from 'zod'
 
 export const createInvite = async (app: FastifyInstance) => {
   app.withTypeProvider<ZodTypeProvider>().post(
     '/trips/:tripId/invites',
     {
+      onRequest: [verifyJWT],
       schema: {
         tags: ['participants'],
         summary: 'Invite someone to the trip.',
+        security: [{ bearerAuth: [] }],
         params: z.object({
           tripId: z.string().uuid(),
         }),
@@ -23,19 +26,28 @@ export const createInvite = async (app: FastifyInstance) => {
         response: {
           201: z.null(),
           400: z.object({ message: z.string() }).describe('Bad request'),
+          403: z.object({ message: z.string() }).describe('Não permitido'),
+          409: z
+            .object({ message: z.string() })
+            .describe('Recurso não encontrado.'),
         },
       },
     },
     async (request, reply) => {
       const { tripId } = request.params
       const { email } = request.body
+      const { sub } = request.user
 
       const trip = await prisma.trip.findUnique({
         where: { id: tripId },
       })
 
       if (!trip) {
-        throw new Error('Trip not found.')
+        return reply.status(409).send({ message: 'Recurso não encontrado.' })
+      }
+
+      if (trip.owner_id !== sub) {
+        return reply.status(403).send({ message: 'Não permitido.' })
       }
 
       const confirmationToken = randomUUID()
