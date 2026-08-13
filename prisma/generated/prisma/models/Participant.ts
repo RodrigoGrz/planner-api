@@ -29,6 +29,7 @@ export type ParticipantMinAggregateOutputType = {
   name: string | null
   email: string | null
   is_confirmed: boolean | null
+  confirmation_token: string | null
   trip_id: string | null
   traveler_id: string | null
 }
@@ -38,6 +39,7 @@ export type ParticipantMaxAggregateOutputType = {
   name: string | null
   email: string | null
   is_confirmed: boolean | null
+  confirmation_token: string | null
   trip_id: string | null
   traveler_id: string | null
 }
@@ -47,6 +49,7 @@ export type ParticipantCountAggregateOutputType = {
   name: number
   email: number
   is_confirmed: number
+  confirmation_token: number
   trip_id: number
   traveler_id: number
   _all: number
@@ -58,6 +61,7 @@ export type ParticipantMinAggregateInputType = {
   name?: true
   email?: true
   is_confirmed?: true
+  confirmation_token?: true
   trip_id?: true
   traveler_id?: true
 }
@@ -67,6 +71,7 @@ export type ParticipantMaxAggregateInputType = {
   name?: true
   email?: true
   is_confirmed?: true
+  confirmation_token?: true
   trip_id?: true
   traveler_id?: true
 }
@@ -76,6 +81,7 @@ export type ParticipantCountAggregateInputType = {
   name?: true
   email?: true
   is_confirmed?: true
+  confirmation_token?: true
   trip_id?: true
   traveler_id?: true
   _all?: true
@@ -158,6 +164,7 @@ export type ParticipantGroupByOutputType = {
   name: string | null
   email: string
   is_confirmed: boolean
+  confirmation_token: string | null
   trip_id: string
   traveler_id: string | null
   _count: ParticipantCountAggregateOutputType | null
@@ -188,6 +195,7 @@ export type ParticipantWhereInput = {
   name?: Prisma.StringNullableFilter<"Participant"> | string | null
   email?: Prisma.StringFilter<"Participant"> | string
   is_confirmed?: Prisma.BoolFilter<"Participant"> | boolean
+  confirmation_token?: Prisma.StringNullableFilter<"Participant"> | string | null
   trip_id?: Prisma.StringFilter<"Participant"> | string
   traveler_id?: Prisma.StringNullableFilter<"Participant"> | string | null
   trip?: Prisma.XOR<Prisma.TripScalarRelationFilter, Prisma.TripWhereInput>
@@ -199,6 +207,7 @@ export type ParticipantOrderByWithRelationInput = {
   name?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrder
   is_confirmed?: Prisma.SortOrder
+  confirmation_token?: Prisma.SortOrderInput | Prisma.SortOrder
   trip_id?: Prisma.SortOrder
   traveler_id?: Prisma.SortOrderInput | Prisma.SortOrder
   trip?: Prisma.TripOrderByWithRelationInput
@@ -207,6 +216,7 @@ export type ParticipantOrderByWithRelationInput = {
 
 export type ParticipantWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  confirmation_token?: string
   trip_id_email?: Prisma.ParticipantTrip_idEmailCompoundUniqueInput
   AND?: Prisma.ParticipantWhereInput | Prisma.ParticipantWhereInput[]
   OR?: Prisma.ParticipantWhereInput[]
@@ -218,13 +228,14 @@ export type ParticipantWhereUniqueInput = Prisma.AtLeast<{
   traveler_id?: Prisma.StringNullableFilter<"Participant"> | string | null
   trip?: Prisma.XOR<Prisma.TripScalarRelationFilter, Prisma.TripWhereInput>
   traveler?: Prisma.XOR<Prisma.TravelerNullableScalarRelationFilter, Prisma.TravelerWhereInput> | null
-}, "id" | "trip_id_email">
+}, "id" | "confirmation_token" | "trip_id_email">
 
 export type ParticipantOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrder
   is_confirmed?: Prisma.SortOrder
+  confirmation_token?: Prisma.SortOrderInput | Prisma.SortOrder
   trip_id?: Prisma.SortOrder
   traveler_id?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ParticipantCountOrderByAggregateInput
@@ -240,6 +251,7 @@ export type ParticipantScalarWhereWithAggregatesInput = {
   name?: Prisma.StringNullableWithAggregatesFilter<"Participant"> | string | null
   email?: Prisma.StringWithAggregatesFilter<"Participant"> | string
   is_confirmed?: Prisma.BoolWithAggregatesFilter<"Participant"> | boolean
+  confirmation_token?: Prisma.StringNullableWithAggregatesFilter<"Participant"> | string | null
   trip_id?: Prisma.StringWithAggregatesFilter<"Participant"> | string
   traveler_id?: Prisma.StringNullableWithAggregatesFilter<"Participant"> | string | null
 }
@@ -249,6 +261,7 @@ export type ParticipantCreateInput = {
   name?: string | null
   email: string
   is_confirmed?: boolean
+  confirmation_token?: string | null
   trip: Prisma.TripCreateNestedOneWithoutParticipantsInput
   traveler?: Prisma.TravelerCreateNestedOneWithoutParticipantsInput
 }
@@ -258,6 +271,7 @@ export type ParticipantUncheckedCreateInput = {
   name?: string | null
   email: string
   is_confirmed?: boolean
+  confirmation_token?: string | null
   trip_id: string
   traveler_id?: string | null
 }
@@ -267,6 +281,7 @@ export type ParticipantUpdateInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  confirmation_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trip?: Prisma.TripUpdateOneRequiredWithoutParticipantsNestedInput
   traveler?: Prisma.TravelerUpdateOneWithoutParticipantsNestedInput
 }
@@ -276,6 +291,7 @@ export type ParticipantUncheckedUpdateInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  confirmation_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trip_id?: Prisma.StringFieldUpdateOperationsInput | string
   traveler_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
@@ -285,6 +301,7 @@ export type ParticipantCreateManyInput = {
   name?: string | null
   email: string
   is_confirmed?: boolean
+  confirmation_token?: string | null
   trip_id: string
   traveler_id?: string | null
 }
@@ -294,6 +311,7 @@ export type ParticipantUpdateManyMutationInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  confirmation_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ParticipantUncheckedUpdateManyInput = {
@@ -301,6 +319,7 @@ export type ParticipantUncheckedUpdateManyInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  confirmation_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trip_id?: Prisma.StringFieldUpdateOperationsInput | string
   traveler_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
@@ -325,6 +344,7 @@ export type ParticipantCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
   is_confirmed?: Prisma.SortOrder
+  confirmation_token?: Prisma.SortOrder
   trip_id?: Prisma.SortOrder
   traveler_id?: Prisma.SortOrder
 }
@@ -334,6 +354,7 @@ export type ParticipantMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
   is_confirmed?: Prisma.SortOrder
+  confirmation_token?: Prisma.SortOrder
   trip_id?: Prisma.SortOrder
   traveler_id?: Prisma.SortOrder
 }
@@ -343,6 +364,7 @@ export type ParticipantMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
   is_confirmed?: Prisma.SortOrder
+  confirmation_token?: Prisma.SortOrder
   trip_id?: Prisma.SortOrder
   traveler_id?: Prisma.SortOrder
 }
@@ -436,6 +458,7 @@ export type ParticipantCreateWithoutTripInput = {
   name?: string | null
   email: string
   is_confirmed?: boolean
+  confirmation_token?: string | null
   traveler?: Prisma.TravelerCreateNestedOneWithoutParticipantsInput
 }
 
@@ -444,6 +467,7 @@ export type ParticipantUncheckedCreateWithoutTripInput = {
   name?: string | null
   email: string
   is_confirmed?: boolean
+  confirmation_token?: string | null
   traveler_id?: string | null
 }
 
@@ -481,6 +505,7 @@ export type ParticipantScalarWhereInput = {
   name?: Prisma.StringNullableFilter<"Participant"> | string | null
   email?: Prisma.StringFilter<"Participant"> | string
   is_confirmed?: Prisma.BoolFilter<"Participant"> | boolean
+  confirmation_token?: Prisma.StringNullableFilter<"Participant"> | string | null
   trip_id?: Prisma.StringFilter<"Participant"> | string
   traveler_id?: Prisma.StringNullableFilter<"Participant"> | string | null
 }
@@ -490,6 +515,7 @@ export type ParticipantCreateWithoutTravelerInput = {
   name?: string | null
   email: string
   is_confirmed?: boolean
+  confirmation_token?: string | null
   trip: Prisma.TripCreateNestedOneWithoutParticipantsInput
 }
 
@@ -498,6 +524,7 @@ export type ParticipantUncheckedCreateWithoutTravelerInput = {
   name?: string | null
   email: string
   is_confirmed?: boolean
+  confirmation_token?: string | null
   trip_id: string
 }
 
@@ -532,6 +559,7 @@ export type ParticipantCreateManyTripInput = {
   name?: string | null
   email: string
   is_confirmed?: boolean
+  confirmation_token?: string | null
   traveler_id?: string | null
 }
 
@@ -540,6 +568,7 @@ export type ParticipantUpdateWithoutTripInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  confirmation_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traveler?: Prisma.TravelerUpdateOneWithoutParticipantsNestedInput
 }
 
@@ -548,6 +577,7 @@ export type ParticipantUncheckedUpdateWithoutTripInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  confirmation_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traveler_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -556,6 +586,7 @@ export type ParticipantUncheckedUpdateManyWithoutTripInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  confirmation_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traveler_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -564,6 +595,7 @@ export type ParticipantCreateManyTravelerInput = {
   name?: string | null
   email: string
   is_confirmed?: boolean
+  confirmation_token?: string | null
   trip_id: string
 }
 
@@ -572,6 +604,7 @@ export type ParticipantUpdateWithoutTravelerInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  confirmation_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trip?: Prisma.TripUpdateOneRequiredWithoutParticipantsNestedInput
 }
 
@@ -580,6 +613,7 @@ export type ParticipantUncheckedUpdateWithoutTravelerInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  confirmation_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trip_id?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -588,6 +622,7 @@ export type ParticipantUncheckedUpdateManyWithoutTravelerInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  confirmation_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   trip_id?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -598,6 +633,7 @@ export type ParticipantSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   name?: boolean
   email?: boolean
   is_confirmed?: boolean
+  confirmation_token?: boolean
   trip_id?: boolean
   traveler_id?: boolean
   trip?: boolean | Prisma.TripDefaultArgs<ExtArgs>
@@ -609,6 +645,7 @@ export type ParticipantSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   name?: boolean
   email?: boolean
   is_confirmed?: boolean
+  confirmation_token?: boolean
   trip_id?: boolean
   traveler_id?: boolean
   trip?: boolean | Prisma.TripDefaultArgs<ExtArgs>
@@ -620,6 +657,7 @@ export type ParticipantSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   name?: boolean
   email?: boolean
   is_confirmed?: boolean
+  confirmation_token?: boolean
   trip_id?: boolean
   traveler_id?: boolean
   trip?: boolean | Prisma.TripDefaultArgs<ExtArgs>
@@ -631,11 +669,12 @@ export type ParticipantSelectScalar = {
   name?: boolean
   email?: boolean
   is_confirmed?: boolean
+  confirmation_token?: boolean
   trip_id?: boolean
   traveler_id?: boolean
 }
 
-export type ParticipantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "is_confirmed" | "trip_id" | "traveler_id", ExtArgs["result"]["participant"]>
+export type ParticipantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "is_confirmed" | "confirmation_token" | "trip_id" | "traveler_id", ExtArgs["result"]["participant"]>
 export type ParticipantInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   trip?: boolean | Prisma.TripDefaultArgs<ExtArgs>
   traveler?: boolean | Prisma.Participant$travelerArgs<ExtArgs>
@@ -660,6 +699,7 @@ export type $ParticipantPayload<ExtArgs extends runtime.Types.Extensions.Interna
     name: string | null
     email: string
     is_confirmed: boolean
+    confirmation_token: string | null
     trip_id: string
     traveler_id: string | null
   }, ExtArgs["result"]["participant"]>
@@ -1091,6 +1131,7 @@ export interface ParticipantFieldRefs {
   readonly name: Prisma.FieldRef<"Participant", 'String'>
   readonly email: Prisma.FieldRef<"Participant", 'String'>
   readonly is_confirmed: Prisma.FieldRef<"Participant", 'Boolean'>
+  readonly confirmation_token: Prisma.FieldRef<"Participant", 'String'>
   readonly trip_id: Prisma.FieldRef<"Participant", 'String'>
   readonly traveler_id: Prisma.FieldRef<"Participant", 'String'>
 }

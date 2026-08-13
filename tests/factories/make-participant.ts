@@ -16,6 +16,7 @@ export async function makeParticipant(
       name: faker.person.fullName(),
       email: faker.internet.email(),
       isConfirmed: false,
+      confirmationToken: faker.string.uuid(),
       travelerId: new UniqueEntityID(),
       tripId: new UniqueEntityID(),
       ...override,

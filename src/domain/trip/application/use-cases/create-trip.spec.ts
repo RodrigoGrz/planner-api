@@ -65,6 +65,20 @@ describe('Create Trip', () => {
     expect(participantsRepository.items.length).toBe(3)
     expect(mailer.sentMails.length).toBe(2)
     expect(findManySpy).toHaveBeenCalledTimes(1)
+
+    const invited = participantsRepository.items.filter((p) => !p.isConfirmed)
+    const tokens = invited.map((p) => p.confirmationToken)
+
+    expect(tokens.filter(Boolean)).length(2)
+    expect(new Set(tokens).size).toBe(2)
+
+    for (const token of tokens) {
+      expect(
+        mailer.sentMails.some((mail) =>
+          mail.html.includes(`/participants/confirm?token=${token}`),
+        ),
+      ).toBe(true)
+    }
   })
 
   it('should not be able to create a trip if starts at is before today', async () => {
