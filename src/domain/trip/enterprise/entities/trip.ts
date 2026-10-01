@@ -69,7 +69,7 @@ export class Trip extends Entity<TripProps> {
     const trip = new Trip(
       {
         ...props,
-        createdAt: new Date(),
+        createdAt: props.createdAt ?? new Date(),
       },
       id,
     )
