@@ -8,6 +8,7 @@ import { ParticipantsRepository } from '../repositories/participants-repository'
 import { TravelersRepository } from '../repositories/travelers-repository'
 import { TripsRepository } from '../repositories/trips-repository'
 import { NotAllowedError } from './errors/not-allowed-error'
+import { ParticipantAlreadyInvitedError } from './errors/participant-already-invited-error'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 
 interface CreateInviteUseCaseRequest {
@@ -17,7 +18,7 @@ interface CreateInviteUseCaseRequest {
 }
 
 type CreateInviteUseCaseResponse = Either<
-  ResourceNotExistsError | NotAllowedError,
+  ResourceNotExistsError | NotAllowedError | ParticipantAlreadyInvitedError,
   { participant: Participant }
 >
 
@@ -42,6 +43,13 @@ export class CreateInviteUseCase {
 
     if (!isTripOwner(trip, travelerId)) {
       return left(new NotAllowedError())
+    }
+
+    const alreadyInvited =
+      await this.participantsRepository.findByTripIdAndEmail(tripId, email)
+
+    if (alreadyInvited) {
+      return left(new ParticipantAlreadyInvitedError())
     }
 
     const invitedTraveler = await this.travelersRepository.findByEmail(email)

@@ -9,6 +9,10 @@ export interface ParticipantsRepository {
     tripId: string,
     travelerId: string,
   ): Promise<Participant | null>
+  findByTripIdAndEmail(
+    tripId: string,
+    email: string,
+  ): Promise<Participant | null>
   findAllByTripId(tripId: string): Promise<Participant[]>
   findAllByTravelerId(travelerId: string): Promise<ParticipantWithTripProps[]>
   findNextTripByTravelerId(

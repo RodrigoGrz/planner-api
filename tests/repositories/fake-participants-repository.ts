@@ -56,6 +56,17 @@ export class FakeParticipantsRepository implements ParticipantsRepository {
     return participant ?? null
   }
 
+  async findByTripIdAndEmail(
+    tripId: string,
+    email: string,
+  ): Promise<Participant | null> {
+    const participant = this.items.find(
+      (item) => item.tripId.toString() === tripId && item.email === email,
+    )
+
+    return participant ?? null
+  }
+
   async findAllByTripId(tripId: string): Promise<Participant[]> {
     return this.items.filter((item) => item.tripId.toString() === tripId)
   }

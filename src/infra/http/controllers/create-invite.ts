@@ -6,6 +6,7 @@ import {
 } from '../routers/documentation/trips/create-invite-schema'
 import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/errors/resource-not-exists-error'
 import { NotAllowedError } from '@/domain/trip/application/use-cases/errors/not-allowed-error'
+import { ParticipantAlreadyInvitedError } from '@/domain/trip/application/use-cases/errors/participant-already-invited-error'
 import z from 'zod'
 
 type CreateInviteParams = z.infer<typeof createInviteParams>
@@ -35,6 +36,7 @@ export async function createInviteController(
 
     switch (error.constructor) {
       case ResourceNotExistsError:
+      case ParticipantAlreadyInvitedError:
         return reply.status(409).send({ message: error.message })
       case NotAllowedError:
         return reply.status(403).send({ message: error.message })

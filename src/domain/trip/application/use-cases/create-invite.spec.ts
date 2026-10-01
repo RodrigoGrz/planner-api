@@ -4,11 +4,13 @@ import { FakeParticipantsRepository } from 'tests/repositories/fake-participants
 import { FakeTravelersRepository } from 'tests/repositories/fake-travelers-repository'
 import { FakeTripsRepository } from 'tests/repositories/fake-trips-repository'
 import { FakeMailer } from 'tests/mail/faker-mailer'
+import { makeParticipant } from 'tests/factories/make-participant'
 import { makeTraveler } from 'tests/factories/make-traveler'
 import { makeTrip } from 'tests/factories/make-trip'
 import { CreateInviteUseCase } from './create-invite'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { NotAllowedError } from './errors/not-allowed-error'
+import { ParticipantAlreadyInvitedError } from './errors/participant-already-invited-error'
 
 let activitiesRepository: FakeActivitiesRepository
 let travelersRepository: FakeTravelersRepository
@@ -134,6 +136,51 @@ describe('Create Invite', () => {
       invitedTraveler.id.toString(),
     )
     expect(participant.name).toBe('John Doe')
+  })
+
+  it('should not be able to invite an e-mail already invited to the trip', async () => {
+    const { owner, trip } = await makeScenario()
+
+    await createInviteUseCase.execute({
+      tripId: trip.id.toString(),
+      email: 'invited@planner.com',
+      travelerId: owner.id.toString(),
+    })
+
+    const result = await createInviteUseCase.execute({
+      tripId: trip.id.toString(),
+      email: 'invited@planner.com',
+      travelerId: owner.id.toString(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(ParticipantAlreadyInvitedError)
+    expect(participantsRepository.items).toHaveLength(1)
+    expect(mailer.sentMails).toHaveLength(1)
+  })
+
+  it('should not be able to invite the trip owner', async () => {
+    const { owner, trip } = await makeScenario()
+
+    const ownerParticipant = await makeParticipant({
+      email: owner.email,
+      tripId: trip.id,
+      travelerId: owner.id,
+      isConfirmed: true,
+      confirmationToken: null,
+    })
+    participantsRepository.items.push(ownerParticipant)
+
+    const result = await createInviteUseCase.execute({
+      tripId: trip.id.toString(),
+      email: owner.email,
+      travelerId: owner.id.toString(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(ParticipantAlreadyInvitedError)
+    expect(participantsRepository.items).toHaveLength(1)
+    expect(mailer.sentMails).toHaveLength(0)
   })
 
   it('should not be able to invite to a non-existing trip', async () => {

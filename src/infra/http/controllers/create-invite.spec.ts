@@ -53,6 +53,31 @@ describe('Create Invite (E2E)', () => {
     expect(response.statusCode).toBe(409)
   })
 
+  test('[POST] /trips/:tripId/invites returns 409 for an e-mail already invited', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    await request(app.server)
+      .post(`/trips/${trip.id.toString()}/invites`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ email: 'invited@planner.com' })
+
+    const response = await request(app.server)
+      .post(`/trips/${trip.id.toString()}/invites`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ email: 'invited@planner.com' })
+
+    const participants = await prisma.participant.findMany({
+      where: { trip_id: trip.id.toString() },
+    })
+
+    expect(response.statusCode).toBe(409)
+    expect(participants).toHaveLength(1)
+  })
+
   test('[POST] /trips/:tripId/invites returns 400 for an invalid e-mail', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 

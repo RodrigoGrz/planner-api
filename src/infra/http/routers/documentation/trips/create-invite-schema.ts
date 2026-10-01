@@ -31,7 +31,9 @@ export const createInviteSchema = {
         .object({
           message: z.string(),
         })
-        .describe('Recurso não encontrado.'),
+        .describe(
+          'Recurso não encontrado ou e-mail já convidado para a viagem.',
+        ),
     },
   },
 }
