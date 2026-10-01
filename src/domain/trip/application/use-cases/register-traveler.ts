@@ -1,5 +1,7 @@
 import { Either, left, right } from '@/core/either'
 import { TravelersRepository } from '../repositories/travelers-repository'
+import { ParticipantsRepository } from '../repositories/participants-repository'
+import { TransactionManager } from '../transaction/transaction-manager'
 import { Traveler } from '../../enterprise/entities/traveler'
 import { TravelerAlreadyExistsError } from './errors/traveler-already-exists-error'
 import { hash } from 'bcryptjs'
@@ -17,7 +19,11 @@ type RegisterTravelerUseCaseResponse = Either<
 >
 
 export class RegisterTravelerUseCase {
-  constructor(private travelersRepository: TravelersRepository) {}
+  constructor(
+    private travelersRepository: TravelersRepository,
+    private participantsRepository: ParticipantsRepository,
+    private transactionManager: TransactionManager,
+  ) {}
 
   async execute({
     name,
@@ -41,7 +47,17 @@ export class RegisterTravelerUseCase {
       phone,
     })
 
-    await this.travelersRepository.create(traveler)
+    await this.transactionManager.run(async () => {
+      await this.travelersRepository.create(traveler)
+
+      const pendingInvites =
+        await this.participantsRepository.findManyUnlinkedByEmail(email)
+
+      for (const participant of pendingInvites) {
+        participant.linkTraveler(traveler.id, traveler.name)
+        await this.participantsRepository.update(participant)
+      }
+    })
 
     return right({
       traveler,

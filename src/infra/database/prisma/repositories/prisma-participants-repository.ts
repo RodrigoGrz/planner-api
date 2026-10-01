@@ -23,6 +23,7 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
         email: participant.email,
         is_confirmed: participant.isConfirmed,
         confirmation_token: participant.confirmationToken,
+        traveler_id: participant.travelerId?.toString() ?? null,
       },
     })
   }
@@ -39,6 +40,17 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
     }
 
     return PrismaParticipantsMapper.toDomain(participant)
+  }
+
+  async findManyUnlinkedByEmail(email: string): Promise<Participant[]> {
+    const participants = await getPrismaClient().participant.findMany({
+      where: {
+        email,
+        traveler_id: null,
+      },
+    })
+
+    return participants.map(PrismaParticipantsMapper.toDomain)
   }
 
   async findByTripAndTravelerId(

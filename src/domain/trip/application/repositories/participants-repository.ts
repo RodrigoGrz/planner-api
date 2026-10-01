@@ -13,6 +13,7 @@ export interface ParticipantsRepository {
     tripId: string,
     email: string,
   ): Promise<Participant | null>
+  findManyUnlinkedByEmail(email: string): Promise<Participant[]>
   findAllByTripId(tripId: string): Promise<Participant[]>
   findAllByTravelerId(travelerId: string): Promise<ParticipantWithTripProps[]>
   findNextTripByTravelerId(
