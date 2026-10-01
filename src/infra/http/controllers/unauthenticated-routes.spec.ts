@@ -24,9 +24,6 @@ describe('Protected routes without authentication (E2E)', () => {
   beforeAll(async () => {
     await app.ready()
 
-    // Nenhum destes testes chega ao banco. Sem ao menos uma conexão no schema
-    // criado para o arquivo, o teardown do ambiente deixa handles abertos e o
-    // Vitest só encerra cerca de 70s depois.
     await prisma.$connect()
   })
 

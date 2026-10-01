@@ -4,8 +4,6 @@ export const confirmParticipantQuerystring = z.object({
   token: z.string().optional(),
 })
 
-// No `response` schema on purpose: the zod serializer compiler JSON.stringifies
-// every status code it knows about, which would quote-escape the HTML page.
 export const confirmParticipantSchema = {
   schema: {
     tags: ['participants'],
