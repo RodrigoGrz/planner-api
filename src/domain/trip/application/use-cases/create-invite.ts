@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto'
 import { Either, left, right } from '@/core/either'
-import { participantInviteFormat } from '@/utils/mail-formats'
 import { Participant } from '../../enterprise/entities/participant'
 import { isTripOwner } from '../authorization/trip-access'
 import { Mailer } from '../mail/mailer'
+import { sendParticipantInvite } from '../mail/send-participant-invite'
 import { ParticipantsRepository } from '../repositories/participants-repository'
 import { TravelersRepository } from '../repositories/travelers-repository'
 import { TripsRepository } from '../repositories/trips-repository'
@@ -66,20 +66,10 @@ export class CreateInviteUseCase {
 
     await this.participantsRepository.create(participant)
 
-    const mailTemplate = participantInviteFormat({
-      destination: trip.destination,
-      startsAt: trip.startsAt,
-      endsAt: trip.endsAt,
+    await sendParticipantInvite(this.mailer, {
+      trip,
+      participant,
       confirmationToken,
-    })
-
-    await this.mailer.send({
-      to: {
-        name: participant.name,
-        address: participant.email,
-      },
-      subject: mailTemplate.subject,
-      html: mailTemplate.html,
     })
 
     return right({ participant })
