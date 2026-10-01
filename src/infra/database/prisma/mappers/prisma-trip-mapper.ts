@@ -1,6 +1,6 @@
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { Trip } from '@/domain/trip/enterprise/entities/trip'
-import { Trip as PrismaTrip, Prisma } from '@prisma/client'
+import { Trip as PrismaTrip, Prisma } from 'prisma/generated/prisma/client'
 
 export class PrismaTripMapper {
   static toDomain(raw: PrismaTrip): Trip {

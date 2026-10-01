@@ -1,6 +1,9 @@
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { Activity } from '@/domain/trip/enterprise/entities/activity'
-import { Activity as PrismaActivity, Prisma } from '@prisma/client'
+import {
+  Activity as PrismaActivity,
+  Prisma,
+} from 'prisma/generated/prisma/client'
 
 export class PrismaActivityMapper {
   static toDomain(raw: PrismaActivity): Activity {
