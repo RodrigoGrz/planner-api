@@ -40,6 +40,64 @@ describe('participantInviteFormat', () => {
     )
   })
 
+  it('should escape html in the destination', () => {
+    const { html } = participantInviteFormat({
+      ...trip,
+      destination: '<script>alert("xss")</script>',
+      confirmationToken: 'token-123',
+    })
+
+    expect(html).not.toContain('<script>')
+    expect(html).toContain(
+      '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;',
+    )
+  })
+
+  it('should not render links injected through the destination', () => {
+    const { html } = participantInviteFormat({
+      ...trip,
+      destination: '<a href="http://phish">Clique aqui</a>',
+      confirmationToken: 'token-123',
+    })
+
+    expect(html).not.toContain('href="http://phish"')
+  })
+
+  it('should strip line breaks from the subject', () => {
+    const { subject } = participantInviteFormat({
+      ...trip,
+      destination: 'Noruega\r\nBcc: x@y.com',
+      confirmationToken: 'token-123',
+    })
+
+    expect(subject).not.toMatch(/[\r\n]/)
+    expect(subject).toBe(
+      'Confirme sua presença na viagem para Noruega Bcc: x@y.com em 10 de março',
+    )
+  })
+
+  it('should not leave extra spaces where line breaks were stripped', () => {
+    const { subject } = participantInviteFormat({
+      ...trip,
+      destination: '\nNoruega \r\n Bcc: x@y.com\n',
+      confirmationToken: 'token-123',
+    })
+
+    expect(subject).toBe(
+      'Confirme sua presença na viagem para Noruega Bcc: x@y.com em 10 de março',
+    )
+  })
+
+  it('should not html escape the subject', () => {
+    const { subject } = participantInviteFormat({
+      ...trip,
+      destination: 'Bordeaux & Paris',
+      confirmationToken: 'token-123',
+    })
+
+    expect(subject).toContain('Bordeaux & Paris')
+  })
+
   it('should give each participant a distinct link', () => {
     const first = participantInviteFormat({
       ...trip,
