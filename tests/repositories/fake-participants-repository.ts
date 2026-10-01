@@ -67,6 +67,10 @@ export class FakeParticipantsRepository implements ParticipantsRepository {
     return participant ?? null
   }
 
+  async findManyUnlinkedByEmail(email: string): Promise<Participant[]> {
+    return this.items.filter((item) => item.email === email && !item.travelerId)
+  }
+
   async findAllByTripId(tripId: string): Promise<Participant[]> {
     return this.items.filter((item) => item.tripId.toString() === tripId)
   }

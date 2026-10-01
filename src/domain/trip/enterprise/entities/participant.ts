@@ -35,6 +35,15 @@ export class Participant extends Entity<ParticipantProps> {
     return this.props.confirmationToken
   }
 
+  linkTraveler(travelerId: UniqueEntityID, name: string) {
+    if (this.props.travelerId) {
+      return
+    }
+
+    this.props.travelerId = travelerId
+    this.props.name = name
+  }
+
   confirm() {
     this.props.isConfirmed = true
     this.props.confirmationToken = null

@@ -8,6 +8,8 @@ import { makeTraveler } from 'tests/factories/make-traveler'
 import { makeTrip } from 'tests/factories/make-trip'
 import { ConfirmParticipantUseCase } from './confirm-participant'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
+import { ParticipantProps } from '../../enterprise/entities/participant'
+import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 
 let activitiesRepository: FakeActivitiesRepository
 let travelersRepository: FakeTravelersRepository
@@ -30,10 +32,13 @@ describe('Confirm Participant', () => {
     confirmParticipantUseCase = new ConfirmParticipantUseCase(
       participantsRepository,
       tripsRepository,
+      travelersRepository,
     )
   })
 
-  async function makeScenario() {
+  async function makeScenario(
+    participantOverride: Partial<ParticipantProps> = {},
+  ) {
     const owner = await makeTraveler()
     travelersRepository.items.push(owner)
 
@@ -47,6 +52,7 @@ describe('Confirm Participant', () => {
       tripId: trip.id,
       isConfirmed: false,
       confirmationToken: 'valid-token',
+      ...participantOverride,
     })
     participantsRepository.items.push(participant)
 
@@ -93,5 +99,64 @@ describe('Confirm Participant', () => {
     expect(result.isLeft()).toBeTruthy()
     expect(result.value).toBeInstanceOf(ResourceNotExistsError)
     expect(participantsRepository.items[0].isConfirmed).toBe(false)
+  })
+
+  it('should link the participant to an existing traveler with the same e-mail on confirmation', async () => {
+    const invitedTraveler = await makeTraveler({
+      name: 'Invited Traveler',
+      email: 'invited@planner.com',
+    })
+    travelersRepository.items.push(invitedTraveler)
+
+    await makeScenario({
+      email: 'invited@planner.com',
+      name: null,
+      travelerId: null,
+    })
+
+    const result = await confirmParticipantUseCase.execute({
+      token: 'valid-token',
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(participantsRepository.items[0].isConfirmed).toBe(true)
+    expect(participantsRepository.items[0].travelerId?.toString()).toBe(
+      invitedTraveler.id.toString(),
+    )
+    expect(participantsRepository.items[0].name).toBe('Invited Traveler')
+  })
+
+  it('should confirm without linking when no traveler has the e-mail', async () => {
+    await makeScenario({
+      email: 'not-registered@planner.com',
+      name: null,
+      travelerId: null,
+    })
+
+    const result = await confirmParticipantUseCase.execute({
+      token: 'valid-token',
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(participantsRepository.items[0].isConfirmed).toBe(true)
+    expect(participantsRepository.items[0].travelerId).toBeNull()
+  })
+
+  it('should keep the existing traveler when the participant is already linked', async () => {
+    const otherTraveler = await makeTraveler({ email: 'invited@planner.com' })
+    travelersRepository.items.push(otherTraveler)
+
+    const linkedTravelerId = new UniqueEntityID()
+
+    await makeScenario({
+      email: 'invited@planner.com',
+      travelerId: linkedTravelerId,
+    })
+
+    await confirmParticipantUseCase.execute({ token: 'valid-token' })
+
+    expect(participantsRepository.items[0].travelerId?.toString()).toBe(
+      linkedTravelerId.toString(),
+    )
   })
 })

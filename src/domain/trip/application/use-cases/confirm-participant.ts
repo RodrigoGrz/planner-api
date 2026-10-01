@@ -1,6 +1,7 @@
 import { Either, left, right } from '@/core/either'
 import { ParticipantsRepository } from '../repositories/participants-repository'
 import { TripsRepository } from '../repositories/trips-repository'
+import { TravelersRepository } from '../repositories/travelers-repository'
 import { Participant } from '../../enterprise/entities/participant'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 
@@ -17,6 +18,7 @@ export class ConfirmParticipantUseCase {
   constructor(
     private participantsRepository: ParticipantsRepository,
     private tripsRepository: TripsRepository,
+    private travelersRepository: TravelersRepository,
   ) {}
 
   async execute({
@@ -35,6 +37,16 @@ export class ConfirmParticipantUseCase {
 
     if (!trip) {
       return left(new ResourceNotExistsError())
+    }
+
+    if (!participant.travelerId) {
+      const traveler = await this.travelersRepository.findByEmail(
+        participant.email,
+      )
+
+      if (traveler) {
+        participant.linkTraveler(traveler.id, traveler.name)
+      }
     }
 
     participant.confirm()

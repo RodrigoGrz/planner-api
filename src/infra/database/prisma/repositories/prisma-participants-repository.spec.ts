@@ -65,6 +65,67 @@ describe('PrismaParticipantsRepository (integration)', () => {
     expect(stored.confirmationToken).toBeNull()
   })
 
+  it('should find only unlinked participants with the given e-mail', async () => {
+    const owner = await makePrismaTraveler()
+    const firstTrip = await makePrismaTrip({ ownerId: owner.id })
+    const secondTrip = await makePrismaTrip({ ownerId: owner.id })
+
+    const unlinked = await makeParticipant({
+      tripId: firstTrip.id,
+      email: 'pending@planner.com',
+      travelerId: null,
+    })
+    const linked = await makeParticipant({
+      tripId: secondTrip.id,
+      email: 'pending@planner.com',
+      travelerId: owner.id,
+    })
+    const otherEmail = await makeParticipant({
+      tripId: firstTrip.id,
+      email: 'other@planner.com',
+      travelerId: null,
+    })
+
+    await repository.create(unlinked)
+    await repository.create(linked)
+    await repository.create(otherEmail)
+
+    const found = await repository.findManyUnlinkedByEmail(
+      'pending@planner.com',
+    )
+
+    expect(found.map((participant) => participant.id.toString())).toEqual([
+      unlinked.id.toString(),
+    ])
+  })
+
+  it('should persist the linked traveler on update', async () => {
+    const owner = await makePrismaTraveler()
+    const guest = await makePrismaTraveler()
+    const trip = await makePrismaTrip({ ownerId: owner.id })
+
+    const participant = await makeParticipant({
+      tripId: trip.id,
+      email: guest.email,
+      name: null,
+      travelerId: null,
+    })
+
+    await repository.create(participant)
+
+    participant.linkTraveler(guest.id, guest.name)
+
+    await repository.update(participant)
+
+    const stored = await repository.findByTripAndTravelerId(
+      trip.id.toString(),
+      guest.id.toString(),
+    )
+
+    expect(stored?.id.toString()).toBe(participant.id.toString())
+    expect(stored?.name).toBe(guest.name)
+  })
+
   it('should find a participant by trip and traveler', async () => {
     const owner = await makePrismaTraveler()
     const guest = await makePrismaTraveler()
