@@ -34,6 +34,11 @@ describe('Create Trip Activity (E2E)', () => {
       })
 
     expect(result.statusCode).toBe(201)
+    expect(result.body).toEqual(
+      expect.objectContaining({
+        activityId: expect.any(String),
+      }),
+    )
   })
 
   test('[POST] /trips/activity/register returns 409 when the trip does not exist', async () => {

@@ -31,6 +31,11 @@ describe('Create Trip Link (E2E)', () => {
       })
 
     expect(result.statusCode).toBe(201)
+    expect(result.body).toEqual(
+      expect.objectContaining({
+        linkId: expect.any(String),
+      }),
+    )
   })
 
   test('[POST] /trips/link/register returns 409 when the trip does not exist', async () => {

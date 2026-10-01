@@ -13,7 +13,11 @@ export const createTripLinkSchema = {
     security: [{ bearerAuth: [] }],
     body: createTripLinkBody,
     response: {
-      201: z.null().describe('Trip link created successfully'),
+      201: z
+        .object({
+          linkId: z.uuid(),
+        })
+        .describe('Trip link created successfully'),
       400: z
         .object({
           message: z.string(),
