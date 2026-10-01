@@ -109,6 +109,33 @@ describe('Prisma repositories (integration)', () => {
     expect(found.tripId.toString()).toBe(trip.id.toString())
   })
 
+  it('should return activities with their persisted ids in findByIdWithActivities', async () => {
+    const owner = await makePrismaTraveler()
+    const trip = await makeTrip({ ownerId: owner.id })
+
+    await tripsRepository.create(trip)
+
+    const firstActivity = await makeActivity({ tripId: trip.id })
+    const secondActivity = await makeActivity({ tripId: trip.id })
+
+    await activitiesRepository.create(firstActivity)
+    await activitiesRepository.create(secondActivity)
+
+    const found = await tripsRepository.findByIdWithActivities(
+      trip.id.toString(),
+    )
+
+    const foundIds = found?.activities.map((activity) => activity.id.toString())
+
+    expect(foundIds).toHaveLength(2)
+    expect(foundIds).toEqual(
+      expect.arrayContaining([
+        firstActivity.id.toString(),
+        secondActivity.id.toString(),
+      ]),
+    )
+  })
+
   it('should rollback every write when the transaction callback throws', async () => {
     const owner = await makePrismaTraveler()
     const trip = await makeTrip({ ownerId: owner.id })
