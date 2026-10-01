@@ -1,38 +1,38 @@
 # Planner API
 
-Backend da aplicação **Planner**, um app para **planejamento e organização de viagens em grupo**.
+Backend for **Planner**, an app for **planning and organizing group trips**.
 
-A API é responsável por gerenciar usuários, viagens, atividades, links úteis e convidados, oferecendo uma base sólida e extensível para evoluções futuras da aplicação mobile.
+The API manages travelers, trips, activities, useful links and invited participants, providing a solid and extensible foundation for the future evolution of the mobile app.
 
-## 🎯 Objetivo do app
+## 🎯 App goal
 
-O Planner tem como objetivo facilitar o planejamento de viagens, centralizando em um único lugar:
+Planner makes trip planning easier by keeping everything in one place:
 
-- Informações da viagem
-- Atividades organizadas por dia
-- Links importantes (reservas, mapas, documentos, etc.)
-- Pessoas convidadas para a viagem
+- Trip information
+- Activities organized by day
+- Important links (bookings, maps, documents, etc.)
+- People invited to the trip
 
-A ideia é evitar o uso de várias ferramentas soltas (anotações, mensagens, links perdidos) e manter tudo organizado de forma simples e acessível.
+The idea is to avoid juggling scattered tools (notes, messages, lost links) and keep everything organized in a simple, accessible way.
 
-## 🏗️ Arquitetura
+## 🏗️ Architecture
 
-O backend foi estruturado com foco em:
+The backend is built with a focus on:
 
-- Separação clara de responsabilidades
-- Regras de negócio bem definidas
-- Facilidade para manutenção e evolução
-- Segurança para refatorações
+- Clear separation of responsibilities
+- Well-defined business rules
+- Ease of maintenance and evolution
+- Safe refactoring
 
-Estrutura baseada em princípios de **Clean Architecture**, separando:
+The structure follows **Clean Architecture** principles, split into:
 
-- **Domain**: entidades e regras de negócio
-- **Application / Use Cases**: casos de uso da aplicação
-- **Infra**: banco de dados, ORM e serviços externos
-- **Presentation**: controllers HTTP e rotas
-- **Tests**: testes unitários e de integração
+- **Domain**: entities and business rules
+- **Application / Use Cases**: application use cases
+- **Infra**: database, ORM and external services
+- **Presentation**: HTTP controllers and routes
+- **Tests**: unit and integration (E2E) tests
 
-## 🚀 Tecnologias
+## 🚀 Tech stack
 
 - Node.js
 - TypeScript
@@ -42,35 +42,48 @@ Estrutura baseada em princípios de **Clean Architecture**, separando:
 - Docker
 - Vitest
 
-## ⚙️ Requisitos
+## ⚙️ Requirements
 
-- Node.js >= 24
-- Docker e Docker Compose
+- Node.js >= 24.14
+- Docker and Docker Compose
 - npm
 
-## ▶️ Como rodar o projeto
+## ▶️ Running the project
 
-### 1. Clone o repositório
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/RodrigoGrz/planner-api
 cd planner-api
 ```
 
-### 2. Suba o banco de dados
+### 2. Install dependencies and set up the environment
 
 ```bash
-docker-compose up -d
+npm install
+cp .env.example .env
 ```
-### 3. Rodar testes
+
+### 3. Start the database and run the migrations
 
 ```bash
-npm run test
+docker compose up -d
+npm run db:migrate
+```
+
+### 4. Run the tests
+
+```bash
+npm test
 npm run test:e2e
 ```
 
-### 4. Rodar em dev
+> The E2E tests need the database from step 3 running.
+
+### 5. Run in development mode
 
 ```bash
 npm run dev:start
 ```
+
+The API runs on `http://localhost:3333` by default, and the Swagger documentation is available at `/docs`.
