@@ -17,8 +17,8 @@ import type * as Prisma from "./prismaNamespace"
 
 const config: runtime.GetPrismaClientConfig = {
   "previewFeatures": [],
-  "clientVersion": "7.5.0",
-  "engineVersion": "280c870be64f457428992c43c1f6d557fab6e29e",
+  "clientVersion": "7.9.1",
+  "engineVersion": "e922089b7d7502aff4249d5da3420f6fa55fc6ad",
   "activeProvider": "postgresql",
   "inlineSchema": "datasource db {\n  provider = \"postgresql\"\n}\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"./generated/prisma\"\n}\n\nmodel Trip {\n  id              String    @id @default(uuid())\n  destination     String\n  starts_at       DateTime\n  ends_at         DateTime\n  owner_id        String\n  is_confirmed    Boolean   @default(false)\n  created_at      DateTime  @default(now())\n  updated_at      DateTime? @default(now())\n  cover_image_url String?\n\n  activities   Activity[]\n  links        Link[]\n  owner        Traveler      @relation(fields: [owner_id], references: [id])\n  participants Participant[] @relation(name: \"member_on_trip\")\n\n  @@map(\"trips\")\n}\n\nmodel Participant {\n  id                 String  @id @default(uuid())\n  name               String?\n  email              String\n  is_confirmed       Boolean @default(false)\n  confirmation_token String? @unique\n  trip_id            String\n  traveler_id        String?\n\n  trip     Trip      @relation(fields: [trip_id], references: [id], name: \"member_on_trip\", onDelete: Cascade)\n  traveler Traveler? @relation(fields: [traveler_id], references: [id])\n\n  @@unique([trip_id, email])\n  @@map(\"participants\")\n}\n\nmodel Activity {\n  id        String   @id @default(uuid())\n  title     String\n  occurs_at DateTime\n  trip_id   String\n\n  trip Trip @relation(fields: [trip_id], references: [id], onDelete: Cascade)\n\n  @@map(\"activities\")\n}\n\nmodel Link {\n  id      String @id @default(uuid())\n  title   String\n  url     String\n  trip_id String\n\n  trip Trip @relation(fields: [trip_id], references: [id], onDelete: Cascade)\n\n  @@map(\"links\")\n}\n\nmodel Traveler {\n  id       String @id @default(uuid())\n  name     String\n  email    String @unique\n  phone    String\n  password String\n\n  trips        Trip[]\n  participants Participant[]\n\n  @@map(\"travelers\")\n}\n",
   "runtimeDataModel": {
@@ -82,7 +82,7 @@ export interface PrismaClientConstructor {
     LogOpts extends LogOptions<Options> = LogOptions<Options>,
     OmitOpts extends Prisma.PrismaClientOptions['omit'] = Options extends { omit: infer U } ? U : Prisma.PrismaClientOptions['omit'],
     ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
-  >(options: Prisma.Subset<Options, Prisma.PrismaClientOptions> ): PrismaClient<LogOpts, OmitOpts, ExtArgs>
+  >(options: Prisma.PrismaClientConstructorArgs<Options>): PrismaClient<LogOpts, OmitOpts, ExtArgs>
 }
 
 /**
@@ -103,7 +103,7 @@ export interface PrismaClientConstructor {
 
 export interface PrismaClient<
   in LogOpts extends Prisma.LogLevel = never,
-  in out OmitOpts extends Prisma.PrismaClientOptions['omit'] = undefined,
+  in out OmitOpts extends Prisma.PrismaClientOptions['omit'] = Prisma.PrismaClientOptions['omit'],
   in out ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
@@ -180,7 +180,7 @@ export interface PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/orm/prisma-client/queries/transactions).
    */
-  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): runtime.Types.Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
+  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): runtime.Types.Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
 
   $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => runtime.Types.Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): runtime.Types.Utils.JsPromise<R>
 
