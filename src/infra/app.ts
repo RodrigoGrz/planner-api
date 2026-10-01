@@ -14,69 +14,19 @@ import { env } from '@/env'
 import { travelersRoute } from './http/routers/travelers.route'
 import { tripsRoute } from './http/routers/trips.route'
 import { participantsRoute } from './http/routers/participants.route'
+import { errorHandler } from './http/error-handler'
+import { requestLogSerializers } from './http/request-log-serializers'
 
 const MAX_UPLOAD_FILE_SIZE_IN_BYTES = 10 * 1024 * 1024
 
-export const app = fastify().withTypeProvider<ZodTypeProvider>()
+export const app = fastify({
+  logger: env.NODE_ENV !== 'test' && { serializers: requestLogSerializers },
+}).withTypeProvider<ZodTypeProvider>()
 
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
 
-type FastifyValidationError = {
-  validation: Array<{
-    instancePath?: string
-    message: string
-    params?: {
-      missingProperty?: string
-    }
-  }>
-}
-
-app.setErrorHandler((error, _, reply) => {
-  function isValidationError(error: unknown): error is FastifyValidationError {
-    return (
-      typeof error === 'object' &&
-      error !== null &&
-      'validation' in error &&
-      Array.isArray((error as { validation?: unknown }).validation)
-    )
-  }
-
-  if (isValidationError(error)) {
-    const errors = error.validation.reduce<Record<string, string[]>>(
-      (acc, err) => {
-        const path =
-          err.instancePath?.replace('/body/', '').replaceAll('/', '.') ||
-          err.params?.missingProperty ||
-          'unknown'
-
-        if (!acc[path]) {
-          acc[path] = []
-        }
-
-        acc[path].push(err.message)
-
-        return acc
-      },
-      {},
-    )
-
-    return reply.status(400).send({
-      message: 'Validation error',
-      errors,
-    })
-  }
-
-  if (error instanceof Error) {
-    return reply.status(500).send({
-      message: error.message,
-    })
-  }
-
-  return reply.status(500).send({
-    message: 'Internal server error',
-  })
-})
+app.setErrorHandler(errorHandler)
 
 app.register(fastifyJwt, {
   secret: env.JWT_SECRET,
