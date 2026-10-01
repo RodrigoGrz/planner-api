@@ -60,19 +60,21 @@ export class UpdateTripUseCase {
       !dayjs(startsAt).isSame(trip.startsAt) ||
       !dayjs(endsAt).isSame(trip.endsAt)
 
-    if (datesChanged) {
-      await this.activitiesRepository.deleteOutsideTripPeriod(
-        trip.id.toString(),
-        startsAt,
-        endsAt,
-      )
-    }
-
     trip.destination = destination
     trip.startsAt = startsAt
     trip.endsAt = endsAt
 
-    await this.tripsRepository.update(trip)
+    await this.tripsRepository.runInTransaction(async () => {
+      if (datesChanged) {
+        await this.activitiesRepository.deleteOutsideTripPeriod(
+          trip.id.toString(),
+          startsAt,
+          endsAt,
+        )
+      }
+
+      await this.tripsRepository.update(trip)
+    })
 
     return right({
       trip,

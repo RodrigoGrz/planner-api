@@ -1,6 +1,6 @@
 import { TripsRepository } from '@/domain/trip/application/repositories/trips-repository'
 import { Trip } from '@/domain/trip/enterprise/entities/trip'
-import { prisma } from '../prisma'
+import { getPrismaClient, runInPrismaTransaction } from '../transaction-context'
 import { PrismaTripMapper } from '../mappers/prisma-trip-mapper'
 import {
   TripWithOwner,
@@ -15,13 +15,13 @@ import { Activity } from '@/domain/trip/enterprise/entities/activity'
 
 export class PrismaTripsRepository implements TripsRepository {
   async create(trip: Trip): Promise<void> {
-    await prisma.trip.create({
+    await getPrismaClient().trip.create({
       data: PrismaTripMapper.toPrisma(trip),
     })
   }
 
   async findById(id: string): Promise<Trip | null> {
-    const trip = await prisma.trip.findUnique({
+    const trip = await getPrismaClient().trip.findUnique({
       where: {
         id,
       },
@@ -35,7 +35,7 @@ export class PrismaTripsRepository implements TripsRepository {
   }
 
   async findByIdWithOwner(id: string): Promise<TripWithOwnerProps | null> {
-    const trip = await prisma.trip.findUnique({
+    const trip = await getPrismaClient().trip.findUnique({
       where: {
         id,
       },
@@ -63,7 +63,7 @@ export class PrismaTripsRepository implements TripsRepository {
   async findByIdWithActivities(
     id: string,
   ): Promise<TripWithActivitiesProps | null> {
-    const trip = await prisma.trip.findUnique({
+    const trip = await getPrismaClient().trip.findUnique({
       where: {
         id,
       },
@@ -94,13 +94,11 @@ export class PrismaTripsRepository implements TripsRepository {
   }
 
   async runInTransaction<T>(fn: () => Promise<T>): Promise<T> {
-    return prisma.$transaction(async () => {
-      return fn()
-    })
+    return runInPrismaTransaction(fn)
   }
 
   async update(trip: Trip): Promise<void> {
-    await prisma.trip.update({
+    await getPrismaClient().trip.update({
       where: {
         id: trip.id.toString(),
       },
@@ -109,7 +107,7 @@ export class PrismaTripsRepository implements TripsRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await prisma.trip.delete({
+    await getPrismaClient().trip.delete({
       where: {
         id,
       },

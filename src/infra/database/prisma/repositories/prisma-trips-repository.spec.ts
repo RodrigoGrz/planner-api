@@ -7,16 +7,20 @@ import { makeTrip } from 'tests/factories/make-trip'
 import { PrismaTripsRepository } from './prisma-trips-repository'
 import { PrismaActivitiesRepository } from './prisma-activities-repository'
 import { PrismaLinksRepository } from './prisma-links-repository'
+import { PrismaParticipantsRepository } from './prisma-participants-repository'
+import { makeParticipant } from 'tests/factories/make-participant'
 
 let tripsRepository: PrismaTripsRepository
 let activitiesRepository: PrismaActivitiesRepository
 let linksRepository: PrismaLinksRepository
+let participantsRepository: PrismaParticipantsRepository
 
 describe('Prisma repositories (integration)', () => {
   beforeAll(() => {
     tripsRepository = new PrismaTripsRepository()
     activitiesRepository = new PrismaActivitiesRepository()
     linksRepository = new PrismaLinksRepository()
+    participantsRepository = new PrismaParticipantsRepository()
   })
 
   it('should round-trip a trip through create and findById', async () => {
@@ -103,5 +107,86 @@ describe('Prisma repositories (integration)', () => {
     expect(found.title).toBe('Google')
     expect(found.url).toBe('https://google.com')
     expect(found.tripId.toString()).toBe(trip.id.toString())
+  })
+
+  it('should rollback every write when the transaction callback throws', async () => {
+    const owner = await makePrismaTraveler()
+    const trip = await makeTrip({ ownerId: owner.id })
+    const participant = await makeParticipant({
+      tripId: trip.id,
+      travelerId: owner.id,
+    })
+
+    await expect(
+      tripsRepository.runInTransaction(async () => {
+        await tripsRepository.create(trip)
+        await participantsRepository.create(participant)
+
+        throw new Error('transaction failed')
+      }),
+    ).rejects.toThrow('transaction failed')
+
+    expect(await tripsRepository.findById(trip.id.toString())).toBeNull()
+    expect(
+      await participantsRepository.findAllByTripId(trip.id.toString()),
+    ).toHaveLength(0)
+  })
+
+  it('should commit every write when the transaction callback resolves', async () => {
+    const owner = await makePrismaTraveler()
+    const trip = await makeTrip({ ownerId: owner.id })
+    const participant = await makeParticipant({
+      tripId: trip.id,
+      travelerId: owner.id,
+    })
+
+    await tripsRepository.runInTransaction(async () => {
+      await tripsRepository.create(trip)
+      await participantsRepository.create(participant)
+    })
+
+    expect(await tripsRepository.findById(trip.id.toString())).not.toBeNull()
+    expect(
+      await participantsRepository.findAllByTripId(trip.id.toString()),
+    ).toHaveLength(1)
+  })
+
+  it('should reuse the current transaction when runInTransaction is nested', async () => {
+    const owner = await makePrismaTraveler()
+    const trip = await makeTrip({ ownerId: owner.id })
+    const participant = await makeParticipant({
+      tripId: trip.id,
+      travelerId: owner.id,
+    })
+
+    await expect(
+      tripsRepository.runInTransaction(async () => {
+        await tripsRepository.create(trip)
+
+        await tripsRepository.runInTransaction(async () => {
+          await participantsRepository.create(participant)
+        })
+
+        throw new Error('outer transaction failed')
+      }),
+    ).rejects.toThrow('outer transaction failed')
+
+    expect(await tripsRepository.findById(trip.id.toString())).toBeNull()
+    expect(
+      await participantsRepository.findAllByTripId(trip.id.toString()),
+    ).toHaveLength(0)
+  })
+
+  it('should read its own uncommitted writes inside the transaction', async () => {
+    const owner = await makePrismaTraveler()
+    const trip = await makeTrip({ ownerId: owner.id })
+
+    const found = await tripsRepository.runInTransaction(async () => {
+      await tripsRepository.create(trip)
+
+      return tripsRepository.findById(trip.id.toString())
+    })
+
+    expect(found?.id.toString()).toBe(trip.id.toString())
   })
 })
