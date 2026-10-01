@@ -1,5 +1,6 @@
 import { env } from '@/env'
 import { dayjs } from '@/lib/dayjs'
+import { escapeHtml } from './escape-html'
 
 interface ParticipantInviteFormatProps {
   destination: string
@@ -20,11 +21,14 @@ export function participantInviteFormat({
   const confirmationLink = new URL('/participants/confirm', env.API_BASE_URL)
   confirmationLink.searchParams.set('token', confirmationToken)
 
-  const subject = `Confirme sua presença na viagem para ${destination} em ${formattedTripStartDate}`
+  const subjectDestination = destination.replace(/\s*[\r\n]+\s*/g, ' ').trim()
+  const safeDestination = escapeHtml(destination)
+
+  const subject = `Confirme sua presença na viagem para ${subjectDestination} em ${formattedTripStartDate}`
 
   const html = `
           <div style="font-family: sans-serif; font-size: 16px; line-height: 1.6;">
-            <p>Você foi convidado(a) para participar de uma viagem para <strong>${destination}</strong> nas datas de <strong>${formattedTripStartDate} até ${formattedTripEndDate}</strong>.</p>
+            <p>Você foi convidado(a) para participar de uma viagem para <strong>${safeDestination}</strong> nas datas de <strong>${formattedTripStartDate} até ${formattedTripEndDate}</strong>.</p>
             <p></p>
             <p>Para confirmar sua presença na viagem, clique no link abaixo:</p>
             <p></p>
