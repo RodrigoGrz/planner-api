@@ -1,17 +1,17 @@
 import { LinksRepository } from '@/domain/trip/application/repositories/links-repository'
 import { Link } from '@/domain/trip/enterprise/entities/link'
-import { prisma } from '../prisma'
+import { getPrismaClient } from '../transaction-context'
 import { PrismaLinksMapper } from '../mappers/prisma-link-mapper'
 
 export class PrismaLinksRepository implements LinksRepository {
   async create(link: Link): Promise<void> {
-    await prisma.link.create({
+    await getPrismaClient().link.create({
       data: PrismaLinksMapper.toPrisma(link),
     })
   }
 
   async findById(id: string): Promise<Link | null> {
-    const link = await prisma.link.findUnique({
+    const link = await getPrismaClient().link.findUnique({
       where: {
         id,
       },
@@ -25,7 +25,7 @@ export class PrismaLinksRepository implements LinksRepository {
   }
 
   async findAllByTripId(tripId: string): Promise<Link[]> {
-    const links = await prisma.link.findMany({
+    const links = await getPrismaClient().link.findMany({
       where: {
         trip_id: tripId,
       },
@@ -35,7 +35,7 @@ export class PrismaLinksRepository implements LinksRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await prisma.link.delete({
+    await getPrismaClient().link.delete({
       where: {
         id,
       },

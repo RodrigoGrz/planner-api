@@ -1,6 +1,6 @@
 import { ParticipantsRepository } from '@/domain/trip/application/repositories/participants-repository'
 import { Participant } from '@/domain/trip/enterprise/entities/participant'
-import { prisma } from '../prisma'
+import { getPrismaClient } from '../transaction-context'
 import { PrismaParticipantsMapper } from '../mappers/prisma-participant-mapper'
 import {
   ParticipantWithTrip,
@@ -10,13 +10,13 @@ import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 
 export class PrismaParticipantsRepository implements ParticipantsRepository {
   async create(participant: Participant): Promise<void> {
-    await prisma.participant.create({
+    await getPrismaClient().participant.create({
       data: PrismaParticipantsMapper.toPrisma(participant),
     })
   }
 
   async update(participant: Participant): Promise<void> {
-    await prisma.participant.update({
+    await getPrismaClient().participant.update({
       where: { id: participant.id.toString() },
       data: {
         name: participant.name,
@@ -28,7 +28,7 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
   }
 
   async findByConfirmationToken(token: string): Promise<Participant | null> {
-    const participant = await prisma.participant.findUnique({
+    const participant = await getPrismaClient().participant.findUnique({
       where: {
         confirmation_token: token,
       },
@@ -45,7 +45,7 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
     tripId: string,
     travelerId: string,
   ): Promise<Participant | null> {
-    const participant = await prisma.participant.findFirst({
+    const participant = await getPrismaClient().participant.findFirst({
       where: {
         trip_id: tripId,
         traveler_id: travelerId,
@@ -63,7 +63,7 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
     tripId: string,
     email: string,
   ): Promise<Participant | null> {
-    const participant = await prisma.participant.findUnique({
+    const participant = await getPrismaClient().participant.findUnique({
       where: {
         trip_id_email: {
           trip_id: tripId,
@@ -80,7 +80,7 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
   }
 
   async findAllByTripId(tripId: string): Promise<Participant[]> {
-    const participants = await prisma.participant.findMany({
+    const participants = await getPrismaClient().participant.findMany({
       where: {
         trip_id: tripId,
       },
@@ -92,7 +92,7 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
   async findAllByTravelerId(
     travelerId: string,
   ): Promise<ParticipantWithTripProps[]> {
-    const participants = await prisma.participant.findMany({
+    const participants = await getPrismaClient().participant.findMany({
       where: {
         traveler_id: travelerId,
       },
@@ -124,7 +124,7 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
   async findNextTripByTravelerId(
     travelerId: string,
   ): Promise<ParticipantWithTripProps | null> {
-    const participant = await prisma.participant.findFirst({
+    const participant = await getPrismaClient().participant.findFirst({
       where: {
         traveler_id: travelerId,
         trip: {

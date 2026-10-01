@@ -151,4 +151,69 @@ describe('Update Trip', () => {
     expect(result.isLeft()).toBeTruthy()
     expect(result.value).toBeInstanceOf(ResourceNotExistsError)
   })
+
+  it('should run the activity cleanup and the trip update in the same transaction', async () => {
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    let insideTransaction = false
+    const writesInsideTransaction: string[] = []
+
+    vi.spyOn(tripsRepository, 'runInTransaction').mockImplementation(
+      async (fn) => {
+        insideTransaction = true
+        const result = await fn()
+        insideTransaction = false
+
+        return result
+      },
+    )
+
+    const deleteOutsideTripPeriod =
+      activitiesRepository.deleteOutsideTripPeriod.bind(activitiesRepository)
+
+    vi.spyOn(
+      activitiesRepository,
+      'deleteOutsideTripPeriod',
+    ).mockImplementation(async (...args) => {
+      if (insideTransaction) {
+        writesInsideTransaction.push('deleteOutsideTripPeriod')
+      }
+
+      return deleteOutsideTripPeriod(...args)
+    })
+
+    const update = tripsRepository.update.bind(tripsRepository)
+
+    vi.spyOn(tripsRepository, 'update').mockImplementation(async (data) => {
+      if (insideTransaction) {
+        writesInsideTransaction.push('update')
+      }
+
+      return update(data)
+    })
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: 'London',
+      startsAt: dayjs().add(2, 'month').toDate(),
+      endsAt: dayjs().add(2, 'month').add(4, 'day').toDate(),
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(writesInsideTransaction).toEqual([
+      'deleteOutsideTripPeriod',
+      'update',
+    ])
+  })
 })
