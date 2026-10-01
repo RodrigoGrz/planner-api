@@ -45,6 +45,30 @@ describe('Prisma repositories (integration)', () => {
     expect(found?.coverImageUrl).toBeNull()
   })
 
+  it('should keep createdAt when updating a trip', async () => {
+    const owner = await makePrismaTraveler()
+    const createdAt = dayjs().subtract(1, 'year').startOf('second').toDate()
+
+    const trip = await makeTrip({ ownerId: owner.id, createdAt })
+
+    await tripsRepository.create(trip)
+
+    const stored = await tripsRepository.findById(trip.id.toString())
+
+    if (!stored) {
+      throw new Error('Trip was not persisted')
+    }
+
+    stored.destination = 'Londres'
+
+    await tripsRepository.update(stored)
+
+    const updated = await tripsRepository.findById(trip.id.toString())
+
+    expect(updated?.destination).toBe('Londres')
+    expect(updated?.createdAt).toEqual(createdAt)
+  })
+
   it('should expose the owner id and name through findByIdWithOwner', async () => {
     const owner = await makePrismaTraveler({ name: 'Dona da viagem' })
 
