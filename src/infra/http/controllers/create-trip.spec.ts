@@ -45,6 +45,26 @@ describe('Create Trip (E2E)', () => {
     expect(result.statusCode).toBe(400)
   })
 
+  test('[POST] /trips/register should validate body when content-type has leading space', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const result = await request(app.server)
+      .post('/trips/register')
+      .set('Authorization', `Bearer ${token}`)
+      .set('Content-Type', ' application/json')
+      .send(
+        JSON.stringify({
+          destination: 'Test',
+          startsAt: dayjs().add(1, 'month'),
+          endsAt: dayjs().add(1, 'month').add(4, 'day'),
+          emailsToInvite: ['invalid-email'],
+        }),
+      )
+
+    expect([400, 415]).toContain(result.statusCode)
+    expect(await prisma.trip.count()).toBe(0)
+  })
+
   test('[POST] /trips/register should not allow more than 20 invites', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
