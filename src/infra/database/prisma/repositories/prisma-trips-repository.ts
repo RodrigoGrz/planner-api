@@ -11,7 +11,7 @@ import {
   TripWithActivities,
   TripWithActivitiesProps,
 } from '@/domain/trip/enterprise/entities/value-objects/trip-with-activities'
-import { Activity } from '@/domain/trip/enterprise/entities/activity'
+import { PrismaActivityMapper } from '../mappers/prisma-activity-mapper'
 
 export class PrismaTripsRepository implements TripsRepository {
   async create(trip: Trip): Promise<void> {
@@ -83,13 +83,7 @@ export class PrismaTripsRepository implements TripsRepository {
       endsAt: trip.ends_at,
       createdAt: trip.created_at,
       updatedAt: trip.updated_at,
-      activities: trip.activities.map((item) =>
-        Activity.create({
-          title: item.title,
-          occursAt: item.occurs_at,
-          tripId: new UniqueEntityID(item.trip_id),
-        }),
-      ),
+      activities: trip.activities.map(PrismaActivityMapper.toDomain),
     })
   }
 

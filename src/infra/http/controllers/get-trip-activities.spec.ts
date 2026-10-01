@@ -1,5 +1,6 @@
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { app } from '@/infra/app'
+import { prisma } from '@/infra/database/prisma/prisma'
 import { dayjs } from '@/lib/dayjs'
 import request from 'supertest'
 import { createAndAuthenticateTraveler } from 'tests/e2e/utils/create-and-authenticate-traveler'
@@ -62,5 +63,58 @@ describe('Get Trip Activities (E2E)', () => {
     expect(tripResponse.body.activities[0].activities.length).toBe(2)
     expect(tripResponse.body.activities[1].activities.length).toBe(1)
     expect(tripResponse.body.activities[2].activities.length).toBe(0)
+  })
+
+  async function createTripWithOneActivity() {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+    const startsAt = dayjs().add(1, 'month')
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+      startsAt: startsAt.toDate(),
+      endsAt: startsAt.add(2, 'day').toDate(),
+    })
+
+    const activity = await makePrismaActivity({
+      tripId: trip.id,
+      occursAt: startsAt.toDate(),
+    })
+
+    return { token, trip, activity }
+  }
+
+  test('[GET] /trips/:tripId/activities returns the persisted activity ids', async () => {
+    const { token, trip, activity } = await createTripWithOneActivity()
+
+    const response = await request(app.server)
+      .get(`/trips/${trip.id.toString()}/activities`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(response.statusCode).toBe(200)
+    expect(response.body.activities[0].activities[0].id).toBe(
+      activity.id.toString(),
+    )
+  })
+
+  test('[GET] /trips/:tripId/activities returns ids that can be deleted', async () => {
+    const { token, trip } = await createTripWithOneActivity()
+
+    const listResponse = await request(app.server)
+      .get(`/trips/${trip.id.toString()}/activities`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    const activityId = listResponse.body.activities[0].activities[0].id
+
+    const deleteResponse = await request(app.server)
+      .delete(`/trip/activity/${activityId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(deleteResponse.statusCode).toBe(204)
+    expect(
+      await prisma.activity.findUnique({ where: { id: activityId } }),
+    ).toBeNull()
   })
 })
