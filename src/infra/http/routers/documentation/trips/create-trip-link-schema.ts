@@ -2,7 +2,7 @@ import z from 'zod'
 
 export const createTripLinkBody = z.object({
   title: z.string(),
-  url: z.url(),
+  url: z.httpUrl().max(2048),
   tripId: z.uuid(),
 })
 
