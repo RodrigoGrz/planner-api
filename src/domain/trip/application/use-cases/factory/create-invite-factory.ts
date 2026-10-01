@@ -1,20 +1,20 @@
 import { PrismaTripsRepository } from '@/infra/database/prisma/repositories/prisma-trips-repository'
-import { CreateTripUseCase } from '../create-trip'
-import { PrismaTravelersRepository } from '@/infra/database/prisma/repositories/prisma-travelers-repository'
 import { PrismaParticipantsRepository } from '@/infra/database/prisma/repositories/prisma-participants-repository'
+import { PrismaTravelersRepository } from '@/infra/database/prisma/repositories/prisma-travelers-repository'
 import { makeMailer } from '@/infra/mail/make-mailer'
+import { CreateInviteUseCase } from '../create-invite'
 
-export async function createTripFactory() {
+export async function createInviteFactory() {
   const tripsRepository = new PrismaTripsRepository()
-  const travelersRepository = new PrismaTravelersRepository()
   const participantsRepository = new PrismaParticipantsRepository()
+  const travelersRepository = new PrismaTravelersRepository()
   const mailer = await makeMailer()
-  const createTripUseCase = new CreateTripUseCase(
+  const createInviteUseCase = new CreateInviteUseCase(
     tripsRepository,
-    travelersRepository,
     participantsRepository,
+    travelersRepository,
     mailer,
   )
 
-  return createTripUseCase
+  return createInviteUseCase
 }

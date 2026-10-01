@@ -124,4 +124,31 @@ describe('PrismaParticipantsRepository (integration)', () => {
 
     expect(found).toBeNull()
   })
+
+  it('should find a participant by trip and e-mail only within that trip', async () => {
+    const owner = await makePrismaTraveler()
+    const trip = await makePrismaTrip({ ownerId: owner.id })
+    const otherTrip = await makePrismaTrip({ ownerId: owner.id })
+
+    const participant = await makeParticipant({
+      tripId: trip.id,
+      travelerId: null,
+      email: 'invited@planner.com',
+    })
+
+    await repository.create(participant)
+
+    const found = await repository.findByTripIdAndEmail(
+      trip.id.toString(),
+      'invited@planner.com',
+    )
+
+    const notFound = await repository.findByTripIdAndEmail(
+      otherTrip.id.toString(),
+      'invited@planner.com',
+    )
+
+    expect(found?.id.toString()).toBe(participant.id.toString())
+    expect(notFound).toBeNull()
+  })
 })

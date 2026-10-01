@@ -9,12 +9,13 @@ import {
   validatorCompiler,
   ZodTypeProvider,
 } from 'fastify-type-provider-zod'
-import { createInvite } from './http/routers/create-invite'
 import fastifyJwt from '@fastify/jwt'
 import { env } from '@/env'
 import { travelersRoute } from './http/routers/travelers.route'
 import { tripsRoute } from './http/routers/trips.route'
 import { participantsRoute } from './http/routers/participants.route'
+
+const MAX_UPLOAD_FILE_SIZE_IN_BYTES = 10 * 1024 * 1024
 
 export const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -108,7 +109,7 @@ app.register(fastifySwaggerUI, {
 
 app.register(fastifyMultipart, {
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10 MB
+    fileSize: MAX_UPLOAD_FILE_SIZE_IN_BYTES,
   },
 })
 
@@ -120,5 +121,3 @@ app.register(fastifyCors, {
 app.register(travelersRoute)
 app.register(tripsRoute)
 app.register(participantsRoute)
-
-app.register(createInvite)

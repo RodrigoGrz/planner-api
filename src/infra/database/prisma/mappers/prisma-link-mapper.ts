@@ -1,6 +1,6 @@
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { Link } from '@/domain/trip/enterprise/entities/link'
-import { Link as PrismaLink, Prisma } from '@prisma/client'
+import { Link as PrismaLink, Prisma } from 'prisma/generated/prisma/client'
 
 export class PrismaLinksMapper {
   static toDomain(raw: PrismaLink): Link {

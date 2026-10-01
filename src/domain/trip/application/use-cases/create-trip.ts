@@ -10,7 +10,7 @@ import { TravelersRepository } from '../repositories/travelers-repository'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { Mailer } from '../mail/mailer'
 import { dayjs } from '@/lib/dayjs'
-import { participantInviteFormat } from '@/utils/mail-formats'
+import { sendParticipantInvite } from '../mail/send-participant-invite'
 import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
 import { randomUUID } from 'node:crypto'
 
@@ -117,20 +117,10 @@ export class CreateTripUseCase {
     })
 
     for (const { participant, confirmationToken } of invites) {
-      const mailTemplate = participantInviteFormat({
-        destination,
-        startsAt,
-        endsAt,
+      await sendParticipantInvite(this.mailer, {
+        trip,
+        participant,
         confirmationToken,
-      })
-
-      await this.mailer.send({
-        html: mailTemplate.html,
-        subject: mailTemplate.subject,
-        to: {
-          name: participant.name,
-          address: participant.email,
-        },
       })
     }
 
