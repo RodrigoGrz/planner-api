@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "engines": {
-    "node": ">=24.14.0"
+    "node": ">=24.21.0"
   },
   "private": true,
   "scripts": {
@@ -45,7 +45,7 @@
   "devDependencies": {
     "@faker-js/faker": "10.3.0",
     "@rocketseat/eslint-config": "^2.2.2",
-    "@types/node": "25.5.0",
+    "@types/node": "24.19.0",
     "@types/nodemailer": "7.0.11",
     "@types/supertest": "7.2.0",
     "eslint": "^8.57.0",
