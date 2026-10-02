@@ -4,8 +4,8 @@ import { participantInviteFormat } from './mail-formats'
 describe('participantInviteFormat', () => {
   const trip = {
     destination: 'Noruega',
-    startsAt: new Date('2026-03-10T12:00:00'),
-    endsAt: new Date('2026-03-14T12:00:00'),
+    startsAt: new Date('2026-03-10T12:00:00.000Z'),
+    endsAt: new Date('2026-03-14T12:00:00.000Z'),
   }
 
   it('should build a confirmation link carrying the token', () => {
@@ -112,5 +112,17 @@ describe('participantInviteFormat', () => {
     expect(first.html).not.toBe(second.html)
     expect(first.html).toContain('token=token-1')
     expect(second.html).toContain('token=token-2')
+  })
+
+  it('should format the trip dates using the UTC day', () => {
+    const { subject, html } = participantInviteFormat({
+      destination: 'Noruega',
+      startsAt: new Date('2026-03-10T00:00:00.000Z'),
+      endsAt: new Date('2026-03-14T00:00:00.000Z'),
+      confirmationToken: 'token-123',
+    })
+
+    expect(subject).toContain('em 10 de março')
+    expect(html).toContain('10 de março até 14 de março')
   })
 })

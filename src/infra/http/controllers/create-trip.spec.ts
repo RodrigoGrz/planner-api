@@ -75,6 +75,49 @@ describe('Create Trip (E2E)', () => {
     },
   )
 
+  test('[POST] /trips/register accepts start and end on the same UTC day regardless of time', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const tripDay = dayjs.utc().add(1, 'month').startOf('day')
+
+    const result = await request(app.server)
+      .post('/trips/register')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        destination: 'Same day',
+        startsAt: tripDay.hour(3).minute(30).toDate(),
+        endsAt: tripDay.hour(2).minute(30).toDate(),
+        emailsToInvite: [],
+      })
+
+    expect(result.statusCode).toBe(201)
+  })
+
+  test('[POST] /trips/register stores the dates at midnight UTC', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const firstDay = dayjs.utc().add(1, 'month').startOf('day')
+    const lastDay = firstDay.add(3, 'day')
+
+    const result = await request(app.server)
+      .post('/trips/register')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        destination: 'Normalized',
+        startsAt: firstDay.hour(15).toDate(),
+        endsAt: lastDay.hour(8).toDate(),
+        emailsToInvite: [],
+      })
+
+    const trip = await prisma.trip.findUnique({
+      where: { id: result.body.tripId },
+    })
+
+    expect(result.statusCode).toBe(201)
+    expect(trip?.starts_at).toEqual(firstDay.toDate())
+    expect(trip?.ends_at).toEqual(lastDay.toDate())
+  })
+
   test('[POST] /trips/register returns 400 for a blank destination', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 

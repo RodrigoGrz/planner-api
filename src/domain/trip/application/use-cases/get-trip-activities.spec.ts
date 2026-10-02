@@ -118,7 +118,66 @@ describe('Get Trip Activities', () => {
       MAX_TRIP_DURATION_IN_DAYS + 1,
     )
     expect(result.isRight() && result.value.activities[0].date).toEqual(
-      startsAt,
+      dayjs.utc(startsAt).startOf('day').toDate(),
+    )
+  })
+
+  it('should group activities by UTC day', async () => {
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      startsAt: new Date('2026-03-10T00:00:00.000Z'),
+      endsAt: new Date('2026-03-12T00:00:00.000Z'),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const lateActivity = await makeActivity({
+      tripId: trip.id,
+      occursAt: new Date('2026-03-10T23:30:00.000Z'),
+    })
+
+    activitiesRepository.items.push(lateActivity)
+
+    const result = await getTripActivitiesUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(
+      result.isRight() &&
+        result.value.activities[0].activities.map((item) => item.id),
+    ).toEqual([lateActivity.id])
+    expect(result.isRight() && result.value.activities[1].activities).toEqual(
+      [],
+    )
+  })
+
+  it('should start the first block at midnight UTC of the start day', async () => {
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      startsAt: new Date('2026-03-10T15:00:00.000Z'),
+      endsAt: new Date('2026-03-12T00:00:00.000Z'),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const result = await getTripActivitiesUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(result.isRight() && result.value.activities[0].date).toEqual(
+      new Date('2026-03-10T00:00:00.000Z'),
     )
   })
 

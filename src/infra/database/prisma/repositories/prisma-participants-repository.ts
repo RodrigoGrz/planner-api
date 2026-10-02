@@ -7,6 +7,7 @@ import {
   ParticipantWithTripProps,
 } from '@/domain/trip/enterprise/entities/value-objects/participant-with-trip'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
+import { getTodayTripDay } from '@/domain/trip/application/trip-period/trip-day'
 
 export class PrismaParticipantsRepository implements ParticipantsRepository {
   async create(participant: Participant): Promise<void> {
@@ -141,7 +142,7 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
         traveler_id: travelerId,
         trip: {
           starts_at: {
-            gte: new Date(),
+            gte: getTodayTripDay().toDate(),
           },
         },
       },

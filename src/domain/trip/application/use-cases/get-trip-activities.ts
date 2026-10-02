@@ -1,6 +1,5 @@
 import { Either, left, right } from '@/core/either'
 import { Activity } from '../../enterprise/entities/activity'
-import { dayjs } from '@/lib/dayjs'
 import { TripsRepository } from '../repositories/trips-repository'
 import { ParticipantsRepository } from '../repositories/participants-repository'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
@@ -10,6 +9,7 @@ import {
   MAX_TRIP_DURATION_IN_DAYS,
   getTripDurationInDays,
 } from '../trip-period/trip-duration'
+import { toTripDay } from '../trip-period/trip-day'
 
 interface GetTripActivitiesUseCaseRequest {
   tripId: string
@@ -63,20 +63,20 @@ export class GetTripActivitiesUseCase {
       MAX_TRIP_DURATION_IN_DAYS,
     )
 
+    const firstTripDay = toTripDay(trip.startsAt)
+
     const activities = Array.from({
       length: listedDurationInDays + 1,
     }).map((_, daysToAdd) => {
-      const dateToCompare = dayjs(trip.startsAt).add(daysToAdd, 'days')
+      const tripDay = firstTripDay.add(daysToAdd, 'day')
 
       return {
-        date: dateToCompare.toDate(),
+        date: tripDay.toDate(),
         activities: trip.activities
           .filter((activity) => {
-            return dayjs(activity.occursAt).isSame(dateToCompare, 'day')
+            return toTripDay(activity.occursAt).isSame(tripDay)
           })
-          .sort(
-            (a, b) => dayjs(a.occursAt).valueOf() - dayjs(b.occursAt).valueOf(),
-          ),
+          .sort((a, b) => a.occursAt.getTime() - b.occursAt.getTime()),
       }
     })
 

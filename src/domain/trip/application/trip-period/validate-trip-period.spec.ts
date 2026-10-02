@@ -6,6 +6,36 @@ import { MAX_TRIP_DURATION_IN_DAYS } from './trip-duration'
 import { validateTripPeriod } from './validate-trip-period'
 
 describe('Validate trip period', () => {
+  describe('in UTC calendar days', () => {
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('should compare the start date against the current UTC day', () => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(new Date('2026-03-10T01:00:00.000Z'))
+
+      const result = validateTripPeriod({
+        startsAt: new Date('2026-03-09T12:00:00.000Z'),
+        endsAt: new Date('2026-03-12T00:00:00.000Z'),
+      })
+
+      expect(result.value).toBeInstanceOf(InvalidTripStartDate)
+    })
+
+    it('should count the duration in UTC days', () => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(new Date('2026-03-01T12:00:00.000Z'))
+
+      const result = validateTripPeriod({
+        startsAt: new Date('2026-03-10T01:00:00.000Z'),
+        endsAt: new Date('2026-04-09T23:00:00.000Z'),
+      })
+
+      expect(result.isRight()).toBe(true)
+    })
+  })
+
   describe('without a current period', () => {
     it('should accept a trip starting today', () => {
       const result = validateTripPeriod({
@@ -79,8 +109,8 @@ describe('Validate trip period', () => {
 
     it('should treat a different time on the same day as unchanged', () => {
       const result = validateTripPeriod({
-        startsAt: dayjs(ongoingPeriod.startsAt).startOf('day').toDate(),
-        endsAt: dayjs(ongoingPeriod.endsAt).endOf('day').toDate(),
+        startsAt: dayjs.utc(ongoingPeriod.startsAt).startOf('day').toDate(),
+        endsAt: dayjs.utc(ongoingPeriod.endsAt).endOf('day').toDate(),
         currentPeriod: ongoingPeriod,
       })
 

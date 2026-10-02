@@ -1,4 +1,5 @@
 import z from 'zod'
+import { toTripDay } from '@/domain/trip/application/trip-period/trip-day'
 
 export const tripDestination = z.string().trim().min(3)
 
@@ -6,10 +7,7 @@ export function endsAtNotBeforeStartsAt(data: {
   startsAt: Date
   endsAt: Date
 }) {
-  const start = new Date(data.startsAt).setHours(0, 0, 0, 0)
-  const end = new Date(data.endsAt).setHours(0, 0, 0, 0)
-
-  return end >= start
+  return !toTripDay(data.endsAt).isBefore(toTripDay(data.startsAt))
 }
 
 export const endsAtNotBeforeStartsAtError = {
