@@ -11,16 +11,18 @@ export const uploadTripCoverImageSchema = {
     consumes: ['multipart/form-data'],
     security: [{ bearerAuth: [] }],
     params: uploadTripCoverImageParams,
-    body: z.object({
-      file: z.file().describe('Image file (jpg, png, etc)'),
-    }),
+    body: z
+      .object({
+        file: z.file().describe('Image file (jpeg or png, up to 10MB)'),
+      })
+      .nullish(),
     response: {
       204: z.null().describe('Image uploaded'),
       400: z
         .object({
           message: z.string(),
         })
-        .describe('Bad request'),
+        .describe('Possible reasons: No file uploaded | Validation error'),
       403: z
         .object({
           message: z.string(),
@@ -30,9 +32,12 @@ export const uploadTripCoverImageSchema = {
         .object({
           message: z.string(),
         })
-        .describe(
-          'Possible reasons: No file uploaded | Recurso não encontrado.',
-        ),
+        .describe('Recurso não encontrado'),
+      413: z
+        .object({
+          message: z.string(),
+        })
+        .describe('File too large'),
       415: z
         .object({
           message: z.string(),

@@ -1,9 +1,10 @@
 export interface UploadParams {
-  fileName: string
-  fileType: string
+  key: string
+  contentType: string
   body: Buffer
 }
 
 export interface Uploader {
-  upload(params: UploadParams): Promise<{ url: string }>
+  upload(params: UploadParams): Promise<void>
+  delete(key: string): Promise<void>
 }

@@ -2,24 +2,16 @@ import {
   Uploader,
   UploadParams,
 } from '@/domain/trip/application/storage/uploader'
-import { faker } from '@faker-js/faker'
-
-interface Upload {
-  fileName: string
-  url: string
-}
 
 export class FakeUploader implements Uploader {
-  public uploads: Upload[] = []
+  public uploads: UploadParams[] = []
+  public deletedKeys: string[] = []
 
-  async upload({ fileName }: UploadParams): Promise<{ url: string }> {
-    const url = faker.internet.url()
+  async upload(params: UploadParams): Promise<void> {
+    this.uploads.push(params)
+  }
 
-    this.uploads.push({
-      fileName,
-      url,
-    })
-
-    return { url }
+  async delete(key: string): Promise<void> {
+    this.deletedKeys.push(key)
   }
 }

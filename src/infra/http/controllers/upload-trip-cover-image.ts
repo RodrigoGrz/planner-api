@@ -22,14 +22,10 @@ export async function uploadTripCoverImageController(
 
   const uploadTripCoverImageUseCase = uploadTripCoverImageFactory()
 
-  const body = await file.toBuffer()
-
   const result = await uploadTripCoverImageUseCase.execute({
     tripId,
     travelerId: sub,
-    fileName: file.filename,
-    fileType: file.mimetype,
-    body,
+    readFile: () => file.toBuffer(),
   })
 
   if (result.isLeft()) {
