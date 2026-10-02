@@ -11,6 +11,7 @@ export default defineConfig({
       './src/domain/**/*.spec.ts',
       './src/core/*.spec.ts',
       './src/utils/*.spec.ts',
+      './src/infra/mail/*.spec.ts',
     ],
   },
   resolve: {

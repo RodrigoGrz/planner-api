@@ -1,12 +1,12 @@
 import { Mailer, SendMailParams } from '@/domain/trip/application/mail/mailer'
 import { env } from '@/env'
-import nodemailer from 'nodemailer'
+import nodemailer, { Transporter } from 'nodemailer'
 import { SentMessageInfo } from 'nodemailer/lib/smtp-transport'
 
 export class NodemailerMailer implements Mailer {
   private transporter
 
-  private constructor(transporter: nodemailer.Transporter<SentMessageInfo>) {
+  private constructor(transporter: Transporter<SentMessageInfo>) {
     this.transporter = transporter
   }
 
