@@ -2,6 +2,7 @@ import { Either, left, right } from '@/core/either'
 import { TripsRepository } from '../repositories/trips-repository'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { NotAllowedError } from './errors/not-allowed-error'
+import { Uploader } from '../storage/uploader'
 
 interface DeleteTripUseCaseRequest {
   id: string
@@ -11,7 +12,10 @@ interface DeleteTripUseCaseRequest {
 type DeleteTripUseCaseResponse = Either<ResourceNotExistsError, null>
 
 export class DeleteTripUseCase {
-  constructor(private tripsRepository: TripsRepository) {}
+  constructor(
+    private tripsRepository: TripsRepository,
+    private uploader: Uploader,
+  ) {}
 
   async execute({
     id,
@@ -28,6 +32,10 @@ export class DeleteTripUseCase {
     }
 
     await this.tripsRepository.delete(id)
+
+    if (trip.coverImageUrl) {
+      await this.uploader.delete(trip.coverImageUrl)
+    }
 
     return right(null)
   }

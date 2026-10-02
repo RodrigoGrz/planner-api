@@ -10,11 +10,13 @@ import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { makeActivity } from 'tests/factories/make-activity'
 import { makeLink } from 'tests/factories/make-link'
 import { NotAllowedError } from './errors/not-allowed-error'
+import { FakeUploader } from 'tests/storage/fake-uploader'
 
 let activitiesRepository: FakeActivitiesRepository
 let tripsRepository: FakeTripsRepository
 let travelersRepository: FakeTravelersRepository
 let linksRepository: FakeLinksRepository
+let uploader: FakeUploader
 let deleteTripUseCase: DeleteTripUseCase
 
 describe('Delete trip', () => {
@@ -29,7 +31,9 @@ describe('Delete trip', () => {
       linksRepository,
     )
 
-    deleteTripUseCase = new DeleteTripUseCase(tripsRepository)
+    uploader = new FakeUploader()
+
+    deleteTripUseCase = new DeleteTripUseCase(tripsRepository, uploader)
   })
 
   it('should be able to delete a trip', async () => {
@@ -126,5 +130,42 @@ describe('Delete trip', () => {
 
     expect(activitiesRepository.items.length).toBe(0)
     expect(linksRepository.items.length).toBe(0)
+  })
+
+  it('should be able to delete the cover image from storage when deleting a trip', async () => {
+    const trip = await makeTrip({ coverImageUrl: 'cover.png' })
+    tripsRepository.items.push(trip)
+
+    await deleteTripUseCase.execute({
+      id: trip.id.toString(),
+      userId: trip.ownerId.toString(),
+    })
+
+    expect(uploader.deletedKeys).toEqual(['cover.png'])
+  })
+
+  it('should not delete anything from storage when the trip has no cover', async () => {
+    const trip = await makeTrip()
+    tripsRepository.items.push(trip)
+
+    await deleteTripUseCase.execute({
+      id: trip.id.toString(),
+      userId: trip.ownerId.toString(),
+    })
+
+    expect(uploader.deletedKeys).toHaveLength(0)
+  })
+
+  it('should not delete the cover image when the user is not the owner', async () => {
+    const anotherUser = await makeTraveler()
+    const trip = await makeTrip({ coverImageUrl: 'cover.png' })
+    tripsRepository.items.push(trip)
+
+    await deleteTripUseCase.execute({
+      id: trip.id.toString(),
+      userId: anotherUser.id.toString(),
+    })
+
+    expect(uploader.deletedKeys).toHaveLength(0)
   })
 })

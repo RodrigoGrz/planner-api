@@ -6,7 +6,6 @@ export default defineConfig({
       './src/infra/http/controllers/*.spec.ts',
       './src/infra/database/**/*.spec.ts',
     ],
-    exclude: ['./src/infra/http/controllers/upload-trip-cover-image.spec.ts'],
     globals: true,
     env: {
       NODE_ENV: 'test',

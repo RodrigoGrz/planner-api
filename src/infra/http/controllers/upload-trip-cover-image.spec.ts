@@ -1,12 +1,18 @@
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { app } from '@/infra/app'
-import { dayjs } from '@/lib/dayjs'
+import { randomUUID } from 'node:crypto'
 import request from 'supertest'
 import { createAndAuthenticateTraveler } from 'tests/e2e/utils/create-and-authenticate-traveler'
 import { makePrismaTrip } from 'tests/factories/make-trip'
-import { describe, beforeAll, afterAll, test, expect } from 'vitest'
 
-describe.skip('Upload Trip Cover Image (E2E)', () => {
+const MAX_UPLOAD_FILE_SIZE_IN_BYTES = 10 * 1024 * 1024
+
+const largeJpeg = Buffer.concat([
+  Buffer.from([0xff, 0xd8, 0xff, 0xe0]),
+  Buffer.alloc(5 * 1024 * 1024),
+])
+
+describe('Upload Trip Cover Image (E2E)', () => {
   beforeAll(async () => {
     await app.ready()
   })
@@ -19,17 +25,95 @@ describe.skip('Upload Trip Cover Image (E2E)', () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
-      destination: 'Norway',
       ownerId: new UniqueEntityID(traveler.id),
-      startsAt: dayjs().add(1, 'month').toDate(),
-      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
     })
 
-    const imageResponse = await request(app.server)
+    const response = await request(app.server)
       .post(`/trips/${trip.id.toString()}/image`)
       .set('Authorization', `Bearer ${token}`)
       .attach('file', './tests/e2e/upload/sample.jpg')
 
-    expect(imageResponse.statusCode).toEqual(204)
+    expect(response.statusCode).toEqual(204)
+  })
+
+  test('[POST] /trips/:tripId/image returns 403 for a traveler who is not the owner', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+    const { traveler: owner } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(owner.id),
+    })
+
+    const response = await request(app.server)
+      .post(`/trips/${trip.id.toString()}/image`)
+      .set('Authorization', `Bearer ${token}`)
+      .attach('file', largeJpeg, {
+        filename: 'cover.jpg',
+        contentType: 'image/jpeg',
+      })
+
+    expect(response.statusCode).toEqual(403)
+  })
+
+  test('[POST] /trips/:tripId/image returns 409 when the trip does not exist', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const response = await request(app.server)
+      .post(`/trips/${randomUUID()}/image`)
+      .set('Authorization', `Bearer ${token}`)
+      .attach('file', './tests/e2e/upload/sample.jpg')
+
+    expect(response.statusCode).toEqual(409)
+  })
+
+  test('[POST] /trips/:tripId/image returns 415 for a text file declared as png', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const response = await request(app.server)
+      .post(`/trips/${trip.id.toString()}/image`)
+      .set('Authorization', `Bearer ${token}`)
+      .attach('file', Buffer.from('not an image'), {
+        filename: 'cover.png',
+        contentType: 'image/png',
+      })
+
+    expect(response.statusCode).toEqual(415)
+  })
+
+  test('[POST] /trips/:tripId/image returns 413 for a file larger than 10MB', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const response = await request(app.server)
+      .post(`/trips/${trip.id.toString()}/image`)
+      .set('Authorization', `Bearer ${token}`)
+      .attach('file', Buffer.alloc(MAX_UPLOAD_FILE_SIZE_IN_BYTES + 1), {
+        filename: 'cover.png',
+        contentType: 'image/png',
+      })
+
+    expect(response.statusCode).toEqual(413)
+  })
+
+  test('[POST] /trips/:tripId/image returns 400 without a file', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const response = await request(app.server)
+      .post(`/trips/${trip.id.toString()}/image`)
+      .set('Authorization', `Bearer ${token}`)
+      .field('description', 'no file here')
+
+    expect(response.statusCode).toEqual(400)
   })
 })

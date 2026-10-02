@@ -1,7 +1,9 @@
 import { Either, left, right } from '@/core/either'
+import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { TripsRepository } from '../repositories/trips-repository'
 import { FileTypeInvalidError } from './errors/file-type-invalid-error'
 import { Uploader } from '../storage/uploader'
+import { detectImageType } from '../storage/detect-image-type'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { Trip } from '../../enterprise/entities/trip'
 import { NotAllowedError } from './errors/not-allowed-error'
@@ -10,9 +12,7 @@ import { isTripOwner } from '../authorization/trip-access'
 interface UploadTripCoverImageUseCaseRequest {
   tripId: string
   travelerId: string
-  fileName: string
-  fileType: string
-  body: Buffer
+  readFile: () => Promise<Buffer>
 }
 
 type UploadTripCoverImageUseCaseResponse = Either<
@@ -29,14 +29,8 @@ export class UploadTripCoverImageUseCase {
   async execute({
     tripId,
     travelerId,
-    fileType,
-    fileName,
-    body,
+    readFile,
   }: UploadTripCoverImageUseCaseRequest): Promise<UploadTripCoverImageUseCaseResponse> {
-    if (!/^image\/(jpeg|png)$/.test(fileType)) {
-      return left(new FileTypeInvalidError())
-    }
-
     const trip = await this.tripsRepository.findById(tripId)
 
     if (!trip) {
@@ -47,15 +41,30 @@ export class UploadTripCoverImageUseCase {
       return left(new NotAllowedError())
     }
 
-    const { url } = await this.uploader.upload({
-      fileName,
-      fileType,
+    const body = await readFile()
+    const imageType = detectImageType(body)
+
+    if (!imageType) {
+      return left(new FileTypeInvalidError())
+    }
+
+    const key = `${new UniqueEntityID()}.${imageType.extension}`
+
+    await this.uploader.upload({
+      key,
+      contentType: imageType.contentType,
       body,
     })
 
-    trip.coverImageUrl = url
+    const previousKey = trip.coverImageUrl
+
+    trip.coverImageUrl = key
 
     await this.tripsRepository.update(trip)
+
+    if (previousKey) {
+      await this.uploader.delete(previousKey)
+    }
 
     return right({
       trip,
