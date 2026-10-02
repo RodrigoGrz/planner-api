@@ -8,7 +8,7 @@ import { PrismaPg } from '@prisma/adapter-pg'
 
 function generateDatabaseURL(schema: string) {
   if (!process.env.DATABASE_URL) {
-    throw new Error('Por favor, preencha a variável DATABSE_URL.')
+    throw new Error('Por favor, preencha a variável DATABASE_URL.')
   }
 
   const url = new URL(process.env.DATABASE_URL)
@@ -18,7 +18,7 @@ function generateDatabaseURL(schema: string) {
 }
 
 async function warmUpPrismaClient(prisma: PrismaClient) {
-  await prisma.$queryRawUnsafe('SELECT 1')
+  await prisma.$queryRaw`SELECT 1`
 }
 
 export default {
