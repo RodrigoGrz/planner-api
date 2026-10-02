@@ -27,6 +27,7 @@ Entrada: `$ARGUMENTS` — caminho do plano. Se vazio, use o arquivo mais recente
 
 ### 3. Refactor
 - Melhore nomes e remova duplicação mantendo os testes verdes.
+- **Não crie função/helper novo só para tirar duplicação de poucas linhas** (ex.: buscar participante + trip + checar expiração em dois use cases). Duplicação pequena e local é aceitável. Extraia só quando for uma regra de negócio que precisa morar num único lugar (como `trip-period`) ou quando o trecho repetido for grande.
 
 ### 4. Camada HTTP / infra (também test-first)
 1. Escreva o E2E em `src/infra/http/controllers/<nome>.spec.ts` (`test('[VERBO] /rota', ...)`, casos de erro e autorização relevantes).
