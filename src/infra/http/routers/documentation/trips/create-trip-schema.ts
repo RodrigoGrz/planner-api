@@ -1,8 +1,13 @@
 import z from 'zod'
+import {
+  endsAtNotBeforeStartsAt,
+  endsAtNotBeforeStartsAtError,
+  tripDestination,
+} from './trip-period-schema'
 
 export const createTripBody = z
   .object({
-    destination: z.string().min(3),
+    destination: tripDestination,
     startsAt: z.coerce.date(),
     endsAt: z.coerce.date(),
     emailsToInvite: z
@@ -10,18 +15,7 @@ export const createTripBody = z
       .max(20, 'You can invite up to 20 participants per trip')
       .transform((emails) => [...new Set(emails)]),
   })
-  .refine(
-    (data) => {
-      const start = new Date(data.startsAt).setHours(0, 0, 0, 0)
-      const end = new Date(data.endsAt).setHours(0, 0, 0, 0)
-
-      return end >= start
-    },
-    {
-      message: 'End date must be after start date',
-      path: ['endsAt'],
-    },
-  )
+  .refine(endsAtNotBeforeStartsAt, endsAtNotBeforeStartsAtError)
 
 export const createTripSchema = {
   schema: {
@@ -45,7 +39,7 @@ export const createTripSchema = {
           message: z.string(),
         })
         .describe(
-          'Possible reasons: Data de início inválida. | Data de fim inválida. | Recurso não encontrado.',
+          'Possible reasons: Data de início inválida. | Data de fim inválida. | A duração da viagem deve ter no máximo 30 dias. | Recurso não encontrado.',
         ),
     },
   },

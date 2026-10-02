@@ -73,6 +73,92 @@ describe('Update Trip (E2E)', () => {
     expect(afterUpdate?.ends_at).toEqual(trip.endsAt)
   })
 
+  test('[PUT] /trips/:tripId/update renames an ongoing trip without changing dates', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      destination: 'Norway',
+      startsAt: dayjs().subtract(1, 'day').toDate(),
+      endsAt: dayjs().add(3, 'day').toDate(),
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const result = await request(app.server)
+      .put(`/trips/${trip.id.toString()}/update`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        destination: 'London',
+        startsAt: trip.startsAt,
+        endsAt: trip.endsAt,
+      })
+
+    const afterUpdate = await prisma.trip.findUnique({
+      where: {
+        id: trip.id.toString(),
+      },
+    })
+
+    expect(result.statusCode).toBe(204)
+    expect(afterUpdate?.destination).toBe('London')
+  })
+
+  test.each([
+    ['an empty destination', ''],
+    ['a blank destination', '   '],
+    ['a destination shorter than 3 characters', 'ab'],
+  ])(
+    '[PUT] /trips/:tripId/update returns 400 for %s',
+    async (_, destination) => {
+      const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+      const trip = await makePrismaTrip({
+        destination: 'Norway',
+        startsAt: dayjs().add(1, 'month').toDate(),
+        endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+        ownerId: new UniqueEntityID(traveler.id),
+      })
+
+      const result = await request(app.server)
+        .put(`/trips/${trip.id.toString()}/update`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          destination,
+          startsAt: trip.startsAt,
+          endsAt: trip.endsAt,
+        })
+
+      const afterUpdate = await prisma.trip.findUnique({
+        where: {
+          id: trip.id.toString(),
+        },
+      })
+
+      expect(result.statusCode).toBe(400)
+      expect(afterUpdate?.destination).toBe('Norway')
+    },
+  )
+
+  test('[PUT] /trips/:tripId/update returns 400 when endsAt is before startsAt', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const result = await request(app.server)
+      .put(`/trips/${trip.id.toString()}/update`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        destination: 'London',
+        startsAt: dayjs().add(2, 'month').toDate(),
+        endsAt: dayjs().add(2, 'month').subtract(1, 'day').toDate(),
+      })
+
+    expect(result.statusCode).toBe(400)
+  })
+
   test('[PUT] /trips/:tripId/update keeps created_at', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
     const createdAt = dayjs().subtract(1, 'year').startOf('second').toDate()

@@ -1,14 +1,21 @@
 import z from 'zod'
+import {
+  endsAtNotBeforeStartsAt,
+  endsAtNotBeforeStartsAtError,
+  tripDestination,
+} from './trip-period-schema'
 
 export const updateTripParams = z.object({
   tripId: z.uuid(),
 })
 
-export const updateTripBody = z.object({
-  destination: z.string(),
-  startsAt: z.coerce.date(),
-  endsAt: z.coerce.date(),
-})
+export const updateTripBody = z
+  .object({
+    destination: tripDestination,
+    startsAt: z.coerce.date(),
+    endsAt: z.coerce.date(),
+  })
+  .refine(endsAtNotBeforeStartsAt, endsAtNotBeforeStartsAtError)
 
 export const updateTripSchema = {
   schema: {
@@ -34,7 +41,7 @@ export const updateTripSchema = {
           message: z.string(),
         })
         .describe(
-          'Possible reasons: Data de início inválida. | Data de fim inválida. | Recurso não encontrado.',
+          'Possible reasons: Data de início inválida. | Data de fim inválida. | A duração da viagem deve ter no máximo 30 dias. | Recurso não encontrado.',
         ),
     },
   },
