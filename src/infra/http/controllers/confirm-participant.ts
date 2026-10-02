@@ -1,23 +1,22 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
+import z from 'zod'
 
+import { InviteExpiredError } from '@/domain/trip/application/use-cases/errors/invite-expired-error'
 import { confirmParticipantFactory } from '@/domain/trip/application/use-cases/factory/confirm-participant-factory'
 import {
   confirmationErrorPage,
+  confirmationExpiredPage,
   confirmationSuccessPage,
 } from '@/utils/confirmation-pages'
-import { confirmParticipantQuerystring } from '../routers/documentation/participants/confirm-participant-schema'
+import { confirmParticipantBody } from '../routers/documentation/participants/confirm-participant-schema'
 
-import z from 'zod'
-
-type ConfirmParticipantQuerystring = z.infer<
-  typeof confirmParticipantQuerystring
->
+type ConfirmParticipantBody = z.infer<typeof confirmParticipantBody>
 
 export async function confirmParticipantController(
-  request: FastifyRequest<{ Querystring: ConfirmParticipantQuerystring }>,
+  request: FastifyRequest<{ Body: ConfirmParticipantBody }>,
   reply: FastifyReply,
 ) {
-  const { token } = request.query
+  const { token } = request.body
 
   const html = reply.type('text/html; charset=utf-8')
 
@@ -30,7 +29,14 @@ export async function confirmParticipantController(
   const result = await confirmParticipantUseCase.execute({ token })
 
   if (result.isLeft()) {
-    return html.status(404).send(confirmationErrorPage())
+    const error = result.value
+
+    switch (error.constructor) {
+      case InviteExpiredError:
+        return html.status(410).send(confirmationExpiredPage())
+      default:
+        return html.status(404).send(confirmationErrorPage())
+    }
   }
 
   return html

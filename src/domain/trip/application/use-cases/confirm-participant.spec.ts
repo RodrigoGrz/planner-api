@@ -8,6 +8,7 @@ import { makeTraveler } from 'tests/factories/make-traveler'
 import { makeTrip } from 'tests/factories/make-trip'
 import { ConfirmParticipantUseCase } from './confirm-participant'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
+import { InviteExpiredError } from './errors/invite-expired-error'
 import { ParticipantProps } from '../../enterprise/entities/participant'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 
@@ -72,6 +73,61 @@ describe('Confirm Participant', () => {
     expect(participantsRepository.items[0].id.toString()).toBe(
       participant.id.toString(),
     )
+  })
+
+  describe('when the trip period matters', () => {
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    const tripPeriod = {
+      startsAt: new Date('2026-03-10T00:00:00.000Z'),
+      endsAt: new Date('2026-03-14T00:00:00.000Z'),
+    }
+
+    async function makeScenarioWithTripPeriod() {
+      const trip = await makeTrip({ destination: 'Norway', ...tripPeriod })
+      tripsRepository.items.push(trip)
+
+      participantsRepository.items.push(
+        await makeParticipant({
+          tripId: trip.id,
+          isConfirmed: false,
+          confirmationToken: 'valid-token',
+        }),
+      )
+    }
+
+    it('should not be able to confirm an invite for a trip that already ended', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(new Date('2026-03-15T00:00:00.000Z'))
+
+      await makeScenarioWithTripPeriod()
+
+      const result = await confirmParticipantUseCase.execute({
+        token: 'valid-token',
+      })
+
+      expect(result.value).toBeInstanceOf(InviteExpiredError)
+      expect(participantsRepository.items[0].isConfirmed).toBe(false)
+      expect(participantsRepository.items[0].confirmationToken).toBe(
+        'valid-token',
+      )
+    })
+
+    it('should be able to confirm an invite on the last day of the trip', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(new Date('2026-03-14T23:59:00.000Z'))
+
+      await makeScenarioWithTripPeriod()
+
+      const result = await confirmParticipantUseCase.execute({
+        token: 'valid-token',
+      })
+
+      expect(result.isRight()).toBe(true)
+      expect(participantsRepository.items[0].isConfirmed).toBe(true)
+    })
   })
 
   it('should invalidate the confirmation token after use', async () => {

@@ -12,6 +12,10 @@ export function getTodayTripDay() {
   return dayjs.utc().startOf('day')
 }
 
+export function hasTripEnded(endsAt: Date) {
+  return new Date() > toTripDay(endsAt).endOf('day').toDate()
+}
+
 export function getTripPeriodBounds(startsAt: Date, endsAt: Date) {
   return {
     firstMoment: toTripDay(startsAt).toDate(),
