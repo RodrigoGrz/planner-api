@@ -2,13 +2,13 @@ import 'dotenv/config'
 
 import { randomUUID } from 'node:crypto'
 import { execSync } from 'node:child_process'
-import { EnvironmentOptions } from 'vite'
+import type { Environment } from 'vitest/runtime'
 import { PrismaClient } from 'prisma/generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 
 function generateDatabaseURL(schema: string) {
   if (!process.env.DATABASE_URL) {
-    throw new Error('Por favor, preencha a variável DATABSE_URL.')
+    throw new Error('Por favor, preencha a variável DATABASE_URL.')
   }
 
   const url = new URL(process.env.DATABASE_URL)
@@ -17,7 +17,11 @@ function generateDatabaseURL(schema: string) {
   return url.toString()
 }
 
-export default <EnvironmentOptions>{
+async function warmUpPrismaClient(prisma: PrismaClient) {
+  await prisma.$queryRaw`SELECT 1`
+}
+
+export default {
   name: 'prisma',
   viteEnvironment: 'ssr',
   async setup() {
@@ -40,14 +44,18 @@ export default <EnvironmentOptions>{
 
     const prisma = new PrismaClient({ adapter })
 
+    await warmUpPrismaClient(prisma)
+
     return {
       async teardown() {
-        await prisma.$executeRawUnsafe(
-          `DROP SCHEMA IF EXISTS "${schema}" CASCADE`,
-        )
-
-        await prisma.$disconnect()
+        try {
+          await prisma.$executeRawUnsafe(
+            `DROP SCHEMA IF EXISTS "${schema}" CASCADE`,
+          )
+        } finally {
+          await prisma.$disconnect()
+        }
       },
     }
   },
-}
+} satisfies Environment

@@ -4,7 +4,7 @@ Referência compartilhada pelas skills `planejar`, `executar`, `revisar` e `comm
 
 ## Stack
 
-Node >= 24, TypeScript, Fastify 5, Zod 4 (`fastify-type-provider-zod`), Prisma 7 (Postgres), Vitest 4, Supertest, Faker.
+Node >= 24, TypeScript, Fastify 5, Zod 4 (`fastify-type-provider-zod`), Prisma 7 (Postgres), Vitest 5 (Vite 8), Supertest, Faker.
 
 ## Regra absoluta
 
