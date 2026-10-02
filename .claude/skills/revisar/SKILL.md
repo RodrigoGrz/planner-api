@@ -39,21 +39,31 @@ Se o E2E não puder rodar (banco fora do ar), reporte como **não verificado**, 
 - [ ] Erros novos em `use-cases/errors/`, estendendo `Error` e implementando `UseCaseError`.
 - [ ] Erros mapeados para status HTTP coerentes no controller.
 - [ ] Resposta via presenter; schema Zod documentado em `routers/documentation`.
-- [ ] Rotas protegidas validam autenticação e posse/participação da viagem.
 - [ ] Nenhum comentário no código.
 
-## 4. Checklist de testes (TDD)
+## 4. Checklist de segurança
+
+Só sobre o diff; a auditoria completa é a skill `auditar`, sugerida ao usuário quando o diff mexe em autenticação, convites, upload, CORS ou dependências.
+
+- [ ] Rota nova ou alterada usa `verify-jwt`, e o use case checa o vínculo e o papel do usuário na viagem; id de recurso filho é validado contra a viagem da URL.
+- [ ] Body não aceita campos de controle (dono, confirmação, papel, ids de outra entidade).
+- [ ] Strings do schema com `max`, datas estritas, URLs restritas a `http`/`https`.
+- [ ] Dado do usuário escapado no HTML de e-mail; nenhum `$queryRaw`/`$executeRaw` com interpolação.
+- [ ] Erros e logs não vazam stack, mensagem do Prisma, token, senha nem a existência de recurso alheio.
+- [ ] Dependência nova tem propósito claro e nenhum script de install suspeito.
+
+## 5. Checklist de testes (TDD)
 
 - [ ] Todo use case novo/alterado tem spec unitário cobrindo caminho feliz e cada `left`.
 - [ ] Todo endpoint novo/alterado tem E2E, incluindo 401/403/404 quando aplicável.
 - [ ] Testes usam `makeX`/`makePrismaX` e fakes, sem dados mágicos duplicados.
 - [ ] Asserções verificam comportamento (estado do repositório, resposta), não apenas `isRight()`.
 
-## 5. Código limpo
+## 6. Código limpo
 
 Nomes que revelam intenção, funções pequenas com uma responsabilidade, sem duplicação, sem código morto ou imports não usados, sem `any` desnecessário, early return em vez de aninhamento, sem números/strings mágicos repetidos.
 
-## 6. Relatório
+## 7. Relatório
 
 Responda com:
 
