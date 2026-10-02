@@ -3,6 +3,7 @@ import { CredentialsIncorrectError } from './errors/credentials-incorrect-error'
 import { Traveler } from '../../enterprise/entities/traveler'
 import { TravelersRepository } from '../repositories/travelers-repository'
 import { compare } from 'bcryptjs'
+import { normalizeEmail } from '../../enterprise/entities/email'
 
 interface AuthenticateUseCaseRequest {
   email: string
@@ -21,7 +22,9 @@ export class AuthenticateUseCase {
     email,
     password,
   }: AuthenticateUseCaseRequest): Promise<AuthenticateUseCaseResponse> {
-    const traveler = await this.travelersRepository.findByEmail(email)
+    const traveler = await this.travelersRepository.findByEmail(
+      normalizeEmail(email),
+    )
 
     if (!traveler) {
       return left(new CredentialsIncorrectError())

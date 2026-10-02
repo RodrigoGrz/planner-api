@@ -1,6 +1,10 @@
 import { app } from '@/infra/app'
 
-type RequestBodyProperties = Record<string, { type?: string; format?: string }>
+type PropertySchema = {
+  type?: string
+  format?: string
+  items?: PropertySchema
+}
 
 type OpenApiDocument = {
   paths: Record<
@@ -11,7 +15,7 @@ type OpenApiDocument = {
         requestBody?: {
           content: Record<
             string,
-            { schema: { properties: RequestBodyProperties } }
+            { schema: { properties: Record<string, PropertySchema> } }
           >
         }
       }
@@ -27,7 +31,7 @@ function getRequestBodyProperties(path: string, method: string) {
   ]?.schema.properties
 }
 
-describe('ISO date-time documentation (E2E)', () => {
+describe('Request body documentation (E2E)', () => {
   beforeAll(async () => {
     await app.ready()
   })
@@ -52,4 +56,24 @@ describe('ISO date-time documentation (E2E)', () => {
       }
     },
   )
+
+  test.each([
+    ['/travelers/register', 'email'],
+    ['/travelers/auth', 'email'],
+    ['/trips/{tripId}/invites', 'email'],
+  ])('[POST] %s documents %s as an e-mail string', (path, field) => {
+    const properties = getRequestBodyProperties(path, 'post')
+
+    expect(properties?.[field]).toEqual(
+      expect.objectContaining({ type: 'string', format: 'email' }),
+    )
+  })
+
+  test('[POST] /trips/register documents emailsToInvite as e-mail strings', () => {
+    const properties = getRequestBodyProperties('/trips/register', 'post')
+
+    expect(properties?.emailsToInvite?.items).toEqual(
+      expect.objectContaining({ type: 'string', format: 'email' }),
+    )
+  })
 })

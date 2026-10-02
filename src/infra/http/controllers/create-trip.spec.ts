@@ -177,6 +177,27 @@ describe('Create Trip (E2E)', () => {
     expect(trip?.ends_at).toEqual(lastDay.toDate())
   })
 
+  test('[POST] /trips/register does not invite the owner when the e-mail casing differs', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const result = await request(app.server)
+      .post('/trips/register')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        destination: 'Owner casing',
+        startsAt: dayjs.utc().add(1, 'month').toISOString(),
+        endsAt: dayjs.utc().add(1, 'month').add(3, 'day').toISOString(),
+        emailsToInvite: [`  ${traveler.email.toUpperCase()} `],
+      })
+
+    expect(result.statusCode).toBe(201)
+    expect(
+      await prisma.participant.count({
+        where: { trip_id: result.body.tripId },
+      }),
+    ).toBe(1)
+  })
+
   test('[POST] /trips/register returns 400 for a blank destination', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 

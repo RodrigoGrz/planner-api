@@ -1,4 +1,5 @@
 import { app } from '@/infra/app'
+import { prisma } from '@/infra/database/prisma/prisma'
 import { faker } from '@faker-js/faker'
 import request from 'supertest'
 import { dayjs } from '@/lib/dayjs'
@@ -26,6 +27,48 @@ describe('Register Traveler (E2E)', () => {
       })
 
     expect(travelerResponse.statusCode).toBe(201)
+  })
+
+  test('[POST] /travelers/register stores the e-mail in lowercase', async () => {
+    const localPart = faker.string.alphanumeric(12).toLowerCase()
+
+    const response = await request(app.server)
+      .post('/travelers/register')
+      .send({
+        name: faker.person.fullName(),
+        email: `  ${localPart.toUpperCase()}@Planner.COM `,
+        password: '1234567',
+        phone: faker.phone.number({ style: 'international' }),
+      })
+
+    const traveler = await prisma.traveler.findUnique({
+      where: { email: `${localPart}@planner.com` },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(traveler).not.toBeNull()
+  })
+
+  test('[POST] /travelers/register returns 409 for an e-mail already registered with different casing', async () => {
+    const localPart = faker.string.alphanumeric(12).toLowerCase()
+
+    const registerWith = (email: string) =>
+      request(app.server)
+        .post('/travelers/register')
+        .send({
+          name: faker.person.fullName(),
+          email,
+          password: '1234567',
+          phone: faker.phone.number({ style: 'international' }),
+        })
+
+    const first = await registerWith(`${localPart}@planner.com`)
+    const second = await registerWith(
+      `  ${localPart.toUpperCase()}@Planner.com `,
+    )
+
+    expect(first.statusCode).toBe(201)
+    expect(second.statusCode).toBe(409)
   })
 
   test('[POST] /travelers/register links pending invites', async () => {

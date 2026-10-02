@@ -1,5 +1,6 @@
 import z from 'zod'
 import { isoDateTime } from '../shared/iso-date-time'
+import { emailAddress } from '../shared/email-address'
 import {
   endsAtNotBeforeStartsAt,
   endsAtNotBeforeStartsAtError,
@@ -12,7 +13,7 @@ export const createTripBody = z
     startsAt: isoDateTime,
     endsAt: isoDateTime,
     emailsToInvite: z
-      .array(z.email('Invalid e-mail format'))
+      .array(emailAddress)
       .max(20, 'You can invite up to 20 participants per trip')
       .transform((emails) => [...new Set(emails)]),
   })

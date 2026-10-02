@@ -14,6 +14,7 @@ import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
 import { randomUUID } from 'node:crypto'
 import { validateTripPeriod } from '../trip-period/validate-trip-period'
 import { normalizeTripDate } from '../trip-period/trip-day'
+import { normalizeEmail } from '../../enterprise/entities/email'
 
 interface CreateTripUseCaseRequest {
   destination: string
@@ -59,7 +60,11 @@ export class CreateTripUseCase {
     }
 
     const filteredEmails = [
-      ...new Set(emailsToInvite.filter((email) => email !== owner.email)),
+      ...new Set(
+        emailsToInvite
+          .map(normalizeEmail)
+          .filter((email) => email !== owner.email),
+      ),
     ]
 
     const travelers =

@@ -159,6 +159,66 @@ describe('Create Invite', () => {
     expect(mailer.sentMails).toHaveLength(1)
   })
 
+  it('should not be able to invite an e-mail already invited with a different casing', async () => {
+    const { owner, trip } = await makeScenario()
+
+    await createInviteUseCase.execute({
+      tripId: trip.id.toString(),
+      email: 'invited@planner.com',
+      travelerId: owner.id.toString(),
+    })
+
+    const result = await createInviteUseCase.execute({
+      tripId: trip.id.toString(),
+      email: '  Invited@Planner.COM ',
+      travelerId: owner.id.toString(),
+    })
+
+    expect(result.value).toBeInstanceOf(ParticipantAlreadyInvitedError)
+    expect(participantsRepository.items).toHaveLength(1)
+  })
+
+  it('should not be able to invite the trip owner with a different e-mail casing', async () => {
+    const { owner, trip } = await makeScenario()
+
+    participantsRepository.items.push(
+      await makeParticipant({
+        email: owner.email,
+        tripId: trip.id,
+        travelerId: owner.id,
+        isConfirmed: true,
+        confirmationToken: null,
+      }),
+    )
+
+    const result = await createInviteUseCase.execute({
+      tripId: trip.id.toString(),
+      email: owner.email.toUpperCase(),
+      travelerId: owner.id.toString(),
+    })
+
+    expect(result.value).toBeInstanceOf(ParticipantAlreadyInvitedError)
+    expect(participantsRepository.items).toHaveLength(1)
+  })
+
+  it('should link the invite to an existing traveler regardless of e-mail casing', async () => {
+    const { owner, trip } = await makeScenario()
+
+    const invitedTraveler = await makeTraveler({ email: 'john@planner.com' })
+    travelersRepository.items.push(invitedTraveler)
+
+    await createInviteUseCase.execute({
+      tripId: trip.id.toString(),
+      email: 'John@Planner.com',
+      travelerId: owner.id.toString(),
+    })
+
+    expect(participantsRepository.items[0].email).toBe('john@planner.com')
+    expect(participantsRepository.items[0].travelerId?.toString()).toBe(
+      invitedTraveler.id.toString(),
+    )
+  })
+
   it('should not be able to invite the trip owner', async () => {
     const { owner, trip } = await makeScenario()
 
