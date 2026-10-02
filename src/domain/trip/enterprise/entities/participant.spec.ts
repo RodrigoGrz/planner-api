@@ -2,6 +2,12 @@ import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { makeParticipant } from 'tests/factories/make-participant'
 
 describe('Participant', () => {
+  it('should store the e-mail normalized', async () => {
+    const participant = await makeParticipant({ email: '  Guest@Planner.COM ' })
+
+    expect(participant.email).toBe('guest@planner.com')
+  })
+
   it('should link a traveler to an unlinked participant', async () => {
     const participant = await makeParticipant({ name: null, travelerId: null })
     const travelerId = new UniqueEntityID()

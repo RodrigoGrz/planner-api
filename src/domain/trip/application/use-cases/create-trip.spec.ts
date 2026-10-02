@@ -143,6 +143,54 @@ describe('Create Trip', () => {
     expect(result.value).toBeInstanceOf(ResourceNotExistsError)
   })
 
+  describe('with e-mails in different casing', () => {
+    async function createTripInviting(emailsToInvite: string[]) {
+      const owner = await makeTraveler({ email: 'owner@planner.com' })
+      travelersRepository.items.push(owner)
+
+      await createTripUseCase.execute({
+        destination: 'Casing',
+        startsAt: dayjs().add(1, 'month').toDate(),
+        endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+        ownerId: owner.id.toString(),
+        emailsToInvite,
+      })
+    }
+
+    it('should not invite the owner when the e-mail casing differs', async () => {
+      await createTripInviting(['  Owner@Planner.COM '])
+
+      expect(participantsRepository.items).toHaveLength(1)
+      expect(participantsRepository.items[0].isConfirmed).toBe(true)
+      expect(mailer.sentMails).toHaveLength(0)
+    })
+
+    it('should deduplicate invites that differ only by casing', async () => {
+      await createTripInviting(['guest@planner.com', 'Guest@Planner.com'])
+
+      const invited = participantsRepository.items.filter(
+        (participant) => !participant.isConfirmed,
+      )
+
+      expect(invited.map((participant) => participant.email)).toEqual([
+        'guest@planner.com',
+      ])
+    })
+
+    it('should link an invite to an existing traveler regardless of e-mail casing', async () => {
+      const guest = await makeTraveler({ email: 'guest@planner.com' })
+      travelersRepository.items.push(guest)
+
+      await createTripInviting(['GUEST@planner.com'])
+
+      const invited = participantsRepository.items.find(
+        (participant) => !participant.isConfirmed,
+      )
+
+      expect(invited?.travelerId?.toString()).toBe(guest.id.toString())
+    })
+  })
+
   it('should prevent duplicate participants per trip', async () => {
     const owner = await makeTraveler()
     travelersRepository.items.push(owner)

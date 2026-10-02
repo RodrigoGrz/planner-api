@@ -1,5 +1,6 @@
 import { Entity } from '@/core/entities/entity'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
+import { normalizeEmail } from './email'
 
 export interface ParticipantProps {
   name?: string | null
@@ -50,7 +51,10 @@ export class Participant extends Entity<ParticipantProps> {
   }
 
   static create(props: ParticipantProps, id?: UniqueEntityID) {
-    const participant = new Participant(props, id)
+    const participant = new Participant(
+      { ...props, email: normalizeEmail(props.email) },
+      id,
+    )
 
     return participant
   }

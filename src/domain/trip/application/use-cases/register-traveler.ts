@@ -5,6 +5,7 @@ import { TransactionManager } from '../transaction/transaction-manager'
 import { Traveler } from '../../enterprise/entities/traveler'
 import { TravelerAlreadyExistsError } from './errors/traveler-already-exists-error'
 import { hash } from 'bcryptjs'
+import { normalizeEmail } from '../../enterprise/entities/email'
 
 interface RegisterTravelerUseCaseRequest {
   name: string
@@ -31,8 +32,9 @@ export class RegisterTravelerUseCase {
     password,
     phone,
   }: RegisterTravelerUseCaseRequest): Promise<RegisterTravelerUseCaseResponse> {
-    const travelerAlreadyExists =
-      await this.travelersRepository.findByEmail(email)
+    const travelerAlreadyExists = await this.travelersRepository.findByEmail(
+      normalizeEmail(email),
+    )
 
     if (travelerAlreadyExists) {
       return left(new TravelerAlreadyExistsError())
@@ -51,7 +53,9 @@ export class RegisterTravelerUseCase {
       await this.travelersRepository.create(traveler)
 
       const pendingInvites =
-        await this.participantsRepository.findManyUnlinkedByEmail(email)
+        await this.participantsRepository.findManyUnlinkedByEmail(
+          traveler.email,
+        )
 
       for (const participant of pendingInvites) {
         participant.linkTraveler(traveler.id, traveler.name)

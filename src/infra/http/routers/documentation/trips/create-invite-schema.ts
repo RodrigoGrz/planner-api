@@ -1,11 +1,12 @@
 import z from 'zod'
+import { emailAddress } from '../shared/email-address'
 
 export const createInviteParams = z.object({
   tripId: z.uuid().describe('Trip unique identifier'),
 })
 
 export const createInviteBody = z.object({
-  email: z.email(),
+  email: emailAddress,
 })
 
 export const createInviteSchema = {

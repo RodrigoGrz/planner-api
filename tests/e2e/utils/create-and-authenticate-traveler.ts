@@ -3,6 +3,7 @@ import request from 'supertest'
 import { FastifyInstance } from 'fastify'
 import { prisma } from '@/infra/database/prisma/prisma'
 import { faker } from '@faker-js/faker'
+import { normalizeEmail } from '@/domain/trip/enterprise/entities/email'
 
 export async function createAndAuthenticateTraveler(app: FastifyInstance) {
   const name = faker.person.fullName()
@@ -11,7 +12,7 @@ export async function createAndAuthenticateTraveler(app: FastifyInstance) {
   const traveler = await prisma.traveler.create({
     data: {
       name,
-      email,
+      email: normalizeEmail(email),
       password: await hash('1234567', 6),
       phone: faker.phone.number(),
     },

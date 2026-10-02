@@ -42,6 +42,26 @@ describe('Create Invite (E2E)', () => {
     })
   })
 
+  test('[POST] /trips/:tripId/invites stores the invited e-mail in lowercase', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const response = await request(app.server)
+      .post(`/trips/${trip.id.toString()}/invites`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ email: '  Guest@Planner.COM ' })
+
+    const participant = await prisma.participant.findFirst({
+      where: { trip_id: trip.id.toString(), email: 'guest@planner.com' },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(participant).not.toBeNull()
+  })
+
   test('[POST] /trips/:tripId/invites returns 409 for a non-existing trip', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 

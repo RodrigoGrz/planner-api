@@ -32,6 +32,23 @@ describe('Authenticate', () => {
     )
   })
 
+  it('should authenticate regardless of e-mail casing', async () => {
+    const traveler = await makeTraveler({
+      email: 'john@planner.com',
+      password: await hash('123456', 8),
+    })
+
+    travelersRepository.items.push(traveler)
+
+    const result = await authenticateUseCase.execute({
+      email: '  John@Planner.COM ',
+      password: '123456',
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(result.isRight() && result.value.traveler.id).toEqual(traveler.id)
+  })
+
   it('should not be able to authenticate a traveler if e-mail is wrong', async () => {
     const traveler = await makeTraveler({
       email: 'test@planner.com',

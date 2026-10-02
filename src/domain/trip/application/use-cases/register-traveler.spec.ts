@@ -61,6 +61,52 @@ describe('Register Traveler', () => {
     expect(result.value).toBeInstanceOf(TravelerAlreadyExistsError)
   })
 
+  it('should not be able to register the same e-mail with different casing', async () => {
+    travelersRepository.items.push(
+      await makeTraveler({ email: 'johndoe@planner.com' }),
+    )
+
+    const result = await registerTravelerUseCase.execute({
+      ...travelerData,
+      email: 'JohnDoe@Planner.com',
+    })
+
+    expect(result.value).toBeInstanceOf(TravelerAlreadyExistsError)
+    expect(travelersRepository.items).toHaveLength(1)
+  })
+
+  it('should store the e-mail normalized', async () => {
+    await registerTravelerUseCase.execute({
+      ...travelerData,
+      email: '  JohnDoe@Planner.COM ',
+    })
+
+    expect(travelersRepository.items[0].email).toBe('johndoe@planner.com')
+  })
+
+  it('should link pending invites whose e-mail differs only by casing', async () => {
+    const invite = await makeParticipant({
+      email: 'johndoe@planner.com',
+      name: null,
+      travelerId: null,
+    })
+
+    participantsRepository.items.push(invite)
+
+    const result = await registerTravelerUseCase.execute({
+      ...travelerData,
+      email: 'JohnDoe@Planner.com',
+    })
+
+    if (result.isLeft()) {
+      throw result.value
+    }
+
+    expect(participantsRepository.items[0].travelerId?.toString()).toBe(
+      result.value.traveler.id.toString(),
+    )
+  })
+
   it('should link pending invites with the same e-mail to the new traveler', async () => {
     const firstInvite = await makeParticipant({
       email: travelerData.email,

@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { normalizeEmail } from '../../enterprise/entities/email'
 import { Either, left, right } from '@/core/either'
 import { Participant } from '../../enterprise/entities/participant'
 import { isTripOwner } from '../authorization/trip-access'
@@ -45,18 +46,24 @@ export class CreateInviteUseCase {
       return left(new NotAllowedError())
     }
 
+    const invitedEmail = normalizeEmail(email)
+
     const alreadyInvited =
-      await this.participantsRepository.findByTripIdAndEmail(tripId, email)
+      await this.participantsRepository.findByTripIdAndEmail(
+        tripId,
+        invitedEmail,
+      )
 
     if (alreadyInvited) {
       return left(new ParticipantAlreadyInvitedError())
     }
 
-    const invitedTraveler = await this.travelersRepository.findByEmail(email)
+    const invitedTraveler =
+      await this.travelersRepository.findByEmail(invitedEmail)
     const confirmationToken = randomUUID()
 
     const participant = Participant.create({
-      email,
+      email: invitedEmail,
       name: invitedTraveler?.name ?? null,
       tripId: trip.id,
       travelerId: invitedTraveler?.id ?? null,

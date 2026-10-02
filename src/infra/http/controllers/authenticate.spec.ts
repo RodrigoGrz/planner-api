@@ -32,4 +32,23 @@ describe('Authenticate (E2E)', () => {
 
     expect(travelerResponse.body).toHaveProperty('token')
   })
+
+  test('[POST] /travelers/auth authenticates regardless of e-mail casing', async () => {
+    const localPart = faker.string.alphanumeric(12).toLowerCase()
+
+    await makePrismaTraveler({
+      email: `${localPart}@planner.com`,
+      password: await hash('123456', 8),
+    })
+
+    const response = await request(app.server)
+      .post('/travelers/auth')
+      .send({
+        email: `  ${localPart.toUpperCase()}@Planner.COM `,
+        password: '123456',
+      })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.body).toHaveProperty('token')
+  })
 })

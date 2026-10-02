@@ -1,5 +1,6 @@
 import { Entity } from '@/core/entities/entity'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
+import { normalizeEmail } from './email'
 
 export interface TravelerProps {
   name: string
@@ -30,7 +31,10 @@ export class Traveler extends Entity<TravelerProps> {
   }
 
   static create(props: TravelerProps, id?: UniqueEntityID) {
-    const traveler = new Traveler(props, id)
+    const traveler = new Traveler(
+      { ...props, email: normalizeEmail(props.email) },
+      id,
+    )
 
     return traveler
   }

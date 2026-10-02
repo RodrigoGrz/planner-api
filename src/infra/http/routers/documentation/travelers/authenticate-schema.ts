@@ -1,7 +1,8 @@
 import z from 'zod'
+import { emailAddress } from '../shared/email-address'
 
 export const authenticateBody = z.object({
-  email: z.email().describe('Traveler email address'),
+  email: emailAddress.describe('Traveler email address'),
   password: z.string().min(6).describe('Password (min 6 characters)'),
 })
 
