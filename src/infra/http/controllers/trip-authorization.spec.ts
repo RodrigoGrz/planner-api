@@ -6,6 +6,7 @@ import { createAndAuthenticateTraveler } from 'tests/e2e/utils/create-and-authen
 import { makePrismaTrip } from 'tests/factories/make-trip'
 import { makePrismaLink } from 'tests/factories/make-link'
 import { makePrismaActivity } from 'tests/factories/make-activity'
+import { makePrismaParticipant } from 'tests/factories/make-participant'
 import { dayjs } from '@/lib/dayjs'
 
 describe('Trip authorization (E2E)', () => {
@@ -128,5 +129,130 @@ describe('Trip authorization (E2E)', () => {
 
     expect(response.statusCode).toBe(403)
     expect(participants).toHaveLength(0)
+  })
+
+  test('[GET] /trips/:id returns 200 for an unconfirmed participant', async () => {
+    const { traveler: owner } = await createAndAuthenticateTraveler(app)
+    const { traveler: guest, token: guestToken } =
+      await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(owner.id),
+    })
+
+    await makePrismaParticipant({
+      tripId: trip.id,
+      travelerId: new UniqueEntityID(guest.id),
+      isConfirmed: false,
+    })
+
+    const response = await request(app.server)
+      .get(`/trips/${trip.id.toString()}`)
+      .set('Authorization', `Bearer ${guestToken}`)
+      .send()
+
+    expect(response.statusCode).toBe(200)
+    expect(response.body.trip.id).toBe(trip.id.toString())
+  })
+
+  test('[GET] /trips/:tripId/links returns 403 for an unconfirmed participant', async () => {
+    const { traveler: owner } = await createAndAuthenticateTraveler(app)
+    const { traveler: guest, token: guestToken } =
+      await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(owner.id),
+    })
+
+    await makePrismaLink({
+      tripId: trip.id,
+    })
+
+    await makePrismaParticipant({
+      tripId: trip.id,
+      travelerId: new UniqueEntityID(guest.id),
+      isConfirmed: false,
+    })
+
+    const response = await request(app.server)
+      .get(`/trips/${trip.id.toString()}/links`)
+      .set('Authorization', `Bearer ${guestToken}`)
+      .send()
+
+    expect(response.statusCode).toBe(403)
+  })
+
+  test('[GET] /trips/:tripId/activities returns 403 for an unconfirmed participant', async () => {
+    const { traveler: owner } = await createAndAuthenticateTraveler(app)
+    const { traveler: guest, token: guestToken } =
+      await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(owner.id),
+    })
+
+    await makePrismaActivity({
+      tripId: trip.id,
+    })
+
+    await makePrismaParticipant({
+      tripId: trip.id,
+      travelerId: new UniqueEntityID(guest.id),
+      isConfirmed: false,
+    })
+
+    const response = await request(app.server)
+      .get(`/trips/${trip.id.toString()}/activities`)
+      .set('Authorization', `Bearer ${guestToken}`)
+      .send()
+
+    expect(response.statusCode).toBe(403)
+  })
+
+  test('[GET] /trips/:tripId/participants returns 403 for an unconfirmed participant', async () => {
+    const { traveler: owner } = await createAndAuthenticateTraveler(app)
+    const { traveler: guest, token: guestToken } =
+      await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(owner.id),
+    })
+
+    await makePrismaParticipant({
+      tripId: trip.id,
+      travelerId: new UniqueEntityID(guest.id),
+      isConfirmed: false,
+    })
+
+    const response = await request(app.server)
+      .get(`/trips/${trip.id.toString()}/participants`)
+      .set('Authorization', `Bearer ${guestToken}`)
+      .send()
+
+    expect(response.statusCode).toBe(403)
+  })
+
+  test('[GET] /trips/:tripId/participants returns 200 for a confirmed participant', async () => {
+    const { traveler: owner } = await createAndAuthenticateTraveler(app)
+    const { traveler: guest, token: guestToken } =
+      await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(owner.id),
+    })
+
+    await makePrismaParticipant({
+      tripId: trip.id,
+      travelerId: new UniqueEntityID(guest.id),
+      isConfirmed: true,
+    })
+
+    const response = await request(app.server)
+      .get(`/trips/${trip.id.toString()}/participants`)
+      .set('Authorization', `Bearer ${guestToken}`)
+      .send()
+
+    expect(response.statusCode).toBe(200)
+    expect(response.body.participants).toHaveLength(1)
   })
 })

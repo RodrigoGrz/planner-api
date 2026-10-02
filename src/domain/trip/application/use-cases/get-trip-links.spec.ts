@@ -80,7 +80,7 @@ describe('Get Trip Links', () => {
     expect(linksRepository.items.length).toBe(3)
   })
 
-  it('should be able to get trip links as a linked participant', async () => {
+  it('should be able to get trip links as a confirmed participant', async () => {
     const owner = await makeTraveler()
     const guest = await makeTraveler()
 
@@ -101,6 +101,7 @@ describe('Get Trip Links', () => {
     const participant = await makeParticipant({
       tripId: trip.id,
       travelerId: guest.id,
+      isConfirmed: true,
     })
 
     participantsRepository.items.push(participant)
@@ -112,6 +113,41 @@ describe('Get Trip Links', () => {
 
     expect(result.isRight()).toBeTruthy()
     expect(result.isRight() && result.value.links).length(1)
+  })
+
+  it('should not be able to get trip links as an unconfirmed participant', async () => {
+    const owner = await makeTraveler()
+    const guest = await makeTraveler()
+
+    travelersRepository.items.push(owner, guest)
+
+    const trip = await makeTrip({
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const link = await makeLink({
+      tripId: trip.id,
+    })
+
+    linksRepository.items.push(link)
+
+    const participant = await makeParticipant({
+      tripId: trip.id,
+      travelerId: guest.id,
+      isConfirmed: false,
+    })
+
+    participantsRepository.items.push(participant)
+
+    const result = await getTripLinksUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: guest.id.toString(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(NotAllowedError)
   })
 
   it('should not be able to get links of someone else trip', async () => {

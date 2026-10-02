@@ -59,7 +59,7 @@ describe('Get Trip Details', () => {
     )
   })
 
-  it('should be able to get trip details as a linked participant', async () => {
+  it('should be able to get trip details as a confirmed participant', async () => {
     const owner = await makeTraveler({ name: 'Teste' })
     const guest = await makeTraveler()
 
@@ -74,6 +74,7 @@ describe('Get Trip Details', () => {
     const participant = await makeParticipant({
       tripId: trip.id,
       travelerId: guest.id,
+      isConfirmed: true,
     })
 
     participantsRepository.items.push(participant)
@@ -84,6 +85,37 @@ describe('Get Trip Details', () => {
     })
 
     expect(result.isRight()).toBeTruthy()
+  })
+
+  it('should be able to get trip details as an unconfirmed participant', async () => {
+    const owner = await makeTraveler({ name: 'Teste' })
+    const guest = await makeTraveler()
+
+    travelersRepository.items.push(owner, guest)
+
+    const trip = await makeTrip({
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const participant = await makeParticipant({
+      tripId: trip.id,
+      travelerId: guest.id,
+      isConfirmed: false,
+    })
+
+    participantsRepository.items.push(participant)
+
+    const result = await getTripDetailsUseCase.execute({
+      id: trip.id.toString(),
+      travelerId: guest.id.toString(),
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(result.isRight() && result.value.tripWithOwner.ownerName).toBe(
+      'Teste',
+    )
   })
 
   it('should not be able to get trip details of someone else trip', async () => {
