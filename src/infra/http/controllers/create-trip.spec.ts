@@ -1,6 +1,7 @@
 import { app } from '@/infra/app'
 import { prisma } from '@/infra/database/prisma/prisma'
 import { dayjs } from '@/lib/dayjs'
+import type { Dayjs } from 'dayjs'
 import request from 'supertest'
 import { createAndAuthenticateTraveler } from 'tests/e2e/utils/create-and-authenticate-traveler'
 
@@ -74,6 +75,64 @@ describe('Create Trip (E2E)', () => {
       ).toBe(0)
     },
   )
+
+  test.each([
+    ['a boolean', () => true],
+    ['null', () => null],
+    ['free text', () => 'tomorrow'],
+    ['a number', (day: Dayjs) => day.valueOf()],
+    ['a date without time', (day: Dayjs) => day.format('YYYY-MM-DD')],
+    [
+      'a date time without offset',
+      (day: Dayjs) => day.format('YYYY-MM-DDTHH:mm:ss'),
+    ],
+  ])(
+    '[POST] /trips/register returns 400 when startsAt is %s',
+    async (_, buildStartsAt) => {
+      const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+      const firstDay = dayjs.utc().add(1, 'month').startOf('day')
+
+      const result = await request(app.server)
+        .post('/trips/register')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          destination: 'Strict dates',
+          startsAt: buildStartsAt(firstDay.hour(10)),
+          endsAt: firstDay.add(3, 'day').toISOString(),
+          emailsToInvite: [],
+        })
+
+      expect(result.statusCode).toBe(400)
+      expect(result.body.message).toBe('Validation error')
+      expect(
+        await prisma.trip.count({ where: { owner_id: traveler.id } }),
+      ).toBe(0)
+    },
+  )
+
+  test('[POST] /trips/register accepts startsAt and endsAt with a numeric offset', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const firstDay = dayjs.utc().add(1, 'month').format('YYYY-MM-DD')
+    const lastDay = dayjs
+      .utc()
+      .add(1, 'month')
+      .add(3, 'day')
+      .format('YYYY-MM-DD')
+
+    const result = await request(app.server)
+      .post('/trips/register')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        destination: 'Offset dates',
+        startsAt: `${firstDay}T10:00:00-03:00`,
+        endsAt: `${lastDay}T10:00:00-03:00`,
+        emailsToInvite: [],
+      })
+
+    expect(result.statusCode).toBe(201)
+  })
 
   test('[POST] /trips/register accepts start and end on the same UTC day regardless of time', async () => {
     const { token } = await createAndAuthenticateTraveler(app)

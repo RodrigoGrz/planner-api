@@ -2,6 +2,7 @@ import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { app } from '@/infra/app'
 import { prisma } from '@/infra/database/prisma/prisma'
 import { dayjs } from '@/lib/dayjs'
+import type { Dayjs } from 'dayjs'
 import request from 'supertest'
 import { createAndAuthenticateTraveler } from 'tests/e2e/utils/create-and-authenticate-traveler'
 
@@ -135,6 +136,44 @@ describe('Update Trip (E2E)', () => {
 
       expect(result.statusCode).toBe(400)
       expect(afterUpdate?.destination).toBe('Norway')
+    },
+  )
+
+  test.each([
+    ['a number', (day: Dayjs) => day.valueOf()],
+    ['a date without time', (day: Dayjs) => day.format('YYYY-MM-DD')],
+    [
+      'a date time without offset',
+      (day: Dayjs) => day.format('YYYY-MM-DDTHH:mm:ss'),
+    ],
+  ])(
+    '[PUT] /trips/:tripId/update returns 400 when endsAt is %s',
+    async (_, buildEndsAt) => {
+      const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+      const firstDay = dayjs.utc().add(1, 'month').startOf('day')
+
+      const trip = await makePrismaTrip({
+        startsAt: firstDay.toDate(),
+        endsAt: firstDay.add(3, 'day').toDate(),
+        ownerId: new UniqueEntityID(traveler.id),
+      })
+
+      const result = await request(app.server)
+        .put(`/trips/${trip.id.toString()}/update`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          destination: trip.destination,
+          startsAt: trip.startsAt.toISOString(),
+          endsAt: buildEndsAt(firstDay.add(5, 'day').hour(10)),
+        })
+
+      const afterUpdate = await prisma.trip.findUnique({
+        where: { id: trip.id.toString() },
+      })
+
+      expect(result.statusCode).toBe(400)
+      expect(afterUpdate?.ends_at).toEqual(trip.endsAt)
     },
   )
 
