@@ -9,7 +9,7 @@ import { ActivitiesRepository } from '../repositories/activities-repository'
 import { NotAllowedError } from './errors/not-allowed-error'
 import { isTripOwner } from '../authorization/trip-access'
 import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
-import { exceedsMaxTripDuration } from '../trip-period/trip-duration'
+import { validateTripPeriod } from '../trip-period/validate-trip-period'
 
 interface UpdateTripUseCaseRequest {
   tripId: string
@@ -51,19 +51,17 @@ export class UpdateTripUseCase {
       return left(new NotAllowedError())
     }
 
-    if (dayjs(startsAt).isBefore(new Date())) {
-      return left(new InvalidTripStartDate())
+    const periodValidation = validateTripPeriod({
+      startsAt,
+      endsAt,
+      currentPeriod: { startsAt: trip.startsAt, endsAt: trip.endsAt },
+    })
+
+    if (periodValidation.isLeft()) {
+      return left(periodValidation.value)
     }
 
-    if (dayjs(endsAt).isBefore(startsAt)) {
-      return left(new InvalidTripEndDate())
-    }
-
-    if (exceedsMaxTripDuration(startsAt, endsAt)) {
-      return left(new InvalidTripDuration())
-    }
-
-    const datesChanged =
+    const periodTimestampsChanged =
       !dayjs(startsAt).isSame(trip.startsAt) ||
       !dayjs(endsAt).isSame(trip.endsAt)
 
@@ -72,7 +70,7 @@ export class UpdateTripUseCase {
     trip.endsAt = endsAt
 
     await this.tripsRepository.runInTransaction(async () => {
-      if (datesChanged) {
+      if (periodTimestampsChanged) {
         await this.activitiesRepository.deleteOutsideTripPeriod(
           trip.id.toString(),
           startsAt,

@@ -11,6 +11,8 @@ import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { NotAllowedError } from './errors/not-allowed-error'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
+import { InvalidTripStartDate } from './errors/invalid-trip-start-date-error'
+import { InvalidTripEndDate } from './errors/invalid-trip-end-date-error'
 import { MAX_TRIP_DURATION_IN_DAYS } from '../trip-period/trip-duration'
 
 let activitiesRepository: FakeActivitiesRepository
@@ -212,6 +214,164 @@ describe('Update Trip', () => {
 
     expect(activitiesRepository.items).toHaveLength(1)
     expect(activitiesRepository.items[0].id).toEqual(activity.id)
+  })
+
+  it('should be able to update the destination of an ongoing trip without changing dates', async () => {
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      destination: 'Norway',
+      startsAt: dayjs().subtract(2, 'day').toDate(),
+      endsAt: dayjs().add(2, 'day').toDate(),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: 'London',
+      startsAt: trip.startsAt,
+      endsAt: trip.endsAt,
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(tripsRepository.items[0].destination).toBe('London')
+  })
+
+  it('should be able to set the start date to today', async () => {
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const today = dayjs().startOf('day').toDate()
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: 'London',
+      startsAt: today,
+      endsAt: dayjs().add(4, 'day').toDate(),
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(tripsRepository.items[0].startsAt).toEqual(today)
+  })
+
+  it('should not be able to move the start date to the past', async () => {
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const originalStartsAt = dayjs().add(1, 'month').toDate()
+
+    const trip = await makeTrip({
+      startsAt: originalStartsAt,
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: 'London',
+      startsAt: dayjs().subtract(1, 'day').toDate(),
+      endsAt: dayjs().add(4, 'day').toDate(),
+    })
+
+    expect(result.value).toBeInstanceOf(InvalidTripStartDate)
+    expect(tripsRepository.items[0].startsAt).toEqual(originalStartsAt)
+  })
+
+  it('should be able to extend the end date of an ongoing trip', async () => {
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      startsAt: dayjs().subtract(2, 'day').toDate(),
+      endsAt: dayjs().add(2, 'day').toDate(),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const newEndsAt = dayjs().add(10, 'day').toDate()
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: trip.destination,
+      startsAt: trip.startsAt,
+      endsAt: newEndsAt,
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(tripsRepository.items[0].endsAt).toEqual(newEndsAt)
+  })
+
+  it('should not be able to end an ongoing trip before today', async () => {
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const originalEndsAt = dayjs().add(2, 'day').toDate()
+
+    const trip = await makeTrip({
+      startsAt: dayjs().subtract(2, 'day').toDate(),
+      endsAt: originalEndsAt,
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: trip.destination,
+      startsAt: trip.startsAt,
+      endsAt: dayjs().subtract(1, 'day').toDate(),
+    })
+
+    expect(result.value).toBeInstanceOf(InvalidTripEndDate)
+    expect(tripsRepository.items[0].endsAt).toEqual(originalEndsAt)
+  })
+
+  it('should not be able to set an end date before the start date', async () => {
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: 'London',
+      startsAt: dayjs().add(2, 'month').toDate(),
+      endsAt: dayjs().add(2, 'month').subtract(1, 'day').toDate(),
+    })
+
+    expect(result.value).toBeInstanceOf(InvalidTripEndDate)
   })
 
   it('should not be able to update a trip if the traveler is not the owner', async () => {

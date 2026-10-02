@@ -75,6 +75,25 @@ describe('Create Trip (E2E)', () => {
     },
   )
 
+  test('[POST] /trips/register returns 400 for a blank destination', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const result = await request(app.server)
+      .post('/trips/register')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        destination: '   ',
+        startsAt: dayjs().add(1, 'month'),
+        endsAt: dayjs().add(1, 'month').add(4, 'day'),
+        emailsToInvite: [],
+      })
+
+    expect(result.statusCode).toBe(400)
+    expect(await prisma.trip.count({ where: { owner_id: traveler.id } })).toBe(
+      0,
+    )
+  })
+
   test('[POST] /trips/register returns 409 for a trip longer than 30 days', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 

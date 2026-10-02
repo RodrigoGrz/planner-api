@@ -9,11 +9,10 @@ import { Participant } from '../../enterprise/entities/participant'
 import { TravelersRepository } from '../repositories/travelers-repository'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { Mailer } from '../mail/mailer'
-import { dayjs } from '@/lib/dayjs'
 import { sendParticipantInvite } from '../mail/send-participant-invite'
 import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
 import { randomUUID } from 'node:crypto'
-import { exceedsMaxTripDuration } from '../trip-period/trip-duration'
+import { validateTripPeriod } from '../trip-period/validate-trip-period'
 
 interface CreateTripUseCaseRequest {
   destination: string
@@ -46,20 +45,10 @@ export class CreateTripUseCase {
     ownerId,
     emailsToInvite,
   }: CreateTripUseCaseRequest): Promise<CreateTripUseCaseResponse> {
-    const now = dayjs().startOf('day')
-    const start = dayjs(startsAt).startOf('day')
-    const end = dayjs(endsAt).startOf('day')
+    const periodValidation = validateTripPeriod({ startsAt, endsAt })
 
-    if (start.isBefore(now)) {
-      return left(new InvalidTripStartDate())
-    }
-
-    if (end.isBefore(start)) {
-      return left(new InvalidTripEndDate())
-    }
-
-    if (exceedsMaxTripDuration(startsAt, endsAt)) {
-      return left(new InvalidTripDuration())
+    if (periodValidation.isLeft()) {
+      return left(periodValidation.value)
     }
 
     const owner = await this.travelersRepository.findById(ownerId)
