@@ -1,28 +1,20 @@
 ---
 name: commit
-description: Cria um commit no planner-api depois de passar os testes e gerar o build, usando mensagem no formato <tipo>/<nome-descritivo-em-ingles>. Use quando o usuário pedir para commitar as mudanças.
+description: Cria um commit no planner-api, usando mensagem no formato <tipo>/<nome-descritivo-em-ingles>. Use quando o usuário pedir para commitar as mudanças.
 argument-hint: "[tipo ou descrição opcional]"
 disable-model-invocation: true
 ---
 
 # Commit
 
-## 1. Validar (todos obrigatórios, na ordem)
-
-1. `npm test`
-2. `npm run test:e2e` — se o banco não estiver disponível, pare e peça ao usuário para subir (`docker compose up -d`).
-3. `npm run build` — confirma que nada quebrou na compilação.
-
-Se qualquer passo falhar: **não commite**. Mostre a saída do erro e pare.
-
-## 2. Verificar o conteúdo
+## 1. Verificar o conteúdo
 
 - `git status` e `git diff` (incluindo staged).
 - Não incluir `.env`, `dist/`, `node_modules/` ou arquivos de `.claude/plans/`.
 - Se houver comentários adicionados em arquivos `.ts`, avise e pare.
 - Se estiver na `main`, crie antes uma branch com o mesmo nome do commit.
 
-## 3. Nome do commit
+## 2. Nome do commit
 
 Formato: `<tipo>/<nome-descritivo-em-ingles>`
 
@@ -32,7 +24,7 @@ Formato: `<tipo>/<nome-descritivo-em-ingles>`
 
 Exemplos: `feat/confirm-participant-by-token-link`, `fix/compare-trip-dates-in-single-timezone`, `chore/remove-unused-confirm-trip-route`, `add/e2e-tests-for-protected-routes`.
 
-## 4. Commitar
+## 3. Commitar
 
 Adicione os arquivos pelo nome (evite `git add -A`) e commite:
 
