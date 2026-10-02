@@ -29,22 +29,22 @@
     "@fastify/jwt": "10.0.0",
     "@fastify/multipart": "9.4.0",
     "@fastify/swagger": "9.7.0",
-    "@fastify/swagger-ui": "5.2.5",
+    "@fastify/swagger-ui": "6.1.1",
     "@prisma/adapter-pg": "7.9.1",
     "@prisma/client": "7.9.1",
     "bcryptjs": "3.0.3",
     "dayjs": "1.11.20",
     "dotenv": "17.4.2",
-    "fastify": "5.8.5",
+    "fastify": "5.12.5",
     "fastify-type-provider-zod": "6.1.0",
-    "nodemailer": "6.9.13",
+    "nodemailer": "10.0.9",
     "zod": "4.3.6"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
-    "@faker-js/faker": "10.3.0",
+    "@faker-js/faker": "10.5.0",
     "@rocketseat/eslint-config": "^2.2.2",
     "@types/node": "24.19.0",
     "@types/nodemailer": "7.0.11",
