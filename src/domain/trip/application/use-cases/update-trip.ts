@@ -8,6 +8,8 @@ import { InvalidTripEndDate } from './errors/invalid-trip-end-date-error'
 import { ActivitiesRepository } from '../repositories/activities-repository'
 import { NotAllowedError } from './errors/not-allowed-error'
 import { isTripOwner } from '../authorization/trip-access'
+import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
+import { exceedsMaxTripDuration } from '../trip-period/trip-duration'
 
 interface UpdateTripUseCaseRequest {
   tripId: string
@@ -21,6 +23,7 @@ type UpdateTripUseCaseResponse = Either<
   | ResourceNotExistsError
   | InvalidTripStartDate
   | InvalidTripEndDate
+  | InvalidTripDuration
   | NotAllowedError,
   { trip: Trip }
 >
@@ -54,6 +57,10 @@ export class UpdateTripUseCase {
 
     if (dayjs(endsAt).isBefore(startsAt)) {
       return left(new InvalidTripEndDate())
+    }
+
+    if (exceedsMaxTripDuration(startsAt, endsAt)) {
+      return left(new InvalidTripDuration())
     }
 
     const datesChanged =

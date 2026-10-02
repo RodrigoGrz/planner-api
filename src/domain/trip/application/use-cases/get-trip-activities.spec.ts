@@ -12,6 +12,7 @@ import { makeParticipant } from 'tests/factories/make-participant'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { NotAllowedError } from './errors/not-allowed-error'
+import { MAX_TRIP_DURATION_IN_DAYS } from '../trip-period/trip-duration'
 
 let activitiesRepository: FakeActivitiesRepository
 let travelersRepository: FakeTravelersRepository
@@ -90,6 +91,35 @@ describe('Get Trip Activities', () => {
     expect(result.isRight() && result.value.activities[0].activities).length(2)
     expect(result.isRight() && result.value.activities[1].activities).length(1)
     expect(result.isRight() && result.value.activities[2].activities).length(0)
+  })
+
+  it('should not generate more days than the maximum trip duration', async () => {
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const startsAt = dayjs().add(1, 'month').toDate()
+
+    const trip = await makeTrip({
+      startsAt,
+      endsAt: dayjs(startsAt).add(10, 'year').toDate(),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const result = await getTripActivitiesUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(result.isRight() && result.value.activities).toHaveLength(
+      MAX_TRIP_DURATION_IN_DAYS + 1,
+    )
+    expect(result.isRight() && result.value.activities[0].date).toEqual(
+      startsAt,
+    )
   })
 
   it('should be able to get trip activities as a linked participant', async () => {

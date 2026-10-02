@@ -10,6 +10,8 @@ import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { NotAllowedError } from './errors/not-allowed-error'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
+import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
+import { MAX_TRIP_DURATION_IN_DAYS } from '../trip-period/trip-duration'
 
 let activitiesRepository: FakeActivitiesRepository
 let tripsRepository: FakeTripsRepository
@@ -109,6 +111,107 @@ describe('Update Trip', () => {
     expect(result.isRight()).toBeTruthy()
     expect(activitiesRepository.items).toHaveLength(1)
     expect(activitiesRepository.items[0].id).toEqual(activityInside.id)
+  })
+
+  it('should not be able to update a trip to last more than 30 days', async () => {
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const originalStartsAt = dayjs().add(1, 'month').toDate()
+    const originalEndsAt = dayjs().add(1, 'month').add(4, 'day').toDate()
+
+    const trip = await makeTrip({
+      startsAt: originalStartsAt,
+      endsAt: originalEndsAt,
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const newStartsAt = dayjs().add(2, 'month').toDate()
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: 'London',
+      startsAt: newStartsAt,
+      endsAt: dayjs(newStartsAt)
+        .add(MAX_TRIP_DURATION_IN_DAYS + 1, 'day')
+        .toDate(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(InvalidTripDuration)
+    expect(tripsRepository.items[0].startsAt).toEqual(originalStartsAt)
+    expect(tripsRepository.items[0].endsAt).toEqual(originalEndsAt)
+  })
+
+  it('should be able to update a trip to last exactly 30 days', async () => {
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const newStartsAt = dayjs().add(2, 'month').toDate()
+    const newEndsAt = dayjs(newStartsAt)
+      .add(MAX_TRIP_DURATION_IN_DAYS, 'day')
+      .toDate()
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: 'London',
+      startsAt: newStartsAt,
+      endsAt: newEndsAt,
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(tripsRepository.items[0].endsAt).toEqual(newEndsAt)
+  })
+
+  it('should not delete activities when the new period is too long', async () => {
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const activity = Activity.create({
+      tripId: trip.id,
+      occursAt: dayjs().add(1, 'month').add(1, 'day').toDate(),
+      title: 'Inside current trip',
+    })
+
+    activitiesRepository.items.push(activity)
+
+    const newStartsAt = dayjs().add(2, 'month').toDate()
+
+    await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: 'London',
+      startsAt: newStartsAt,
+      endsAt: dayjs(newStartsAt)
+        .add(MAX_TRIP_DURATION_IN_DAYS + 1, 'day')
+        .toDate(),
+    })
+
+    expect(activitiesRepository.items).toHaveLength(1)
+    expect(activitiesRepository.items[0].id).toEqual(activity.id)
   })
 
   it('should not be able to update a trip if the traveler is not the owner', async () => {
