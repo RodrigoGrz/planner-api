@@ -31,6 +31,20 @@ describe('Error handler (E2E)', () => {
     expect(response.statusCode).toBe(415)
   })
 
+  test.each(['/travelers/register', '/travelers/auth'])(
+    '[POST] %s returns 415 for a form-encoded body',
+    async (path) => {
+      const response = await request(app.server).post(path).type('form').send({
+        name: 'Form Body',
+        email: 'form-body@planner.com',
+        password: '1234567',
+        phone: '+5511999999999',
+      })
+
+      expect(response.statusCode).toBe(415)
+    },
+  )
+
   describe('isolated instance', () => {
     let isolatedApp: FastifyInstance
 

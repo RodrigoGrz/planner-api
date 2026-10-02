@@ -1,31 +1,30 @@
 import { Either, left, right } from '@/core/either'
 import { ParticipantsRepository } from '../repositories/participants-repository'
 import { TripsRepository } from '../repositories/trips-repository'
-import { TravelersRepository } from '../repositories/travelers-repository'
 import { Participant } from '../../enterprise/entities/participant'
+import { Trip } from '../../enterprise/entities/trip'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { InviteExpiredError } from './errors/invite-expired-error'
 import { hasTripEnded } from '../trip-period/trip-day'
 
-interface ConfirmParticipantUseCaseRequest {
+interface GetInviteByTokenUseCaseRequest {
   token: string
 }
 
-type ConfirmParticipantUseCaseResponse = Either<
+type GetInviteByTokenUseCaseResponse = Either<
   ResourceNotExistsError | InviteExpiredError,
-  { participant: Participant; destination: string }
+  { participant: Participant; trip: Trip }
 >
 
-export class ConfirmParticipantUseCase {
+export class GetInviteByTokenUseCase {
   constructor(
     private participantsRepository: ParticipantsRepository,
     private tripsRepository: TripsRepository,
-    private travelersRepository: TravelersRepository,
   ) {}
 
   async execute({
     token,
-  }: ConfirmParticipantUseCaseRequest): Promise<ConfirmParticipantUseCaseResponse> {
+  }: GetInviteByTokenUseCaseRequest): Promise<GetInviteByTokenUseCaseResponse> {
     const participant =
       await this.participantsRepository.findByConfirmationToken(token)
 
@@ -45,23 +44,6 @@ export class ConfirmParticipantUseCase {
       return left(new InviteExpiredError())
     }
 
-    if (!participant.travelerId) {
-      const traveler = await this.travelersRepository.findByEmail(
-        participant.email,
-      )
-
-      if (traveler) {
-        participant.linkTraveler(traveler.id, traveler.name)
-      }
-    }
-
-    participant.confirm()
-
-    await this.participantsRepository.update(participant)
-
-    return right({
-      participant,
-      destination: trip.destination,
-    })
+    return right({ participant, trip })
   }
 }
