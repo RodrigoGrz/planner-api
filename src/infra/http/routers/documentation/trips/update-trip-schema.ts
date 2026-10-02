@@ -1,4 +1,5 @@
 import z from 'zod'
+import { isoDateTime } from '../shared/iso-date-time'
 import {
   endsAtNotBeforeStartsAt,
   endsAtNotBeforeStartsAtError,
@@ -12,8 +13,8 @@ export const updateTripParams = z.object({
 export const updateTripBody = z
   .object({
     destination: tripDestination,
-    startsAt: z.coerce.date(),
-    endsAt: z.coerce.date(),
+    startsAt: isoDateTime,
+    endsAt: isoDateTime,
   })
   .refine(endsAtNotBeforeStartsAt, endsAtNotBeforeStartsAtError)
 

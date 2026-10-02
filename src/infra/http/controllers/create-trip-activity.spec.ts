@@ -1,6 +1,8 @@
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { app } from '@/infra/app'
+import { prisma } from '@/infra/database/prisma/prisma'
 import { dayjs } from '@/lib/dayjs'
+import type { Dayjs } from 'dayjs'
 import request from 'supertest'
 import { createAndAuthenticateTraveler } from 'tests/e2e/utils/create-and-authenticate-traveler'
 
@@ -64,6 +66,44 @@ describe('Create Trip Activity (E2E)', () => {
 
     expect(result.statusCode).toBe(201)
   })
+
+  test.each([
+    ['a boolean', () => false],
+    ['a number', (day: Dayjs) => day.valueOf()],
+    [
+      'a date time without offset',
+      (day: Dayjs) => day.format('YYYY-MM-DD HH:mm'),
+    ],
+  ])(
+    '[POST] /trips/activity/register returns 400 when occursAt is %s',
+    async (_, buildOccursAt) => {
+      const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+      const firstDay = dayjs.utc().add(1, 'month').startOf('day')
+
+      const trip = await makePrismaTrip({
+        ownerId: new UniqueEntityID(traveler.id),
+        startsAt: firstDay.toDate(),
+        endsAt: firstDay.add(3, 'day').toDate(),
+      })
+
+      const result = await request(app.server)
+        .post('/trips/activity/register')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          title: 'Strict date',
+          occursAt: buildOccursAt(firstDay.add(1, 'day').hour(10)),
+          tripId: trip.id.toString(),
+        })
+
+      expect(result.statusCode).toBe(400)
+      expect(
+        await prisma.activity.count({
+          where: { trip_id: trip.id.toString() },
+        }),
+      ).toBe(0)
+    },
+  )
 
   test('[POST] /trips/activity/register returns 409 when the trip does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)

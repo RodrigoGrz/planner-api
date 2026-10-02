@@ -1,8 +1,9 @@
 import z from 'zod'
+import { isoDateTime } from '../shared/iso-date-time'
 
 export const createTripActivityBody = z.object({
   title: z.string(),
-  occursAt: z.coerce.date(),
+  occursAt: isoDateTime,
   tripId: z.uuid(),
 })
 
