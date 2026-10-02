@@ -2,7 +2,6 @@ import { Either, left, right } from '@/core/either'
 import { TripsRepository } from '../repositories/trips-repository'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { Trip } from '../../enterprise/entities/trip'
-import { dayjs } from '@/lib/dayjs'
 import { InvalidTripStartDate } from './errors/invalid-trip-start-date-error'
 import { InvalidTripEndDate } from './errors/invalid-trip-end-date-error'
 import { ActivitiesRepository } from '../repositories/activities-repository'
@@ -10,6 +9,7 @@ import { NotAllowedError } from './errors/not-allowed-error'
 import { isTripOwner } from '../authorization/trip-access'
 import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
 import { validateTripPeriod } from '../trip-period/validate-trip-period'
+import { getTripPeriodBounds, normalizeTripDate } from '../trip-period/trip-day'
 
 interface UpdateTripUseCaseRequest {
   tripId: string
@@ -61,20 +61,28 @@ export class UpdateTripUseCase {
       return left(periodValidation.value)
     }
 
+    const normalizedStartsAt = normalizeTripDate(startsAt)
+    const normalizedEndsAt = normalizeTripDate(endsAt)
+
     const periodTimestampsChanged =
-      !dayjs(startsAt).isSame(trip.startsAt) ||
-      !dayjs(endsAt).isSame(trip.endsAt)
+      normalizedStartsAt.getTime() !== trip.startsAt.getTime() ||
+      normalizedEndsAt.getTime() !== trip.endsAt.getTime()
 
     trip.destination = destination
-    trip.startsAt = startsAt
-    trip.endsAt = endsAt
+    trip.startsAt = normalizedStartsAt
+    trip.endsAt = normalizedEndsAt
+
+    const { firstMoment, lastMoment } = getTripPeriodBounds(
+      normalizedStartsAt,
+      normalizedEndsAt,
+    )
 
     await this.tripsRepository.runInTransaction(async () => {
       if (periodTimestampsChanged) {
         await this.activitiesRepository.deleteOutsideTripPeriod(
           trip.id.toString(),
-          startsAt,
-          endsAt,
+          firstMoment,
+          lastMoment,
         )
       }
 

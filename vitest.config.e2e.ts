@@ -10,6 +10,7 @@ export default defineConfig({
     globals: true,
     env: {
       NODE_ENV: 'test',
+      TZ: 'America/Sao_Paulo',
     },
     root: './',
     pool: 'threads',

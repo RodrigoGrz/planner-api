@@ -41,6 +41,30 @@ describe('Create Trip Activity (E2E)', () => {
     )
   })
 
+  test('[POST] /trips/activity/register accepts an activity in the afternoon of the last day', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const firstDay = dayjs.utc().add(1, 'month').startOf('day')
+    const lastDay = firstDay.add(3, 'day')
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+      startsAt: firstDay.toDate(),
+      endsAt: lastDay.toDate(),
+    })
+
+    const result = await request(app.server)
+      .post('/trips/activity/register')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title: 'Farewell dinner',
+        occursAt: lastDay.hour(14).toDate(),
+        tripId: trip.id.toString(),
+      })
+
+    expect(result.statusCode).toBe(201)
+  })
+
   test('[POST] /trips/activity/register returns 409 when the trip does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 

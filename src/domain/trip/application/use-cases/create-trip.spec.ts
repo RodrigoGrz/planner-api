@@ -40,6 +40,10 @@ describe('Create Trip', () => {
     )
   })
 
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('should be able to create a trip', async () => {
     const startsAt = dayjs().add(1, 'month').toDate()
     const endsAt = dayjs().add(1, 'month').add(4, 'day').toDate()
@@ -158,7 +162,7 @@ describe('Create Trip', () => {
     const owner = await makeTraveler()
     travelersRepository.items.push(owner)
 
-    const todayMidnight = dayjs().startOf('day').toDate()
+    const todayMidnight = dayjs.utc().startOf('day').toDate()
 
     const result = await createTripUseCase.execute({
       destination: 'Test',
@@ -169,6 +173,30 @@ describe('Create Trip', () => {
     })
 
     expect(result.isRight()).toBe(true)
+  })
+
+  it('should store the trip period normalized to whole UTC days', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-03-01T12:00:00.000Z'))
+
+    const owner = await makeTraveler()
+    travelersRepository.items.push(owner)
+
+    const result = await createTripUseCase.execute({
+      destination: 'Normalized',
+      startsAt: new Date('2026-03-10T15:00:00.000Z'),
+      endsAt: new Date('2026-03-14T08:00:00.000Z'),
+      ownerId: owner.id.toString(),
+      emailsToInvite: [],
+    })
+
+    expect(result.isRight()).toBe(true)
+    expect(tripsRepository.items[0].startsAt).toEqual(
+      new Date('2026-03-10T00:00:00.000Z'),
+    )
+    expect(tripsRepository.items[0].endsAt).toEqual(
+      new Date('2026-03-14T00:00:00.000Z'),
+    )
   })
 
   it('should not allow trip with duration greater than 30 days', async () => {

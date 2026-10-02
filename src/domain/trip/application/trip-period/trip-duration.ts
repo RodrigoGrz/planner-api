@@ -1,11 +1,9 @@
-import { dayjs } from '@/lib/dayjs'
+import { toTripDay } from './trip-day'
 
 export const MAX_TRIP_DURATION_IN_DAYS = 30
 
 export function getTripDurationInDays(startsAt: Date, endsAt: Date) {
-  return dayjs(endsAt)
-    .startOf('day')
-    .diff(dayjs(startsAt).startOf('day'), 'days')
+  return toTripDay(endsAt).diff(toTripDay(startsAt), 'day')
 }
 
 export function exceedsMaxTripDuration(startsAt: Date, endsAt: Date) {

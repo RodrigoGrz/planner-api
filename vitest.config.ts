@@ -3,6 +3,9 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     globals: true,
+    env: {
+      TZ: 'America/Sao_Paulo',
+    },
     root: './',
     include: [
       './src/domain/**/*.spec.ts',

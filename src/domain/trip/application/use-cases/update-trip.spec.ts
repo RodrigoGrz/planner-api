@@ -36,6 +36,10 @@ describe('Update Trip', () => {
       activitiesRepository,
     )
   })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('should be able to update a trip', async () => {
     const owner = await makeTraveler()
 
@@ -176,7 +180,9 @@ describe('Update Trip', () => {
     })
 
     expect(result.isRight()).toBeTruthy()
-    expect(tripsRepository.items[0].endsAt).toEqual(newEndsAt)
+    expect(tripsRepository.items[0].endsAt).toEqual(
+      dayjs.utc(newEndsAt).startOf('day').toDate(),
+    )
   })
 
   it('should not delete activities when the new period is too long', async () => {
@@ -255,7 +261,7 @@ describe('Update Trip', () => {
 
     tripsRepository.items.push(trip)
 
-    const today = dayjs().startOf('day').toDate()
+    const today = dayjs.utc().startOf('day').toDate()
 
     const result = await updateTripUseCase.execute({
       tripId: trip.id.toString(),
@@ -320,7 +326,9 @@ describe('Update Trip', () => {
     })
 
     expect(result.isRight()).toBeTruthy()
-    expect(tripsRepository.items[0].endsAt).toEqual(newEndsAt)
+    expect(tripsRepository.items[0].endsAt).toEqual(
+      dayjs.utc(newEndsAt).startOf('day').toDate(),
+    )
   })
 
   it('should not be able to end an ongoing trip before today', async () => {
@@ -372,6 +380,76 @@ describe('Update Trip', () => {
     })
 
     expect(result.value).toBeInstanceOf(InvalidTripEndDate)
+  })
+
+  it('should store the updated period normalized to whole UTC days', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-03-01T12:00:00.000Z'))
+
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      startsAt: new Date('2026-03-10T00:00:00.000Z'),
+      endsAt: new Date('2026-03-12T00:00:00.000Z'),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: trip.destination,
+      startsAt: new Date('2026-03-20T15:00:00.000Z'),
+      endsAt: new Date('2026-03-22T08:00:00.000Z'),
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(tripsRepository.items[0].startsAt).toEqual(
+      new Date('2026-03-20T00:00:00.000Z'),
+    )
+    expect(tripsRepository.items[0].endsAt).toEqual(
+      new Date('2026-03-22T00:00:00.000Z'),
+    )
+  })
+
+  it('should keep activities on the last day when the period is shortened', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-03-01T12:00:00.000Z'))
+
+    const owner = await makeTraveler()
+
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      startsAt: new Date('2026-03-10T00:00:00.000Z'),
+      endsAt: new Date('2026-03-15T00:00:00.000Z'),
+      ownerId: owner.id,
+    })
+
+    tripsRepository.items.push(trip)
+
+    const activity = Activity.create({
+      tripId: trip.id,
+      occursAt: new Date('2026-03-12T14:00:00.000Z'),
+      title: 'Afternoon on the new last day',
+    })
+
+    activitiesRepository.items.push(activity)
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: trip.destination,
+      startsAt: trip.startsAt,
+      endsAt: new Date('2026-03-12T00:00:00.000Z'),
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(activitiesRepository.items).toHaveLength(1)
+    expect(activitiesRepository.items[0].id).toEqual(activity.id)
   })
 
   it('should not be able to update a trip if the traveler is not the owner', async () => {

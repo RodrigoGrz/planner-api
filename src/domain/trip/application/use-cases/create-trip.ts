@@ -13,6 +13,7 @@ import { sendParticipantInvite } from '../mail/send-participant-invite'
 import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
 import { randomUUID } from 'node:crypto'
 import { validateTripPeriod } from '../trip-period/validate-trip-period'
+import { normalizeTripDate } from '../trip-period/trip-day'
 
 interface CreateTripUseCaseRequest {
   destination: string
@@ -71,8 +72,8 @@ export class CreateTripUseCase {
     const trip = Trip.create({
       destination,
       ownerId: new UniqueEntityID(ownerId),
-      startsAt,
-      endsAt,
+      startsAt: normalizeTripDate(startsAt),
+      endsAt: normalizeTripDate(endsAt),
     })
 
     const participantOwner = Participant.create({

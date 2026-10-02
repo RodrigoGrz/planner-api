@@ -1,9 +1,9 @@
 import { Either, left, right } from '@/core/either'
-import { dayjs } from '@/lib/dayjs'
 import { InvalidTripStartDate } from '../use-cases/errors/invalid-trip-start-date-error'
 import { InvalidTripEndDate } from '../use-cases/errors/invalid-trip-end-date-error'
 import { InvalidTripDuration } from '../use-cases/errors/invalid-trip-duration-error'
 import { exceedsMaxTripDuration } from './trip-duration'
+import { getTodayTripDay, toTripDay } from './trip-day'
 
 interface TripPeriod {
   startsAt: Date
@@ -24,13 +24,14 @@ export function validateTripPeriod({
   endsAt,
   currentPeriod,
 }: ValidateTripPeriodParams): ValidateTripPeriodResult {
-  const today = dayjs().startOf('day')
-  const start = dayjs(startsAt).startOf('day')
-  const end = dayjs(endsAt).startOf('day')
+  const today = getTodayTripDay()
+  const start = toTripDay(startsAt)
+  const end = toTripDay(endsAt)
 
   const startChanged =
-    !currentPeriod || !start.isSame(currentPeriod.startsAt, 'day')
-  const endChanged = !currentPeriod || !end.isSame(currentPeriod.endsAt, 'day')
+    !currentPeriod || !start.isSame(toTripDay(currentPeriod.startsAt))
+  const endChanged =
+    !currentPeriod || !end.isSame(toTripDay(currentPeriod.endsAt))
 
   if (!startChanged && !endChanged) {
     return right(null)

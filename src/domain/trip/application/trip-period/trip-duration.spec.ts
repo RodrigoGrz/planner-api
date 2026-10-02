@@ -15,8 +15,8 @@ describe('Trip duration', () => {
   })
 
   it('should ignore the time of day when counting the duration', () => {
-    const lateStart = new Date('2026-03-10T23:00:00')
-    const earlyEnd = new Date('2026-03-11T01:00:00')
+    const lateStart = new Date('2026-03-10T23:00:00.000Z')
+    const earlyEnd = new Date('2026-03-11T01:00:00.000Z')
 
     expect(getTripDurationInDays(lateStart, earlyEnd)).toBe(1)
   })
