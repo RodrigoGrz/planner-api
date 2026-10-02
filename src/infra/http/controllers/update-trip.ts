@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { InvalidTripEndDate } from '@/domain/trip/application/use-cases/errors/invalid-trip-end-date-error'
 import { InvalidTripStartDate } from '@/domain/trip/application/use-cases/errors/invalid-trip-start-date-error'
+import { InvalidTripDuration } from '@/domain/trip/application/use-cases/errors/invalid-trip-duration-error'
 import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/errors/resource-not-exists-error'
 import { updateTripFactory } from '@/domain/trip/application/use-cases/factory/update-trip-factory'
 import {
@@ -41,6 +42,8 @@ export async function updateTripController(
       case InvalidTripStartDate:
         return reply.status(409).send({ message: error.message })
       case InvalidTripEndDate:
+        return reply.status(409).send({ message: error.message })
+      case InvalidTripDuration:
         return reply.status(409).send({ message: error.message })
       case ResourceNotExistsError:
         return reply.status(409).send({ message: error.message })

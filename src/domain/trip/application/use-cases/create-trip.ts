@@ -13,6 +13,7 @@ import { dayjs } from '@/lib/dayjs'
 import { sendParticipantInvite } from '../mail/send-participant-invite'
 import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
 import { randomUUID } from 'node:crypto'
+import { exceedsMaxTripDuration } from '../trip-period/trip-duration'
 
 interface CreateTripUseCaseRequest {
   destination: string
@@ -23,7 +24,10 @@ interface CreateTripUseCaseRequest {
 }
 
 type CreateTripUseCaseResponse = Either<
-  InvalidTripStartDate | InvalidTripEndDate | ResourceNotExistsError,
+  | InvalidTripStartDate
+  | InvalidTripEndDate
+  | InvalidTripDuration
+  | ResourceNotExistsError,
   { trip: Trip }
 >
 
@@ -54,7 +58,7 @@ export class CreateTripUseCase {
       return left(new InvalidTripEndDate())
     }
 
-    if (end.diff(start, 'days') > 30) {
+    if (exceedsMaxTripDuration(startsAt, endsAt)) {
       return left(new InvalidTripDuration())
     }
 
