@@ -51,30 +51,33 @@ if (env.RATE_LIMIT_ENABLED) {
   })
 }
 
-app.register(fastifySwagger, {
-  openapi: {
-    openapi: '3.0.0',
-    info: {
-      title: 'planner',
-      description: 'Especificações da API para o back-end da aplicação planner',
-      version: '1.0.0',
-    },
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
+if (env.NODE_ENV !== 'production') {
+  app.register(fastifySwagger, {
+    openapi: {
+      openapi: '3.0.0',
+      info: {
+        title: 'planner',
+        description:
+          'Especificações da API para o back-end da aplicação planner',
+        version: '1.0.0',
+      },
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+          },
         },
       },
     },
-  },
-  transform: jsonSchemaTransform,
-})
+    transform: jsonSchemaTransform,
+  })
 
-app.register(fastifySwaggerUI, {
-  routePrefix: '/docs',
-})
+  app.register(fastifySwaggerUI, {
+    routePrefix: '/docs',
+  })
+}
 
 app.register(fastifyMultipart, {
   limits: {
@@ -83,8 +86,8 @@ app.register(fastifyMultipart, {
 })
 
 app.register(fastifyCors, {
-  origin: '*',
-  credentials: true,
+  origin: env.CORS_ORIGINS,
+  credentials: false,
 })
 
 app.register(travelersRoute)

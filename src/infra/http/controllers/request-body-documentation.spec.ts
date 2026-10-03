@@ -40,6 +40,13 @@ describe('Request body documentation (E2E)', () => {
     await app.close()
   })
 
+  test('[GET] /docs/json is available outside production', async () => {
+    const response = await app.inject({ method: 'GET', url: '/docs/json' })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toHaveProperty('openapi', '3.0.0')
+  })
+
   test.each([
     ['POST', '/trips/register', ['startsAt', 'endsAt']],
     ['PUT', '/trips/{tripId}/update', ['startsAt', 'endsAt']],
