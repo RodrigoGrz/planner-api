@@ -85,6 +85,92 @@ describe('Create Trip', () => {
     }
   })
 
+  it('should be able to create the trip even when an invite e-mail fails', async () => {
+    const owner = await makeTraveler()
+    travelersRepository.items.push(owner)
+
+    mailer.failingAddresses.add('fail@planner.com')
+
+    const result = await createTripUseCase.execute({
+      destination: 'Punta Cana',
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id.toString(),
+      emailsToInvite: ['fail@planner.com', 'ok@planner.com'],
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(tripsRepository.items).toHaveLength(1)
+    expect(participantsRepository.items.map((p) => p.email)).toEqual(
+      expect.arrayContaining([
+        owner.email,
+        'fail@planner.com',
+        'ok@planner.com',
+      ]),
+    )
+  })
+
+  it('should be able to send the remaining invites when one of them fails', async () => {
+    const owner = await makeTraveler()
+    travelersRepository.items.push(owner)
+
+    mailer.failingAddresses.add('fail@planner.com')
+
+    await createTripUseCase.execute({
+      destination: 'Punta Cana',
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id.toString(),
+      emailsToInvite: ['fail@planner.com', 'ok@planner.com', 'ok2@planner.com'],
+    })
+
+    expect(mailer.sentMails.map((mail) => mail.to)).toEqual([
+      'ok@planner.com',
+      'ok2@planner.com',
+    ])
+  })
+
+  it('should be able to report the invites whose e-mail failed', async () => {
+    const owner = await makeTraveler()
+    travelersRepository.items.push(owner)
+
+    mailer.failingAddresses.add('fail@planner.com')
+
+    const result = await createTripUseCase.execute({
+      destination: 'Punta Cana',
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id.toString(),
+      emailsToInvite: ['fail@planner.com', 'ok@planner.com'],
+    })
+
+    const failedParticipant = participantsRepository.items.find(
+      (p) => p.email === 'fail@planner.com',
+    )
+
+    expect(result.isRight() && result.value.failedInvites).toEqual([
+      {
+        participantId: failedParticipant?.id.toString(),
+        reason: expect.any(Error),
+      },
+    ])
+  })
+
+  it('should not report failed invites when every e-mail is sent', async () => {
+    const owner = await makeTraveler()
+    travelersRepository.items.push(owner)
+
+    const result = await createTripUseCase.execute({
+      destination: 'Punta Cana',
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id.toString(),
+      emailsToInvite: ['ok@planner.com'],
+    })
+
+    expect(result.isRight() && result.value.failedInvites).toEqual([])
+  })
+
   it('should not be able to create a trip if starts at is before today', async () => {
     const startsAt = dayjs().subtract(1, 'month').toDate()
     const endsAt = dayjs().add(1, 'month').add(4, 'day').toDate()

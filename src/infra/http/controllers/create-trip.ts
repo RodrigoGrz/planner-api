@@ -45,5 +45,12 @@ export async function createTripController(
     }
   }
 
+  for (const { participantId, reason } of result.value.failedInvites) {
+    request.log.warn(
+      { err: reason, participantId },
+      'Falha ao enviar e-mail de convite',
+    )
+  }
+
   return reply.status(201).send({ tripId: result.value.trip.id.toString() })
 }

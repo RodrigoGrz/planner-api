@@ -83,9 +83,50 @@ describe('Nodemailer mailer', () => {
       host: 'smtp.example.com',
       port: 2525,
       secure: false,
+      pool: true,
+      maxConnections: 5,
       auth: { user: 'mail-user', pass: 'mail-pass' },
     })
     expect(nodemailer.createTestAccount).not.toHaveBeenCalled()
+  })
+
+  it('should not be able to expose the recipient address when the smtp server rejects it', async () => {
+    const mailer = await NodemailerMailer.create()
+    const transporter = vi.mocked(nodemailer.createTransport).mock.results[0]
+      .value as ReturnType<typeof nodemailer.createTransport>
+    const response = '550 5.1.1 <john@example.com>: Recipient address rejected'
+
+    vi.spyOn(transporter, 'sendMail').mockRejectedValueOnce(
+      Object.assign(
+        new Error(
+          `Can't send mail - all recipients were rejected: ${response}`,
+        ),
+        {
+          code: 'EENVELOPE',
+          responseCode: 550,
+          response,
+          rejected: ['john@example.com'],
+        },
+      ),
+    )
+
+    const error = await mailer
+      .send({
+        to: { name: 'John Doe', address: 'john@example.com' },
+        subject: 'Trip invite',
+        html: '<h1>Trip invite</h1>',
+      })
+      .catch((reason: unknown) => reason)
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toMatchObject({
+      message: 'Falha no envio SMTP',
+      code: 'EENVELOPE',
+      responseCode: 550,
+    })
+    expect(error).not.toHaveProperty('rejected')
+    expect(error).not.toHaveProperty('response')
+    expect(JSON.stringify(error)).not.toContain('john@example.com')
   })
 
   it('should be able to create an Ethereal test account when the mail credentials are missing', async () => {

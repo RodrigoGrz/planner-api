@@ -3,6 +3,11 @@ import { Participant } from '../../enterprise/entities/participant'
 import { Trip } from '../../enterprise/entities/trip'
 import { Mailer } from './mailer'
 
+export interface FailedInvite {
+  participantId: string
+  reason: unknown
+}
+
 interface SendParticipantInviteParams {
   trip: Trip
   participant: Participant

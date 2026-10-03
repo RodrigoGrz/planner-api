@@ -24,6 +24,8 @@ export class NodemailerMailer implements Mailer {
       host: env.MAIL_HOST,
       port: env.MAIL_PORT,
       secure: false,
+      pool: true,
+      maxConnections: 5,
       auth: {
         user,
         pass,
@@ -34,18 +36,25 @@ export class NodemailerMailer implements Mailer {
   }
 
   async send({ to, subject, html }: SendMailParams): Promise<void> {
-    const info = await this.transporter.sendMail({
-      from: {
-        name: 'Equipe plann.er',
-        address: 'oi@plann.er',
-      },
-      to: {
-        name: to.name ?? to.address.split('@')[0],
-        address: to.address,
-      },
-      subject,
-      html,
-    })
+    const info = await this.transporter
+      .sendMail({
+        from: {
+          name: 'Equipe plann.er',
+          address: 'oi@plann.er',
+        },
+        to: {
+          name: to.name ?? to.address.split('@')[0],
+          address: to.address,
+        },
+        subject,
+        html,
+      })
+      .catch((error: { code?: string; responseCode?: number }) => {
+        throw Object.assign(new Error('Falha no envio SMTP'), {
+          code: error.code,
+          responseCode: error.responseCode,
+        })
+      })
 
     if (env.NODE_ENV === 'development') {
       console.log(nodemailer.getTestMessageUrl(info))

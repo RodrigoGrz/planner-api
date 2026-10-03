@@ -95,6 +95,53 @@ describe('Create Invite', () => {
     expect(mailer.sentMails[0].html).not.toContain(participant.id.toString())
   })
 
+  it('should be able to invite a participant even when the invite e-mail fails', async () => {
+    const { owner, trip } = await makeScenario()
+
+    mailer.failingAddresses.add('invited@planner.com')
+
+    const result = await createInviteUseCase.execute({
+      tripId: trip.id.toString(),
+      email: 'invited@planner.com',
+      travelerId: owner.id.toString(),
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(participantsRepository.items).toHaveLength(1)
+    expect(participantsRepository.items[0].email).toBe('invited@planner.com')
+  })
+
+  it('should be able to report the invite whose e-mail failed', async () => {
+    const { owner, trip } = await makeScenario()
+
+    mailer.failingAddresses.add('invited@planner.com')
+
+    const result = await createInviteUseCase.execute({
+      tripId: trip.id.toString(),
+      email: 'invited@planner.com',
+      travelerId: owner.id.toString(),
+    })
+
+    expect(result.isRight() && result.value.failedInvites).toEqual([
+      {
+        participantId: participantsRepository.items[0].id.toString(),
+        reason: expect.any(Error),
+      },
+    ])
+  })
+
+  it('should not report a failed invite when the e-mail is sent', async () => {
+    const { owner, trip } = await makeScenario()
+
+    const result = await createInviteUseCase.execute({
+      tripId: trip.id.toString(),
+      email: 'invited@planner.com',
+      travelerId: owner.id.toString(),
+    })
+
+    expect(result.isRight() && result.value.failedInvites).toEqual([])
+  })
+
   it('should generate a different confirmation token for each invite', async () => {
     const { owner, trip } = await makeScenario()
 
