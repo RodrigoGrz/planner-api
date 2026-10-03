@@ -21,7 +21,7 @@ describe('Register Traveler (E2E)', () => {
       .send({
         name: faker.person.fullName(),
         email: faker.internet.email(),
-        password: '1234567',
+        password: '12345678',
         phone: faker.phone.number({
           style: 'international',
         }),
@@ -38,7 +38,7 @@ describe('Register Traveler (E2E)', () => {
       .send({
         name: faker.person.fullName(),
         email: `  ${localPart.toUpperCase()}@Planner.COM `,
-        password: '1234567',
+        password: '12345678',
         phone: faker.phone.number({ style: 'international' }),
       })
 
@@ -50,6 +50,64 @@ describe('Register Traveler (E2E)', () => {
     expect(traveler).not.toBeNull()
   })
 
+  test('[POST] /travelers/register stores the name trimmed', async () => {
+    const email = faker.string.alphanumeric(12).toLowerCase() + '@planner.com'
+
+    const response = await request(app.server)
+      .post('/travelers/register')
+      .send({
+        name: '  John Doe  ',
+        email,
+        password: '12345678',
+        phone: '+5511999999999',
+      })
+
+    const traveler = await prisma.traveler.findUniqueOrThrow({
+      where: { email },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(traveler.name).toBe('John Doe')
+  })
+
+  test.each([
+    ['a phone with letters', { phone: '+55119abc99999' }],
+    ['a phone without digits', { phone: '(((((((((((' }],
+    ['a password shorter than 8 characters', { password: '1234567' }],
+    ['a password longer than 72 bytes', { password: 'ç'.repeat(40) }],
+  ])('[POST] /travelers/register returns 400 for %s', async (_, override) => {
+    const email = faker.string.alphanumeric(12).toLowerCase() + '@planner.com'
+
+    const response = await request(app.server)
+      .post('/travelers/register')
+      .send({
+        name: 'John Doe',
+        email,
+        password: '12345678',
+        phone: '+5511999999999',
+        ...override,
+      })
+
+    expect(response.statusCode).toBe(400)
+    expect(await prisma.traveler.findUnique({ where: { email } })).toBeNull()
+  })
+
+  test('[POST] /travelers/register returns 400 for an e-mail longer than 254 characters', async () => {
+    const email = `${'a'.repeat(250)}@planner.com`
+
+    const response = await request(app.server)
+      .post('/travelers/register')
+      .send({
+        name: 'John Doe',
+        email,
+        password: '12345678',
+        phone: '+5511999999999',
+      })
+
+    expect(response.statusCode).toBe(400)
+    expect(await prisma.traveler.findUnique({ where: { email } })).toBeNull()
+  })
+
   test('[POST] /travelers/register stores the password with bcrypt cost 10', async () => {
     const email = faker.string.alphanumeric(12).toLowerCase() + '@planner.com'
 
@@ -58,7 +116,7 @@ describe('Register Traveler (E2E)', () => {
       .send({
         name: faker.person.fullName(),
         email,
-        password: '1234567',
+        password: '12345678',
         phone: faker.phone.number({ style: 'international' }),
       })
 
@@ -79,7 +137,7 @@ describe('Register Traveler (E2E)', () => {
         .send({
           name: faker.person.fullName(),
           email,
-          password: '1234567',
+          password: '12345678',
           phone: faker.phone.number({ style: 'international' }),
         })
 
@@ -113,7 +171,7 @@ describe('Register Traveler (E2E)', () => {
       .send({
         name: faker.person.fullName(),
         email: invitedEmail,
-        password: '1234567',
+        password: '12345678',
         phone: faker.phone.number({
           style: 'international',
         }),
@@ -123,7 +181,7 @@ describe('Register Traveler (E2E)', () => {
 
     const authResponse = await request(app.server)
       .post('/travelers/auth')
-      .send({ email: invitedEmail, password: '1234567' })
+      .send({ email: invitedEmail, password: '12345678' })
 
     const tripsResponse = await request(app.server)
       .get('/traveler/trips')

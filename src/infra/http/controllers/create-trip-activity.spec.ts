@@ -43,6 +43,59 @@ describe('Create Trip Activity (E2E)', () => {
     )
   })
 
+  test.each([
+    ['an empty title', '   '],
+    ['a title longer than 100 characters', 'a'.repeat(101)],
+  ])('[POST] /trips/activity/register returns 400 for %s', async (_, title) => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+    })
+
+    const result = await request(app.server)
+      .post('/trips/activity/register')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title,
+        occursAt: dayjs().add(1, 'month').add(1, 'hour').toDate(),
+        tripId: trip.id.toString(),
+      })
+
+    expect(result.statusCode).toBe(400)
+    expect(
+      await prisma.activity.count({ where: { trip_id: trip.id.toString() } }),
+    ).toBe(0)
+  })
+
+  test('[POST] /trips/activity/register stores the title trimmed', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+    })
+
+    const result = await request(app.server)
+      .post('/trips/activity/register')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title: '  Hotel Check-in  ',
+        occursAt: dayjs().add(1, 'month').add(1, 'hour').toDate(),
+        tripId: trip.id.toString(),
+      })
+
+    const activity = await prisma.activity.findUnique({
+      where: { id: result.body.activityId },
+    })
+
+    expect(result.statusCode).toBe(201)
+    expect(activity?.title).toBe('Hotel Check-in')
+  })
+
   test('[POST] /trips/activity/register accepts an activity in the afternoon of the last day', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 

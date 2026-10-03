@@ -84,6 +84,24 @@ describe('Upload Trip Cover Image (E2E)', () => {
     expect(response.statusCode).toEqual(415)
   })
 
+  test('[POST] /trips/:tripId/image reads files larger than the JSON body limit', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const response = await request(app.server)
+      .post(`/trips/${trip.id.toString()}/image`)
+      .set('Authorization', `Bearer ${token}`)
+      .attach('file', Buffer.alloc(200 * 1024, 'a'), {
+        filename: 'cover.png',
+        contentType: 'image/png',
+      })
+
+    expect(response.statusCode).toEqual(415)
+  })
+
   test('[POST] /trips/:tripId/image returns 413 for a file larger than 10MB', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 

@@ -20,14 +20,14 @@ describe('Authenticate (E2E)', () => {
     await makePrismaTraveler({
       name,
       email,
-      password: await hash('123456', 8),
+      password: await hash('12345678', 8),
     })
 
     const travelerResponse = await request(app.server)
       .post('/travelers/auth')
       .send({
         email,
-        password: '123456',
+        password: '12345678',
       })
 
     expect(travelerResponse.body).toHaveProperty('token')
@@ -38,14 +38,14 @@ describe('Authenticate (E2E)', () => {
 
     await makePrismaTraveler({
       email: `${localPart}@planner.com`,
-      password: await hash('123456', 8),
+      password: await hash('12345678', 8),
     })
 
     const response = await request(app.server)
       .post('/travelers/auth')
       .send({
         email: `  ${localPart.toUpperCase()}@Planner.COM `,
-        password: '123456',
+        password: '12345678',
       })
 
     expect(response.statusCode).toBe(200)
@@ -57,12 +57,12 @@ describe('Authenticate (E2E)', () => {
 
     await makePrismaTraveler({
       email,
-      password: await hash('123456', 8),
+      password: await hash('12345678', 8),
     })
 
     const response = await request(app.server).post('/travelers/auth').send({
       email,
-      password: '123456',
+      password: '12345678',
     })
 
     const payload = app.jwt.decode<{ iat: number; exp?: number }>(
@@ -71,5 +71,22 @@ describe('Authenticate (E2E)', () => {
 
     expect(payload?.exp).toBeDefined()
     expect((payload?.exp ?? 0) - (payload?.iat ?? 0)).toBe(7 * 24 * 60 * 60)
+  })
+
+  test('[POST] /travelers/auth returns 400 for a password shorter than 8 characters', async () => {
+    const email = faker.internet.email()
+
+    await makePrismaTraveler({
+      email,
+      password: await hash('1234567', 8),
+    })
+
+    const response = await request(app.server).post('/travelers/auth').send({
+      email,
+      password: '1234567',
+    })
+
+    expect(response.statusCode).toBe(400)
+    expect(response.body).not.toHaveProperty('token')
   })
 })

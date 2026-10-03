@@ -11,7 +11,7 @@ const htmlResponses = {
 }
 
 export const getInviteByTokenQuerystring = z.object({
-  token: z.string().optional(),
+  token: z.string().max(100).optional(),
 })
 
 export const getInviteByTokenSchema = {
@@ -27,7 +27,7 @@ export const getInviteByTokenSchema = {
 }
 
 export const confirmParticipantBody = z.object({
-  token: z.string().optional(),
+  token: z.string().max(100).optional(),
 })
 
 export const confirmParticipantSchema = {

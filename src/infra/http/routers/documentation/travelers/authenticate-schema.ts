@@ -1,10 +1,11 @@
 import z from 'zod'
 import { emailAddress } from '../shared/email-address'
 import { tooManyRequestsResponse } from '../shared/too-many-requests-response'
+import { password } from '../shared/password'
 
 export const authenticateBody = z.object({
   email: emailAddress.describe('Traveler email address'),
-  password: z.string().min(6).describe('Password (min 6 characters)'),
+  password,
 })
 
 export const authenticateResponse = z.object({
