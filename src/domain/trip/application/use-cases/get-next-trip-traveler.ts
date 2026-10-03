@@ -1,6 +1,7 @@
 import { Either, right } from '@/core/either'
 import { ParticipantsRepository } from '../repositories/participants-repository'
 import { ParticipantWithTripProps } from '../../enterprise/entities/value-objects/participant-with-trip'
+import { hasTripEnded } from '../trip-period/trip-day'
 
 interface GetNextTripTravelerUseCaseRequest {
   travelerId: string
@@ -17,8 +18,13 @@ export class GetNextTripTravelerUseCase {
   async execute({
     travelerId,
   }: GetNextTripTravelerUseCaseRequest): Promise<GetNextTripTravelerUseCaseResponse> {
+    const trips =
+      await this.participantsRepository.findAllByTravelerId(travelerId)
+
     const nextTrip =
-      await this.participantsRepository.findNextTripByTravelerId(travelerId)
+      trips
+        .filter((trip) => !hasTripEnded(trip.endsAt))
+        .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())[0] ?? null
 
     return right({
       nextTrip,
