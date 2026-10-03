@@ -1,22 +1,28 @@
 import { makeTraveler } from 'tests/factories/make-traveler'
 import { AuthenticateUseCase } from './authenticate'
 import { FakeTravelersRepository } from 'tests/repositories/fake-travelers-repository'
-import { hash } from 'bcryptjs'
+import { FakeHasher } from 'tests/cryptography/fake-hasher'
 import { CredentialsIncorrectError } from './errors/credentials-incorrect-error'
 
 let travelersRepository: FakeTravelersRepository
+let fakeHasher: FakeHasher
 let authenticateUseCase: AuthenticateUseCase
 
 describe('Authenticate', () => {
   beforeEach(() => {
     travelersRepository = new FakeTravelersRepository()
-    authenticateUseCase = new AuthenticateUseCase(travelersRepository)
+    fakeHasher = new FakeHasher()
+    authenticateUseCase = new AuthenticateUseCase(
+      travelersRepository,
+      fakeHasher,
+      fakeHasher,
+    )
   })
 
   it('should be able to authenticate a traveler', async () => {
     const traveler = await makeTraveler({
       email: 'test@planner.com',
-      password: await hash('123456', 8),
+      password: await fakeHasher.hash('123456'),
     })
 
     travelersRepository.items.push(traveler)
@@ -35,7 +41,7 @@ describe('Authenticate', () => {
   it('should authenticate regardless of e-mail casing', async () => {
     const traveler = await makeTraveler({
       email: 'john@planner.com',
-      password: await hash('123456', 8),
+      password: await fakeHasher.hash('123456'),
     })
 
     travelersRepository.items.push(traveler)
@@ -52,7 +58,7 @@ describe('Authenticate', () => {
   it('should not be able to authenticate a traveler if e-mail is wrong', async () => {
     const traveler = await makeTraveler({
       email: 'test@planner.com',
-      password: await hash('123456', 8),
+      password: await fakeHasher.hash('123456'),
     })
 
     travelersRepository.items.push(traveler)
@@ -69,7 +75,7 @@ describe('Authenticate', () => {
   it('should not be able to authenticate a traveler if password is wrong', async () => {
     const traveler = await makeTraveler({
       email: 'test@planner.com',
-      password: await hash('123456', 8),
+      password: await fakeHasher.hash('123456'),
     })
 
     travelersRepository.items.push(traveler)
@@ -79,6 +85,19 @@ describe('Authenticate', () => {
       password: 'wrong-password',
     })
 
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(CredentialsIncorrectError)
+  })
+
+  it('should hash the password even when the e-mail does not exist', async () => {
+    const hashSpy = vi.spyOn(fakeHasher, 'hash')
+
+    const result = await authenticateUseCase.execute({
+      email: 'missing@planner.com',
+      password: '123456',
+    })
+
+    expect(hashSpy).toHaveBeenCalledWith('123456')
     expect(result.isLeft()).toBeTruthy()
     expect(result.value).toBeInstanceOf(CredentialsIncorrectError)
   })

@@ -4,7 +4,7 @@ import { ParticipantsRepository } from '../repositories/participants-repository'
 import { TransactionManager } from '../transaction/transaction-manager'
 import { Traveler } from '../../enterprise/entities/traveler'
 import { TravelerAlreadyExistsError } from './errors/traveler-already-exists-error'
-import { hash } from 'bcryptjs'
+import { HashGenerator } from '../cryptography/hash-generator'
 import { normalizeEmail } from '../../enterprise/entities/email'
 
 interface RegisterTravelerUseCaseRequest {
@@ -24,6 +24,7 @@ export class RegisterTravelerUseCase {
     private travelersRepository: TravelersRepository,
     private participantsRepository: ParticipantsRepository,
     private transactionManager: TransactionManager,
+    private hashGenerator: HashGenerator,
   ) {}
 
   async execute({
@@ -40,7 +41,7 @@ export class RegisterTravelerUseCase {
       return left(new TravelerAlreadyExistsError())
     }
 
-    const hashedPassword = await hash(password, 8)
+    const hashedPassword = await this.hashGenerator.hash(password)
 
     const traveler = Traveler.create({
       name,

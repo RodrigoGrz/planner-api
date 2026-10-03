@@ -2,7 +2,8 @@ import { Either, left, right } from '@/core/either'
 import { CredentialsIncorrectError } from './errors/credentials-incorrect-error'
 import { Traveler } from '../../enterprise/entities/traveler'
 import { TravelersRepository } from '../repositories/travelers-repository'
-import { compare } from 'bcryptjs'
+import { HashGenerator } from '../cryptography/hash-generator'
+import { HashComparer } from '../cryptography/hash-comparer'
 import { normalizeEmail } from '../../enterprise/entities/email'
 
 interface AuthenticateUseCaseRequest {
@@ -16,7 +17,11 @@ type AuthenticateUseCaseResponse = Either<
 >
 
 export class AuthenticateUseCase {
-  constructor(private travelersRepository: TravelersRepository) {}
+  constructor(
+    private travelersRepository: TravelersRepository,
+    private hashGenerator: HashGenerator,
+    private hashComparer: HashComparer,
+  ) {}
 
   async execute({
     email,
@@ -27,10 +32,15 @@ export class AuthenticateUseCase {
     )
 
     if (!traveler) {
+      await this.hashGenerator.hash(password)
+
       return left(new CredentialsIncorrectError())
     }
 
-    const passwordIsMatch = await compare(password, traveler.password)
+    const passwordIsMatch = await this.hashComparer.compare(
+      password,
+      traveler.password,
+    )
 
     if (!passwordIsMatch) {
       return left(new CredentialsIncorrectError())
