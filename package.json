@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "10.6.0",
-    "@rocketseat/eslint-config": "^2.2.2",
+    "@rocketseat/eslint-config": "^3.0.12",
     "@types/node": "24.19.0",
     "@types/supertest": "7.2.0",
     "eslint": "^8.57.0",
