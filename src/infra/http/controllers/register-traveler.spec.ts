@@ -2,6 +2,7 @@ import { app } from '@/infra/app'
 import { prisma } from '@/infra/database/prisma/prisma'
 import { faker } from '@faker-js/faker'
 import request from 'supertest'
+import { getRounds } from 'bcryptjs'
 import { dayjs } from '@/lib/dayjs'
 import { createAndAuthenticateTraveler } from 'tests/e2e/utils/create-and-authenticate-traveler'
 
@@ -47,6 +48,26 @@ describe('Register Traveler (E2E)', () => {
 
     expect(response.statusCode).toBe(201)
     expect(traveler).not.toBeNull()
+  })
+
+  test('[POST] /travelers/register stores the password with bcrypt cost 10', async () => {
+    const email = faker.string.alphanumeric(12).toLowerCase() + '@planner.com'
+
+    const response = await request(app.server)
+      .post('/travelers/register')
+      .send({
+        name: faker.person.fullName(),
+        email,
+        password: '1234567',
+        phone: faker.phone.number({ style: 'international' }),
+      })
+
+    const traveler = await prisma.traveler.findUniqueOrThrow({
+      where: { email },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(getRounds(traveler.password)).toBe(10)
   })
 
   test('[POST] /travelers/register returns 409 for an e-mail already registered with different casing', async () => {

@@ -4,6 +4,7 @@ import { FakeTripsRepository } from 'tests/repositories/fake-trips-repository'
 import { FakeActivitiesRepository } from 'tests/repositories/fake-activities-repository'
 import { FakeLinksRepository } from 'tests/repositories/fake-links-repository'
 import { FakeTransactionManager } from 'tests/transaction/fake-transaction-manager'
+import { FakeHasher } from 'tests/cryptography/fake-hasher'
 import { RegisterTravelerUseCase } from './register-traveler'
 import { makeTraveler } from 'tests/factories/make-traveler'
 import { makeParticipant } from 'tests/factories/make-participant'
@@ -35,7 +36,14 @@ describe('Register Traveler', () => {
       travelersRepository,
       participantsRepository,
       new FakeTransactionManager(),
+      new FakeHasher(),
     )
+  })
+
+  it('should hash the password before storing it', async () => {
+    await registerTravelerUseCase.execute(travelerData)
+
+    expect(travelersRepository.items[0].password).toBe('123456-hashed')
   })
 
   it('should be able to register a traveler', async () => {
