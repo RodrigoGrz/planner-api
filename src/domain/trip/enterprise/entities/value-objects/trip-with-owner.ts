@@ -10,6 +10,7 @@ export interface TripWithOwnerProps {
   ownerName: string
   createdAt: Date
   updatedAt?: Date | null
+  version: number
 }
 
 export class TripWithOwner extends ValueObject<TripWithOwnerProps> {
@@ -43,6 +44,10 @@ export class TripWithOwner extends ValueObject<TripWithOwnerProps> {
 
   get updatedAt() {
     return this.props.updatedAt
+  }
+
+  get version() {
+    return this.props.version
   }
 
   static create(props: TripWithOwnerProps) {

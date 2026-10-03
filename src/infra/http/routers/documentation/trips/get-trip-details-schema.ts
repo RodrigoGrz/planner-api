@@ -13,6 +13,10 @@ export const getTripsDetailsResponse = z.object({
     ownerName: z.string().describe('Name of the trip owner'),
     createdAt: z.date().describe('Creation date'),
     updatedAt: z.date().describe('Last update date'),
+    version: z
+      .number()
+      .int()
+      .describe('Trip version, to be sent back in If-Match when updating'),
   }),
 })
 

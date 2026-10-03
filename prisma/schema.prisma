@@ -17,6 +17,7 @@ model Trip {
   created_at      DateTime  @default(now())
   updated_at      DateTime? @default(now())
   cover_image_url String?
+  version         Int       @default(1)
 
   activities   Activity[]
   links        Link[]

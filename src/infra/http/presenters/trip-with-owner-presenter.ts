@@ -10,6 +10,7 @@ export class TripWithOwnerPresenter {
       ownerName: trip.ownerName,
       createdAt: trip.createdAt,
       updatedAt: trip.updatedAt,
+      version: trip.version,
     }
   }
 }

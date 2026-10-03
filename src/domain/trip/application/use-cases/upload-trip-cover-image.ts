@@ -8,6 +8,7 @@ import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { Trip } from '../../enterprise/entities/trip'
 import { NotAllowedError } from './errors/not-allowed-error'
 import { isTripOwner } from '../authorization/trip-access'
+import { TripModifiedConcurrentlyError } from './errors/trip-modified-concurrently-error'
 
 interface UploadTripCoverImageUseCaseRequest {
   tripId: string
@@ -16,7 +17,10 @@ interface UploadTripCoverImageUseCaseRequest {
 }
 
 type UploadTripCoverImageUseCaseResponse = Either<
-  FileTypeInvalidError | ResourceNotExistsError | NotAllowedError,
+  | FileTypeInvalidError
+  | ResourceNotExistsError
+  | NotAllowedError
+  | TripModifiedConcurrentlyError,
   { trip: Trip }
 >
 
@@ -56,11 +60,20 @@ export class UploadTripCoverImageUseCase {
       body,
     })
 
-    const previousKey = trip.coverImageUrl
+    const previousKey = trip.coverImageUrl ?? null
 
     trip.coverImageUrl = key
 
-    await this.tripsRepository.update(trip)
+    const updated = await this.tripsRepository.updateCoverImage(
+      trip,
+      previousKey,
+    )
+
+    if (!updated) {
+      await this.uploader.delete(key)
+
+      return left(new TripModifiedConcurrentlyError())
+    }
 
     if (previousKey) {
       await this.uploader.delete(previousKey)

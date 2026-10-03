@@ -8,6 +8,7 @@ import { makeTrip } from 'tests/factories/make-trip'
 import { FileTypeInvalidError } from './errors/file-type-invalid-error'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { NotAllowedError } from './errors/not-allowed-error'
+import { TripModifiedConcurrentlyError } from './errors/trip-modified-concurrently-error'
 import { randomUUID } from 'node:crypto'
 
 const pngImage = Buffer.concat([
@@ -138,6 +139,28 @@ describe('Upload Trip Cover Image', () => {
 
     expect(uploader.deletedKeys).toEqual(['old-cover.png'])
     expect(trip.coverImageUrl).not.toBe('old-cover.png')
+  })
+
+  it('should not be able to upload when the cover was changed by another request', async () => {
+    const trip = await makeTrip()
+    await tripsRepository.create(trip)
+
+    const concurrentTrip = await makeTrip(
+      { ownerId: trip.ownerId, coverImageUrl: 'concurrent.png' },
+      trip.id.toString(),
+    )
+    await tripsRepository.updateCoverImage(concurrentTrip, null)
+
+    const result = await sut.execute({
+      tripId: trip.id.toString(),
+      travelerId: trip.ownerId.toString(),
+      readFile: async () => pngImage,
+    })
+
+    expect(result.isLeft()).toBe(true)
+    expect(result.value).toBeInstanceOf(TripModifiedConcurrentlyError)
+    expect(uploader.deletedKeys).toEqual([uploader.uploads[0].key])
+    expect(uploader.deletedKeys).not.toContain('concurrent.png')
   })
 
   it('should not delete anything when the trip had no cover', async () => {

@@ -243,4 +243,167 @@ describe('Update Trip (E2E)', () => {
 
     expect(result.statusCode).toBe(409)
   })
+
+  test('[PUT] /trips/:tripId/update with the current version in If-Match', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const result = await request(app.server)
+      .put(`/trips/${trip.id.toString()}/update`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('If-Match', '"1"')
+      .send({
+        destination: 'London',
+        startsAt: trip.startsAt,
+        endsAt: trip.endsAt,
+      })
+
+    const detailsResponse = await request(app.server)
+      .get(`/trips/${trip.id.toString()}`)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(result.statusCode).toBe(204)
+    expect(detailsResponse.body.trip.version).toBe(2)
+  })
+
+  test('[PUT] /trips/:tripId/update returns 412 with a stale If-Match', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      destination: 'Norway',
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const firstEdit = await request(app.server)
+      .put(`/trips/${trip.id.toString()}/update`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('If-Match', '"1"')
+      .send({
+        destination: 'London',
+        startsAt: trip.startsAt,
+        endsAt: trip.endsAt,
+      })
+
+    const staleEdit = await request(app.server)
+      .put(`/trips/${trip.id.toString()}/update`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('If-Match', '"1"')
+      .send({
+        destination: 'Rome',
+        startsAt: trip.startsAt,
+        endsAt: trip.endsAt,
+      })
+
+    const stored = await prisma.trip.findUnique({
+      where: { id: trip.id.toString() },
+    })
+
+    expect(firstEdit.statusCode).toBe(204)
+    expect(staleEdit.statusCode).toBe(412)
+    expect(stored?.destination).toBe('London')
+  })
+
+  test('[PUT] /trips/:tripId/update returns 400 with a malformed If-Match', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const result = await request(app.server)
+      .put(`/trips/${trip.id.toString()}/update`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('If-Match', 'not-a-version')
+      .send({
+        destination: 'London',
+        startsAt: trip.startsAt,
+        endsAt: trip.endsAt,
+      })
+
+    expect(result.statusCode).toBe(400)
+  })
+
+  test('[PUT] /trips/:tripId/update returns 400 with an If-Match out of range', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const result = await request(app.server)
+      .put(`/trips/${trip.id.toString()}/update`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('If-Match', '"99999999999"')
+      .send({
+        destination: 'London',
+        startsAt: trip.startsAt,
+        endsAt: trip.endsAt,
+      })
+
+    expect(result.statusCode).toBe(400)
+  })
+
+  test('[PUT] /trips/:tripId/update accepts If-Match * as no precondition', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const result = await request(app.server)
+      .put(`/trips/${trip.id.toString()}/update`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('If-Match', '*')
+      .send({
+        destination: 'London',
+        startsAt: trip.startsAt,
+        endsAt: trip.endsAt,
+      })
+
+    expect(result.statusCode).toBe(204)
+  })
+
+  test('[PUT] /trips/:tripId/update without If-Match keeps working', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const firstEdit = await request(app.server)
+      .put(`/trips/${trip.id.toString()}/update`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        destination: 'London',
+        startsAt: trip.startsAt,
+        endsAt: trip.endsAt,
+      })
+
+    const secondEdit = await request(app.server)
+      .put(`/trips/${trip.id.toString()}/update`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        destination: 'Rome',
+        startsAt: trip.startsAt,
+        endsAt: trip.endsAt,
+      })
+
+    expect(firstEdit.statusCode).toBe(204)
+    expect(secondEdit.statusCode).toBe(204)
+  })
 })

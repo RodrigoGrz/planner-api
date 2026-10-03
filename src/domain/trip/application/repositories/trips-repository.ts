@@ -8,6 +8,7 @@ export interface TripsRepository {
   findByIdWithOwner(id: string): Promise<TripWithOwnerProps | null>
   findByIdWithActivities(id: string): Promise<TripWithActivitiesProps | null>
   runInTransaction<T>(fn: () => Promise<T>): Promise<T>
-  update(trip: Trip): Promise<void>
+  updateDetails(trip: Trip, expectedVersion: number): Promise<boolean>
+  updateCoverImage(trip: Trip, previousKey: string | null): Promise<boolean>
   delete(id: string): Promise<void>
 }

@@ -10,6 +10,7 @@ export interface TripProps {
   coverImageUrl?: string | null
   createdAt: Date
   updatedAt?: Date | null
+  version: number
 }
 
 export class Trip extends Entity<TripProps> {
@@ -41,6 +42,10 @@ export class Trip extends Entity<TripProps> {
     return this.props.updatedAt
   }
 
+  get version() {
+    return this.props.version
+  }
+
   set destination(destination: string) {
     this.props.destination = destination
     this.touch()
@@ -65,11 +70,15 @@ export class Trip extends Entity<TripProps> {
     this.props.updatedAt = new Date()
   }
 
-  static create(props: Optional<TripProps, 'createdAt'>, id?: UniqueEntityID) {
+  static create(
+    props: Optional<TripProps, 'createdAt' | 'version'>,
+    id?: UniqueEntityID,
+  ) {
     const trip = new Trip(
       {
         ...props,
         createdAt: props.createdAt ?? new Date(),
+        version: props.version ?? 1,
       },
       id,
     )
