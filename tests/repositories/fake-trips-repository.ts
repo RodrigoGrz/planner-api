@@ -14,6 +14,8 @@ import { FakeLinksRepository } from './fake-links-repository'
 
 export class FakeTripsRepository implements TripsRepository {
   public items: Trip[] = []
+  private versions = new Map<string, number>()
+  private coverKeys = new Map<string, string | null>()
 
   constructor(
     private fakeTravelersRepository: FakeTravelersRepository,
@@ -21,8 +23,21 @@ export class FakeTripsRepository implements TripsRepository {
     private fakeLinksRepository: FakeLinksRepository,
   ) {}
 
+  private registerPersistedState(trip: Trip) {
+    const id = trip.id.toString()
+
+    if (!this.versions.has(id)) {
+      this.versions.set(id, trip.version)
+    }
+
+    if (!this.coverKeys.has(id)) {
+      this.coverKeys.set(id, trip.coverImageUrl ?? null)
+    }
+  }
+
   async create(trip: Trip): Promise<void> {
     this.items.push(trip)
+    this.registerPersistedState(trip)
   }
 
   async findById(id: string): Promise<Trip | null> {
@@ -31,6 +46,8 @@ export class FakeTripsRepository implements TripsRepository {
     if (!trip) {
       return null
     }
+
+    this.registerPersistedState(trip)
 
     return trip
   }
@@ -59,6 +76,7 @@ export class FakeTripsRepository implements TripsRepository {
       ownerName: owner.name,
       createdAt: trip.createdAt,
       updatedAt: trip.updatedAt,
+      version: this.versions.get(id) ?? trip.version,
     })
   }
 
@@ -90,16 +108,35 @@ export class FakeTripsRepository implements TripsRepository {
     return fn()
   }
 
-  async update(data: Trip): Promise<void> {
-    const trip = this.items.find(
-      (item) => item.id.toString() === data.id.toString(),
-    )
+  async updateDetails(trip: Trip, expectedVersion: number): Promise<boolean> {
+    const id = trip.id.toString()
 
-    if (trip) {
-      trip.destination = data.destination
-      trip.startsAt = data.startsAt
-      trip.endsAt = data.endsAt
+    this.registerPersistedState(trip)
+
+    const currentVersion = this.versions.get(id)
+
+    if (currentVersion !== expectedVersion) {
+      return false
     }
+
+    this.versions.set(id, expectedVersion + 1)
+
+    return true
+  }
+
+  async updateCoverImage(
+    trip: Trip,
+    previousKey: string | null,
+  ): Promise<boolean> {
+    const id = trip.id.toString()
+
+    if (this.coverKeys.get(id) !== previousKey) {
+      return false
+    }
+
+    this.coverKeys.set(id, trip.coverImageUrl ?? null)
+
+    return true
   }
 
   async delete(id: string): Promise<void> {

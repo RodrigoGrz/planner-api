@@ -14,6 +14,8 @@ import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
 import { InvalidTripStartDate } from './errors/invalid-trip-start-date-error'
 import { InvalidTripEndDate } from './errors/invalid-trip-end-date-error'
 import { MAX_TRIP_DURATION_IN_DAYS } from '../trip-period/trip-duration'
+import { TripVersionMismatchError } from './errors/trip-version-mismatch-error'
+import { TripModifiedConcurrentlyError } from './errors/trip-modified-concurrently-error'
 
 let activitiesRepository: FakeActivitiesRepository
 let tripsRepository: FakeTripsRepository
@@ -533,15 +535,17 @@ describe('Update Trip', () => {
       return deleteOutsideTripPeriod(...args)
     })
 
-    const update = tripsRepository.update.bind(tripsRepository)
+    const updateDetails = tripsRepository.updateDetails.bind(tripsRepository)
 
-    vi.spyOn(tripsRepository, 'update').mockImplementation(async (data) => {
-      if (insideTransaction) {
-        writesInsideTransaction.push('update')
-      }
+    vi.spyOn(tripsRepository, 'updateDetails').mockImplementation(
+      async (data, expectedVersion) => {
+        if (insideTransaction) {
+          writesInsideTransaction.push('updateDetails')
+        }
 
-      return update(data)
-    })
+        return updateDetails(data, expectedVersion)
+      },
+    )
 
     const result = await updateTripUseCase.execute({
       tripId: trip.id.toString(),
@@ -553,8 +557,126 @@ describe('Update Trip', () => {
 
     expect(result.isRight()).toBeTruthy()
     expect(writesInsideTransaction).toEqual([
+      'updateDetails',
       'deleteOutsideTripPeriod',
-      'update',
     ])
+  })
+
+  it('should be able to update a trip when If-Match has the current version', async () => {
+    const owner = await makeTraveler()
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id,
+    })
+    tripsRepository.items.push(trip)
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: 'London',
+      startsAt: trip.startsAt,
+      endsAt: trip.endsAt,
+      expectedVersion: 1,
+    })
+
+    expect(result.isRight()).toBeTruthy()
+    expect(result.isRight() && result.value.trip.destination).toBe('London')
+  })
+
+  it('should not be able to update a trip when If-Match has a stale version', async () => {
+    const owner = await makeTraveler()
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id,
+    })
+    tripsRepository.items.push(trip)
+
+    const activity = Activity.create({
+      tripId: trip.id,
+      occursAt: dayjs().add(1, 'month').add(1, 'day').toDate(),
+      title: 'Inside current trip',
+    })
+    activitiesRepository.items.push(activity)
+
+    await tripsRepository.findById(trip.id.toString())
+    await tripsRepository.updateDetails(trip, 1)
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: 'London',
+      startsAt: dayjs().add(2, 'month').toDate(),
+      endsAt: dayjs().add(2, 'month').add(4, 'day').toDate(),
+      expectedVersion: 1,
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(TripVersionMismatchError)
+    expect(activitiesRepository.items).toHaveLength(1)
+  })
+
+  it('should not be able to update a trip modified by another request', async () => {
+    const owner = await makeTraveler()
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id,
+    })
+    tripsRepository.items.push(trip)
+
+    await tripsRepository.findById(trip.id.toString())
+    await tripsRepository.updateDetails(trip, trip.version)
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: 'London',
+      startsAt: trip.startsAt,
+      endsAt: trip.endsAt,
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(TripModifiedConcurrentlyError)
+  })
+
+  it('should not delete activities outside the new period when the update conflicts', async () => {
+    const owner = await makeTraveler()
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(4, 'day').toDate(),
+      ownerId: owner.id,
+    })
+    tripsRepository.items.push(trip)
+
+    const activity = Activity.create({
+      tripId: trip.id,
+      occursAt: dayjs().add(1, 'month').add(1, 'day').toDate(),
+      title: 'Outside the new period',
+    })
+    activitiesRepository.items.push(activity)
+
+    await tripsRepository.findById(trip.id.toString())
+    await tripsRepository.updateDetails(trip, trip.version)
+
+    const result = await updateTripUseCase.execute({
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+      destination: 'London',
+      startsAt: dayjs().add(2, 'month').toDate(),
+      endsAt: dayjs().add(2, 'month').add(4, 'day').toDate(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(activitiesRepository.items).toHaveLength(1)
   })
 })

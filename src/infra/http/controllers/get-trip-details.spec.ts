@@ -31,6 +31,22 @@ describe('Get Trip Details (E2E)', () => {
     expect(tripResponse.body.trip.ownerName).toStrictEqual(expect.any(String))
   })
 
+  test('[GET] /trips/:id returns the trip version', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const tripResponse = await request(app.server)
+      .get(`/trips/${trip.id.toString()}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(tripResponse.statusCode).toBe(200)
+    expect(tripResponse.body.trip.version).toBe(1)
+  })
+
   test('[GET] /trips/:id returns 409 when the trip does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 

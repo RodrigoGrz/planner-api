@@ -10,6 +10,8 @@ import { isTripOwner } from '../authorization/trip-access'
 import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
 import { validateTripPeriod } from '../trip-period/validate-trip-period'
 import { getTripPeriodBounds, normalizeTripDate } from '../trip-period/trip-day'
+import { TripVersionMismatchError } from './errors/trip-version-mismatch-error'
+import { TripModifiedConcurrentlyError } from './errors/trip-modified-concurrently-error'
 
 interface UpdateTripUseCaseRequest {
   tripId: string
@@ -17,6 +19,7 @@ interface UpdateTripUseCaseRequest {
   destination: string
   startsAt: Date
   endsAt: Date
+  expectedVersion?: number
 }
 
 type UpdateTripUseCaseResponse = Either<
@@ -24,7 +27,9 @@ type UpdateTripUseCaseResponse = Either<
   | InvalidTripStartDate
   | InvalidTripEndDate
   | InvalidTripDuration
-  | NotAllowedError,
+  | NotAllowedError
+  | TripVersionMismatchError
+  | TripModifiedConcurrentlyError,
   { trip: Trip }
 >
 
@@ -40,6 +45,7 @@ export class UpdateTripUseCase {
     startsAt,
     endsAt,
     destination,
+    expectedVersion,
   }: UpdateTripUseCaseRequest): Promise<UpdateTripUseCaseResponse> {
     const trip = await this.tripsRepository.findById(tripId)
 
@@ -77,8 +83,13 @@ export class UpdateTripUseCase {
       normalizedEndsAt,
     )
 
-    await this.tripsRepository.runInTransaction(async () => {
-      if (periodTimestampsChanged) {
+    const updated = await this.tripsRepository.runInTransaction(async () => {
+      const detailsUpdated = await this.tripsRepository.updateDetails(
+        trip,
+        expectedVersion ?? trip.version,
+      )
+
+      if (detailsUpdated && periodTimestampsChanged) {
         await this.activitiesRepository.deleteOutsideTripPeriod(
           trip.id.toString(),
           firstMoment,
@@ -86,8 +97,16 @@ export class UpdateTripUseCase {
         )
       }
 
-      await this.tripsRepository.update(trip)
+      return detailsUpdated
     })
+
+    if (!updated) {
+      return left(
+        expectedVersion !== undefined
+          ? new TripVersionMismatchError()
+          : new TripModifiedConcurrentlyError(),
+      )
+    }
 
     return right({
       trip,

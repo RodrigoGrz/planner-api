@@ -61,12 +61,188 @@ describe('Prisma repositories (integration)', () => {
 
     stored.destination = 'Londres'
 
-    await tripsRepository.update(stored)
+    await tripsRepository.updateDetails(stored, stored.version)
 
     const updated = await tripsRepository.findById(trip.id.toString())
 
     expect(updated?.destination).toBe('Londres')
     expect(updated?.createdAt).toEqual(createdAt)
+  })
+
+  it('should not overwrite the cover image when updating trip details', async () => {
+    const owner = await makePrismaTraveler()
+    const trip = await makeTrip({ ownerId: owner.id, destination: 'Paris' })
+
+    await tripsRepository.create(trip)
+
+    const staleTrip = await tripsRepository.findById(trip.id.toString())
+    const coverTrip = await tripsRepository.findById(trip.id.toString())
+
+    if (!staleTrip || !coverTrip) {
+      throw new Error('Trip was not persisted')
+    }
+
+    coverTrip.coverImageUrl = 'new-cover.png'
+    await tripsRepository.updateCoverImage(coverTrip, null)
+
+    staleTrip.destination = 'Londres'
+    await tripsRepository.updateDetails(staleTrip, staleTrip.version)
+
+    const updated = await tripsRepository.findById(trip.id.toString())
+
+    expect(updated?.destination).toBe('Londres')
+    expect(updated?.coverImageUrl).toBe('new-cover.png')
+  })
+
+  it('should not overwrite trip details when updating the cover image', async () => {
+    const owner = await makePrismaTraveler()
+    const trip = await makeTrip({ ownerId: owner.id, destination: 'Paris' })
+
+    await tripsRepository.create(trip)
+
+    const staleTrip = await tripsRepository.findById(trip.id.toString())
+    const detailsTrip = await tripsRepository.findById(trip.id.toString())
+
+    if (!staleTrip || !detailsTrip) {
+      throw new Error('Trip was not persisted')
+    }
+
+    detailsTrip.destination = 'Londres'
+    await tripsRepository.updateDetails(detailsTrip, detailsTrip.version)
+
+    staleTrip.coverImageUrl = 'new-cover.png'
+    await tripsRepository.updateCoverImage(staleTrip, null)
+
+    const updated = await tripsRepository.findById(trip.id.toString())
+
+    expect(updated?.destination).toBe('Londres')
+    expect(updated?.coverImageUrl).toBe('new-cover.png')
+  })
+
+  it('should increment the version when updating trip details', async () => {
+    const owner = await makePrismaTraveler()
+    const trip = await makeTrip({ ownerId: owner.id })
+
+    await tripsRepository.create(trip)
+
+    const stored = await tripsRepository.findById(trip.id.toString())
+
+    if (!stored) {
+      throw new Error('Trip was not persisted')
+    }
+
+    stored.destination = 'Londres'
+    const updated = await tripsRepository.updateDetails(stored, 1)
+
+    const found = await tripsRepository.findById(trip.id.toString())
+
+    expect(updated).toBe(true)
+    expect(found?.version).toBe(2)
+  })
+
+  it('should not update trip details when the expected version is stale', async () => {
+    const owner = await makePrismaTraveler()
+    const trip = await makeTrip({ ownerId: owner.id, destination: 'Paris' })
+
+    await tripsRepository.create(trip)
+
+    const firstEditor = await tripsRepository.findById(trip.id.toString())
+    const secondEditor = await tripsRepository.findById(trip.id.toString())
+
+    if (!firstEditor || !secondEditor) {
+      throw new Error('Trip was not persisted')
+    }
+
+    firstEditor.destination = 'Londres'
+    await tripsRepository.updateDetails(firstEditor, firstEditor.version)
+
+    secondEditor.destination = 'Roma'
+    const updated = await tripsRepository.updateDetails(
+      secondEditor,
+      secondEditor.version,
+    )
+
+    const found = await tripsRepository.findById(trip.id.toString())
+
+    expect(updated).toBe(false)
+    expect(found?.destination).toBe('Londres')
+    expect(found?.version).toBe(2)
+  })
+
+  it('should not change the version when updating the cover image', async () => {
+    const owner = await makePrismaTraveler()
+    const trip = await makeTrip({ ownerId: owner.id })
+
+    await tripsRepository.create(trip)
+
+    const stored = await tripsRepository.findById(trip.id.toString())
+
+    if (!stored) {
+      throw new Error('Trip was not persisted')
+    }
+
+    stored.coverImageUrl = 'new-cover.png'
+    await tripsRepository.updateCoverImage(stored, null)
+
+    const found = await tripsRepository.findById(trip.id.toString())
+
+    expect(found?.coverImageUrl).toBe('new-cover.png')
+    expect(found?.version).toBe(1)
+  })
+
+  it('should update the cover image when the previous key matches, including null', async () => {
+    const owner = await makePrismaTraveler()
+    const trip = await makeTrip({ ownerId: owner.id })
+
+    await tripsRepository.create(trip)
+
+    const stored = await tripsRepository.findById(trip.id.toString())
+
+    if (!stored) {
+      throw new Error('Trip was not persisted')
+    }
+
+    stored.coverImageUrl = 'first-cover.png'
+    const firstUpdate = await tripsRepository.updateCoverImage(stored, null)
+
+    stored.coverImageUrl = 'second-cover.png'
+    const secondUpdate = await tripsRepository.updateCoverImage(
+      stored,
+      'first-cover.png',
+    )
+
+    const found = await tripsRepository.findById(trip.id.toString())
+
+    expect(firstUpdate).toBe(true)
+    expect(secondUpdate).toBe(true)
+    expect(found?.coverImageUrl).toBe('second-cover.png')
+  })
+
+  it('should not update the cover image when the previous key does not match', async () => {
+    const owner = await makePrismaTraveler()
+    const trip = await makeTrip({
+      ownerId: owner.id,
+      coverImageUrl: 'current-cover.png',
+    })
+
+    await tripsRepository.create(trip)
+
+    const stored = await tripsRepository.findById(trip.id.toString())
+
+    if (!stored) {
+      throw new Error('Trip was not persisted')
+    }
+
+    stored.coverImageUrl = 'new-cover.png'
+    const updated = await tripsRepository.updateCoverImage(
+      stored,
+      'another-cover.png',
+    )
+
+    const found = await tripsRepository.findById(trip.id.toString())
+
+    expect(updated).toBe(false)
+    expect(found?.coverImageUrl).toBe('current-cover.png')
   })
 
   it('should expose the owner id and name through findByIdWithOwner', async () => {

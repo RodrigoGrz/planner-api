@@ -57,6 +57,7 @@ export class PrismaTripsRepository implements TripsRepository {
       ownerName: trip.owner.name,
       createdAt: trip.created_at,
       updatedAt: trip.updated_at,
+      version: trip.version,
     })
   }
 
@@ -91,13 +92,40 @@ export class PrismaTripsRepository implements TripsRepository {
     return runInPrismaTransaction(fn)
   }
 
-  async update(trip: Trip): Promise<void> {
-    await getPrismaClient().trip.update({
+  async updateDetails(trip: Trip, expectedVersion: number): Promise<boolean> {
+    const { count } = await getPrismaClient().trip.updateMany({
       where: {
         id: trip.id.toString(),
+        version: expectedVersion,
       },
-      data: PrismaTripMapper.toPrisma(trip),
+      data: {
+        destination: trip.destination,
+        starts_at: trip.startsAt,
+        ends_at: trip.endsAt,
+        updated_at: trip.updatedAt,
+        version: { increment: 1 },
+      },
     })
+
+    return count === 1
+  }
+
+  async updateCoverImage(
+    trip: Trip,
+    previousKey: string | null,
+  ): Promise<boolean> {
+    const { count } = await getPrismaClient().trip.updateMany({
+      where: {
+        id: trip.id.toString(),
+        cover_image_url: previousKey,
+      },
+      data: {
+        cover_image_url: trip.coverImageUrl,
+        updated_at: trip.updatedAt,
+      },
+    })
+
+    return count === 1
   }
 
   async delete(id: string): Promise<void> {

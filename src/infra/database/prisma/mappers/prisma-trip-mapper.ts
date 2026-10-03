@@ -13,6 +13,7 @@ export class PrismaTripMapper {
         createdAt: raw.created_at,
         updatedAt: raw.updated_at,
         coverImageUrl: raw.cover_image_url,
+        version: raw.version,
       },
       new UniqueEntityID(raw.id),
     )
@@ -28,6 +29,7 @@ export class PrismaTripMapper {
       cover_image_url: trip.coverImageUrl,
       created_at: trip.createdAt,
       updated_at: trip.updatedAt,
+      version: trip.version,
     }
   }
 }

@@ -83,7 +83,8 @@ export const TripScalarFieldEnum = {
   is_confirmed: 'is_confirmed',
   created_at: 'created_at',
   updated_at: 'updated_at',
-  cover_image_url: 'cover_image_url'
+  cover_image_url: 'cover_image_url',
+  version: 'version'
 } as const
 
 export type TripScalarFieldEnum = (typeof TripScalarFieldEnum)[keyof typeof TripScalarFieldEnum]
