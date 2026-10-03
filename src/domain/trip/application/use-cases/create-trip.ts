@@ -9,7 +9,10 @@ import { Participant } from '../../enterprise/entities/participant'
 import { TravelersRepository } from '../repositories/travelers-repository'
 import { ResourceNotExistsError } from './errors/resource-not-exists-error'
 import { Mailer } from '../mail/mailer'
-import { sendParticipantInvite } from '../mail/send-participant-invite'
+import {
+  FailedInvite,
+  sendParticipantInvite,
+} from '../mail/send-participant-invite'
 import { InvalidTripDuration } from './errors/invalid-trip-duration-error'
 import { randomUUID } from 'node:crypto'
 import { validateTripPeriod } from '../trip-period/validate-trip-period'
@@ -29,7 +32,7 @@ type CreateTripUseCaseResponse = Either<
   | InvalidTripEndDate
   | InvalidTripDuration
   | ResourceNotExistsError,
-  { trip: Trip }
+  { trip: Trip; failedInvites: FailedInvite[] }
 >
 
 export class CreateTripUseCase {
@@ -115,16 +118,30 @@ export class CreateTripUseCase {
       }
     })
 
-    for (const { participant, confirmationToken } of invites) {
-      await sendParticipantInvite(this.mailer, {
-        trip,
-        participant,
-        confirmationToken,
-      })
-    }
+    const sendResults = await Promise.allSettled(
+      invites.map(({ participant, confirmationToken }) =>
+        sendParticipantInvite(this.mailer, {
+          trip,
+          participant,
+          confirmationToken,
+        }),
+      ),
+    )
+
+    const failedInvites = sendResults.flatMap((result, index) =>
+      result.status === 'rejected'
+        ? [
+            {
+              participantId: invites[index].participant.id.toString(),
+              reason: result.reason,
+            },
+          ]
+        : [],
+    )
 
     return right({
       trip,
+      failedInvites,
     })
   }
 }

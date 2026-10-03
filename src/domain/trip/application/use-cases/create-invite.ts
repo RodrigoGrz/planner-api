@@ -4,7 +4,10 @@ import { Either, left, right } from '@/core/either'
 import { Participant } from '../../enterprise/entities/participant'
 import { isTripOwner } from '../authorization/trip-access'
 import { Mailer } from '../mail/mailer'
-import { sendParticipantInvite } from '../mail/send-participant-invite'
+import {
+  FailedInvite,
+  sendParticipantInvite,
+} from '../mail/send-participant-invite'
 import { ParticipantsRepository } from '../repositories/participants-repository'
 import { TravelersRepository } from '../repositories/travelers-repository'
 import { TripsRepository } from '../repositories/trips-repository'
@@ -20,7 +23,7 @@ interface CreateInviteUseCaseRequest {
 
 type CreateInviteUseCaseResponse = Either<
   ResourceNotExistsError | NotAllowedError | ParticipantAlreadyInvitedError,
-  { participant: Participant }
+  { participant: Participant; failedInvites: FailedInvite[] }
 >
 
 export class CreateInviteUseCase {
@@ -73,12 +76,21 @@ export class CreateInviteUseCase {
 
     await this.participantsRepository.create(participant)
 
-    await sendParticipantInvite(this.mailer, {
-      trip,
-      participant,
-      confirmationToken,
-    })
+    const failedInvites: FailedInvite[] = []
 
-    return right({ participant })
+    try {
+      await sendParticipantInvite(this.mailer, {
+        trip,
+        participant,
+        confirmationToken,
+      })
+    } catch (reason) {
+      failedInvites.push({
+        participantId: participant.id.toString(),
+        reason,
+      })
+    }
+
+    return right({ participant, failedInvites })
   }
 }
