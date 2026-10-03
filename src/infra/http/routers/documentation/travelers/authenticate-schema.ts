@@ -1,5 +1,6 @@
 import z from 'zod'
 import { emailAddress } from '../shared/email-address'
+import { tooManyRequestsResponse } from '../shared/too-many-requests-response'
 
 export const authenticateBody = z.object({
   email: emailAddress.describe('Traveler email address'),
@@ -33,6 +34,7 @@ export const authenticateSchema = {
       200: authenticateResponse.describe('Authenticated successfully'),
       400: errorSchema.describe('Bad request'),
       401: errorSchema.describe('E-mail ou senha incorreta.'),
+      429: tooManyRequestsResponse,
     },
   },
 }

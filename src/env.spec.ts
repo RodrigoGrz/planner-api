@@ -72,4 +72,19 @@ describe('Env', () => {
       ['JWT_EXPIRES_IN'],
     ])
   })
+
+  it('should be able to default RATE_LIMIT_ENABLED to true', () => {
+    const result = envSchema.safeParse(baseEnv)
+
+    expect(result.data?.RATE_LIMIT_ENABLED).toBe(true)
+  })
+
+  it('should be able to disable the rate limit with RATE_LIMIT_ENABLED=false', () => {
+    const result = envSchema.safeParse({
+      ...baseEnv,
+      RATE_LIMIT_ENABLED: 'false',
+    })
+
+    expect(result.data?.RATE_LIMIT_ENABLED).toBe(false)
+  })
 })
