@@ -51,4 +51,25 @@ describe('Authenticate (E2E)', () => {
     expect(response.statusCode).toBe(200)
     expect(response.body).toHaveProperty('token')
   })
+
+  test('[POST] /travelers/auth returns a token that expires in 7 days', async () => {
+    const email = faker.internet.email()
+
+    await makePrismaTraveler({
+      email,
+      password: await hash('123456', 8),
+    })
+
+    const response = await request(app.server).post('/travelers/auth').send({
+      email,
+      password: '123456',
+    })
+
+    const payload = app.jwt.decode<{ iat: number; exp?: number }>(
+      response.body.token,
+    )
+
+    expect(payload?.exp).toBeDefined()
+    expect((payload?.exp ?? 0) - (payload?.iat ?? 0)).toBe(7 * 24 * 60 * 60)
+  })
 })

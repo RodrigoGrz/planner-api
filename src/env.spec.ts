@@ -39,4 +39,37 @@ describe('Env', () => {
 
     expect(result.success).toBe(true)
   })
+
+  it('should be able to default JWT_EXPIRES_IN to 7 days', () => {
+    const result = envSchema.safeParse(baseEnv)
+
+    expect(result.data?.JWT_EXPIRES_IN).toBe('7d')
+  })
+
+  it('should be able to accept JWT_EXPIRES_IN in hours', () => {
+    const result = envSchema.safeParse({ ...baseEnv, JWT_EXPIRES_IN: '12h' })
+
+    expect(result.data?.JWT_EXPIRES_IN).toBe('12h')
+  })
+
+  it('should not be able to start with an invalid JWT_EXPIRES_IN', () => {
+    const result = envSchema.safeParse({
+      ...baseEnv,
+      JWT_EXPIRES_IN: 'sete dias',
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error?.issues.map((issue) => issue.path)).toEqual([
+      ['JWT_EXPIRES_IN'],
+    ])
+  })
+
+  it('should not be able to start with a zero JWT_EXPIRES_IN', () => {
+    const result = envSchema.safeParse({ ...baseEnv, JWT_EXPIRES_IN: '0d' })
+
+    expect(result.success).toBe(false)
+    expect(result.error?.issues.map((issue) => issue.path)).toEqual([
+      ['JWT_EXPIRES_IN'],
+    ])
+  })
 })
