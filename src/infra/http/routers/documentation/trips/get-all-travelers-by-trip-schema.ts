@@ -28,7 +28,7 @@ export const getAllTravelersByTripSchema = {
           message: z.string(),
         })
         .describe('Bad request'),
-      409: z
+      404: z
         .object({
           message: z.string(),
         })

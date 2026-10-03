@@ -62,7 +62,7 @@ describe('Create Invite (E2E)', () => {
     expect(participant).not.toBeNull()
   })
 
-  test('[POST] /trips/:tripId/invites returns 409 for a non-existing trip', async () => {
+  test('[POST] /trips/:tripId/invites returns 404 for a non-existing trip', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const response = await request(app.server)
@@ -70,7 +70,7 @@ describe('Create Invite (E2E)', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ email: 'invited@planner.com' })
 
-    expect(response.statusCode).toBe(409)
+    expect(response.statusCode).toBe(404)
   })
 
   test('[POST] /trips/:tripId/invites returns 409 for an e-mail already invited', async () => {

@@ -73,7 +73,7 @@ describe('Update Trip (E2E)', () => {
     expect(afterUpdate.destination).toBe('Norway')
   })
 
-  test('[PUT] /trips/:tripId/update returns 409 for a trip longer than 30 days', async () => {
+  test('[PUT] /trips/:tripId/update returns 422 for a trip longer than 30 days', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -97,7 +97,7 @@ describe('Update Trip (E2E)', () => {
       },
     })
 
-    expect(result.statusCode).toBe(409)
+    expect(result.statusCode).toBe(422)
     expect(afterUpdate?.ends_at).toEqual(trip.endsAt)
   })
 
@@ -256,7 +256,7 @@ describe('Update Trip (E2E)', () => {
     expect(afterUpdated?.created_at).toEqual(createdAt)
   })
 
-  test('[PUT] /trips/:tripId/update returns 409 when the trip does not exist', async () => {
+  test('[PUT] /trips/:tripId/update returns 404 when the trip does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
@@ -268,7 +268,7 @@ describe('Update Trip (E2E)', () => {
         endsAt: dayjs().add(2, 'month').add(3, 'day').toDate(),
       })
 
-    expect(result.statusCode).toBe(409)
+    expect(result.statusCode).toBe(404)
   })
 
   test('[PUT] /trips/:tripId/update with the current version in If-Match', async () => {

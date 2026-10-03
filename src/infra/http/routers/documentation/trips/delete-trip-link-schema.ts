@@ -22,7 +22,7 @@ export const deleteTripLinkSchema = {
           message: z.string(),
         })
         .describe('Não permitido'),
-      409: z
+      404: z
         .object({
           message: z.string(),
         })

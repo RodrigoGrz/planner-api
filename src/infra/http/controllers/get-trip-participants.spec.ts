@@ -55,4 +55,15 @@ describe('Get Trip Participants (E2E)', () => {
     expect(tripResponse.statusCode).toBe(200)
     expect(tripResponse.body.participants).length(2)
   })
+
+  test('[GET] /trips/:tripId/participants returns 404 when the trip does not exist', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const response = await request(app.server)
+      .get(`/trips/${new UniqueEntityID().toString()}/participants`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(response.statusCode).toBe(404)
+  })
 })

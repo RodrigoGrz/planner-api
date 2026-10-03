@@ -145,7 +145,7 @@ describe('Create Trip Link (E2E)', () => {
     expect(link?.url).toBe('http://example.com')
   })
 
-  test('[POST] /trips/link/register returns 409 when the trip does not exist', async () => {
+  test('[POST] /trips/link/register returns 404 when the trip does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
@@ -157,6 +157,6 @@ describe('Create Trip Link (E2E)', () => {
         tripId: new UniqueEntityID().toString(),
       })
 
-    expect(result.statusCode).toBe(409)
+    expect(result.statusCode).toBe(404)
   })
 })

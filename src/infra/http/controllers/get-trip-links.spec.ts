@@ -54,4 +54,15 @@ describe('Get Trip Links (E2E)', () => {
     expect(tripResponse.statusCode).toBe(200)
     expect(tripResponse.body.links.length).toBe(2)
   })
+
+  test('[GET] /trips/:tripId/links returns 404 when the trip does not exist', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const response = await request(app.server)
+      .get(`/trips/${randomUUID()}/links`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(response.statusCode).toBe(404)
+  })
 })

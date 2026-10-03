@@ -73,4 +73,15 @@ describe('Delete Trip (E2E)', () => {
     expect(activitiesAfterDelete.length).toBe(0)
     expect(participantsAfterDelete.length).toBe(0)
   })
+
+  test('[DELETE] /trip/:tripId returns 404 when the trip does not exist', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const response = await request(app.server)
+      .delete(`/trip/${new UniqueEntityID().toString()}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(response.statusCode).toBe(404)
+  })
 })

@@ -28,13 +28,16 @@ export const uploadTripCoverImageSchema = {
           message: z.string(),
         })
         .describe('Não permitido'),
+      404: z
+        .object({
+          message: z.string(),
+        })
+        .describe('Recurso não encontrado.'),
       409: z
         .object({
           message: z.string(),
         })
-        .describe(
-          'Possible reasons: Recurso não encontrado | A viagem foi alterada por outra requisição',
-        ),
+        .describe('A viagem foi alterada por outra requisição.'),
       413: z
         .object({
           message: z.string(),
