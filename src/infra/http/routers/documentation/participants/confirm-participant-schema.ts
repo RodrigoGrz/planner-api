@@ -1,4 +1,5 @@
 import z from 'zod'
+import { tooManyRequestsResponse } from '../shared/too-many-requests-response'
 
 const htmlResponses = {
   200: z.string().describe('HTML page'),
@@ -6,6 +7,7 @@ const htmlResponses = {
     .string()
     .describe('HTML page: the token is missing, invalid or already used'),
   410: z.string().describe('HTML page: the trip already ended'),
+  429: tooManyRequestsResponse,
 }
 
 export const getInviteByTokenQuerystring = z.object({

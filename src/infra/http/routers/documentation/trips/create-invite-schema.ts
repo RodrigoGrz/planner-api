@@ -1,5 +1,6 @@
 import z from 'zod'
 import { emailAddress } from '../shared/email-address'
+import { tooManyRequestsResponse } from '../shared/too-many-requests-response'
 
 export const createInviteParams = z.object({
   tripId: z.uuid().describe('Trip unique identifier'),
@@ -35,6 +36,7 @@ export const createInviteSchema = {
         .describe(
           'Recurso não encontrado ou e-mail já convidado para a viagem.',
         ),
+      429: tooManyRequestsResponse,
     },
   },
 }

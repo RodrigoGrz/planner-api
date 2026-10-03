@@ -8,19 +8,26 @@ import {
 
 import { confirmParticipantController } from '../controllers/confirm-participant'
 import { getInviteByTokenController } from '../controllers/get-invite-by-token'
+import { participantConfirmRateLimit } from '../rate-limits'
 
 export async function participantsRoute(app: FastifyInstance) {
   await app.register(fastifyFormbody)
 
   app.get(
     '/participants/confirm',
-    getInviteByTokenSchema,
+    {
+      ...getInviteByTokenSchema,
+      config: { rateLimit: participantConfirmRateLimit },
+    },
     getInviteByTokenController,
   )
 
   app.post(
     '/participants/confirm',
-    confirmParticipantSchema,
+    {
+      ...confirmParticipantSchema,
+      config: { rateLimit: participantConfirmRateLimit },
+    },
     confirmParticipantController,
   )
 }

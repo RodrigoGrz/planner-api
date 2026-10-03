@@ -1,5 +1,6 @@
 import z from 'zod'
 import { emailAddress } from '../shared/email-address'
+import { tooManyRequestsResponse } from '../shared/too-many-requests-response'
 
 export const registerTravelerBody = z.object({
   name: z.string().min(3).max(100).describe('Full name of the traveler'),
@@ -25,6 +26,7 @@ export const registerTravelerSchema = {
           message: z.string(),
         })
         .describe('Esse usuário já está cadastrado.'),
+      429: tooManyRequestsResponse,
     },
   },
 }

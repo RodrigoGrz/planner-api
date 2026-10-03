@@ -15,6 +15,7 @@ export const envSchema = z
     API_BASE_URL: z.url(),
     WEB_BASE_URL: z.url(),
     PORT: z.coerce.number().default(3333),
+    RATE_LIMIT_ENABLED: z.stringbool().default(true),
 
     MAIL_HOST: z.string().default('smtp.ethereal.email'),
     MAIL_PORT: z.coerce.number().default(587),

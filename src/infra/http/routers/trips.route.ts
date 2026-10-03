@@ -31,12 +31,17 @@ import { deleteTripSchema } from './documentation/trips/delete-trip-schema'
 import { deleteTripController } from '../controllers/delete-trip'
 import { createInviteSchema } from './documentation/trips/create-invite-schema'
 import { createInviteController } from '../controllers/create-invite'
+import { inviteEmailsRateLimit } from '../rate-limits'
 
 export async function tripsRoute(app: FastifyInstance) {
   app.addHook('onRequest', verifyJWT)
 
   app.get('/trips/:id', getTripDetailsSchema, getTripDetailsController)
-  app.post('/trips/register', createTripSchema, createTripController)
+  app.post(
+    '/trips/register',
+    { ...createTripSchema, config: { rateLimit: inviteEmailsRateLimit } },
+    createTripController,
+  )
   app.post(
     '/trips/link/register',
     createTripLinkSchema,
@@ -74,7 +79,11 @@ export async function tripsRoute(app: FastifyInstance) {
     uploadTripCoverImageSchema,
     uploadTripCoverImageController,
   )
-  app.post('/trips/:tripId/invites', createInviteSchema, createInviteController)
+  app.post(
+    '/trips/:tripId/invites',
+    { ...createInviteSchema, config: { rateLimit: inviteEmailsRateLimit } },
+    createInviteController,
+  )
   app.delete('/trip/:tripId', deleteTripSchema, deleteTripController)
   app.delete(
     '/trip/link/:linkId',

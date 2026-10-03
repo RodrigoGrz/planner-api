@@ -11,6 +11,7 @@ export default defineConfig({
       NODE_ENV: 'test',
       TZ: 'America/Sao_Paulo',
       JWT_EXPIRES_IN: '7d',
+      RATE_LIMIT_ENABLED: 'false',
     },
     root: './',
     pool: 'threads',

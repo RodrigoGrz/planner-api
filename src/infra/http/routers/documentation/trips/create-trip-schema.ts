@@ -1,6 +1,7 @@
 import z from 'zod'
 import { isoDateTime } from '../shared/iso-date-time'
 import { emailAddress } from '../shared/email-address'
+import { tooManyRequestsResponse } from '../shared/too-many-requests-response'
 import {
   endsAtNotBeforeStartsAt,
   endsAtNotBeforeStartsAtError,
@@ -43,6 +44,7 @@ export const createTripSchema = {
         .describe(
           'Possible reasons: Data de início inválida. | Data de fim inválida. | A duração da viagem deve ter no máximo 30 dias. | Recurso não encontrado.',
         ),
+      429: tooManyRequestsResponse,
     },
   },
 }

@@ -10,12 +10,14 @@ import {
   ZodTypeProvider,
 } from 'fastify-type-provider-zod'
 import fastifyJwt from '@fastify/jwt'
+import fastifyRateLimit from '@fastify/rate-limit'
 import { env } from '@/env'
 import { travelersRoute } from './http/routers/travelers.route'
 import { tripsRoute } from './http/routers/trips.route'
 import { participantsRoute } from './http/routers/participants.route'
 import { errorHandler } from './http/error-handler'
 import { requestLogSerializers } from './http/request-log-serializers'
+import { TOO_MANY_REQUESTS_MESSAGE } from './http/rate-limits'
 
 const MAX_UPLOAD_FILE_SIZE_IN_BYTES = 10 * 1024 * 1024
 
@@ -34,6 +36,18 @@ app.register(fastifyJwt, {
     expiresIn: env.JWT_EXPIRES_IN,
   },
 })
+
+if (env.RATE_LIMIT_ENABLED) {
+  app.register(fastifyRateLimit, {
+    global: true,
+    max: 100,
+    timeWindow: '1 minute',
+    errorResponseBuilder: () => ({
+      statusCode: 429,
+      message: TOO_MANY_REQUESTS_MESSAGE,
+    }),
+  })
+}
 
 app.register(fastifySwagger, {
   openapi: {
