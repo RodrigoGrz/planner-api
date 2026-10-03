@@ -7,7 +7,6 @@ import {
   ParticipantWithTripProps,
 } from '@/domain/trip/enterprise/entities/value-objects/participant-with-trip'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
-import { getTodayTripDay } from '@/domain/trip/application/trip-period/trip-day'
 
 export class PrismaParticipantsRepository implements ParticipantsRepository {
   async create(participant: Participant): Promise<void> {
@@ -132,44 +131,5 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
         coverImageUrl: item.trip.cover_image_url,
       }),
     )
-  }
-
-  async findNextTripByTravelerId(
-    travelerId: string,
-  ): Promise<ParticipantWithTripProps | null> {
-    const participant = await getPrismaClient().participant.findFirst({
-      where: {
-        traveler_id: travelerId,
-        trip: {
-          starts_at: {
-            gte: getTodayTripDay().toDate(),
-          },
-        },
-      },
-      include: {
-        trip: true,
-      },
-      orderBy: {
-        trip: {
-          starts_at: 'asc',
-        },
-      },
-    })
-
-    if (!participant) {
-      return null
-    }
-
-    return ParticipantWithTrip.create({
-      participantId: new UniqueEntityID(participant.id),
-      name: participant.name,
-      email: participant.email,
-      isConfirmed: participant.is_confirmed,
-      destination: participant.trip.destination,
-      startsAt: participant.trip.starts_at,
-      endsAt: participant.trip.ends_at,
-      tripId: new UniqueEntityID(participant.trip.id),
-      coverImageUrl: participant.trip.cover_image_url,
-    })
   }
 }

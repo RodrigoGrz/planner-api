@@ -62,4 +62,41 @@ describe('Get Next Trip Traveler (E2E)', () => {
     expect(participantTripsResponse.statusCode).toBe(200)
     expect(participantTripsResponse.body.nextTrip.destination).toBe('Norway')
   })
+
+  test('[GET] /traveler/next/trip returns an ongoing trip', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+    const today = dayjs.utc().startOf('day')
+
+    const ongoingTrip = await makePrismaTrip({
+      destination: 'Lisbon',
+      ownerId: new UniqueEntityID(traveler.id),
+      startsAt: today.subtract(2, 'day').toDate(),
+      endsAt: today.add(2, 'day').toDate(),
+    })
+
+    const futureTrip = await makePrismaTrip({
+      destination: 'Tokyo',
+      ownerId: new UniqueEntityID(traveler.id),
+      startsAt: today.add(1, 'month').toDate(),
+      endsAt: today.add(1, 'month').add(3, 'day').toDate(),
+    })
+
+    await makePrismaParticipant({
+      tripId: ongoingTrip.id,
+      travelerId: new UniqueEntityID(traveler.id),
+    })
+
+    await makePrismaParticipant({
+      tripId: futureTrip.id,
+      travelerId: new UniqueEntityID(traveler.id),
+    })
+
+    const response = await request(app.server)
+      .get('/traveler/next/trip')
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(response.statusCode).toBe(200)
+    expect(response.body.nextTrip.tripId).toBe(ongoingTrip.id.toString())
+  })
 })

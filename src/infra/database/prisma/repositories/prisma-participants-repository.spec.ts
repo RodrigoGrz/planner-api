@@ -1,5 +1,4 @@
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
-import { dayjs } from '@/lib/dayjs'
 import { makeParticipant } from 'tests/factories/make-participant'
 import { makePrismaTraveler } from 'tests/factories/make-traveler'
 import { makePrismaTrip } from 'tests/factories/make-trip'
@@ -10,31 +9,6 @@ let repository: PrismaParticipantsRepository
 describe('PrismaParticipantsRepository (integration)', () => {
   beforeAll(() => {
     repository = new PrismaParticipantsRepository()
-  })
-
-  it('should return a trip that starts today as the next trip', async () => {
-    const owner = await makePrismaTraveler()
-    const today = dayjs.utc().startOf('day')
-
-    const trip = await makePrismaTrip({
-      ownerId: owner.id,
-      startsAt: today.toDate(),
-      endsAt: today.add(3, 'day').toDate(),
-    })
-
-    await repository.create(
-      await makeParticipant({
-        tripId: trip.id,
-        travelerId: owner.id,
-        isConfirmed: true,
-      }),
-    )
-
-    const nextTrip = await repository.findNextTripByTravelerId(
-      owner.id.toString(),
-    )
-
-    expect(nextTrip?.tripId.toString()).toBe(trip.id.toString())
   })
 
   it('should round-trip a participant through create and findByConfirmationToken', async () => {

@@ -147,6 +147,115 @@ describe('Get Next Trip Traveler', () => {
     })
 
     expect(result.isRight()).toBeTruthy()
-    expect(result.isRight() && result.value.nextTrip).toBeUndefined()
+    expect(result.isRight() && result.value.nextTrip).toBeNull()
+  })
+
+  it('should return an ongoing trip as the next trip', async () => {
+    const traveler = await makeTraveler()
+    const today = dayjs.utc().startOf('day')
+
+    const ongoingTrip = await makeTrip({
+      ownerId: traveler.id,
+      destination: 'Lisbon',
+      startsAt: today.subtract(2, 'day').toDate(),
+      endsAt: today.add(2, 'day').toDate(),
+    })
+
+    const futureTrip = await makeTrip({
+      ownerId: traveler.id,
+      destination: 'Tokyo',
+      startsAt: today.add(1, 'month').toDate(),
+      endsAt: today.add(1, 'month').add(3, 'day').toDate(),
+    })
+
+    tripsRepository.items.push(ongoingTrip, futureTrip)
+    participantsRepository.items.push(
+      await makeParticipant({
+        travelerId: traveler.id,
+        tripId: ongoingTrip.id,
+      }),
+      await makeParticipant({ travelerId: traveler.id, tripId: futureTrip.id }),
+    )
+
+    const result = await getNextTripTravelerUseCase.execute({
+      travelerId: traveler.id.toString(),
+    })
+
+    expect(result.isRight() && result.value.nextTrip?.destination).toBe(
+      'Lisbon',
+    )
+  })
+
+  it('should return a trip that starts today as the next trip', async () => {
+    const traveler = await makeTraveler()
+    const today = dayjs.utc().startOf('day')
+
+    const trip = await makeTrip({
+      ownerId: traveler.id,
+      destination: 'Lisbon',
+      startsAt: today.toDate(),
+      endsAt: today.add(3, 'day').toDate(),
+    })
+
+    tripsRepository.items.push(trip)
+    participantsRepository.items.push(
+      await makeParticipant({ travelerId: traveler.id, tripId: trip.id }),
+    )
+
+    const result = await getNextTripTravelerUseCase.execute({
+      travelerId: traveler.id.toString(),
+    })
+
+    expect(result.isRight() && result.value.nextTrip?.destination).toBe(
+      'Lisbon',
+    )
+  })
+
+  it('should return a trip on its last day as the next trip', async () => {
+    const traveler = await makeTraveler()
+    const today = dayjs.utc().startOf('day')
+
+    const trip = await makeTrip({
+      ownerId: traveler.id,
+      destination: 'Lisbon',
+      startsAt: today.subtract(3, 'day').toDate(),
+      endsAt: today.toDate(),
+    })
+
+    tripsRepository.items.push(trip)
+    participantsRepository.items.push(
+      await makeParticipant({ travelerId: traveler.id, tripId: trip.id }),
+    )
+
+    const result = await getNextTripTravelerUseCase.execute({
+      travelerId: traveler.id.toString(),
+    })
+
+    expect(result.isRight() && result.value.nextTrip?.destination).toBe(
+      'Lisbon',
+    )
+  })
+
+  it('should not return a trip that already ended', async () => {
+    const traveler = await makeTraveler()
+    const today = dayjs.utc().startOf('day')
+
+    const trip = await makeTrip({
+      ownerId: traveler.id,
+      destination: 'Lisbon',
+      startsAt: today.subtract(4, 'day').toDate(),
+      endsAt: today.subtract(1, 'day').toDate(),
+    })
+
+    tripsRepository.items.push(trip)
+    participantsRepository.items.push(
+      await makeParticipant({ travelerId: traveler.id, tripId: trip.id }),
+    )
+
+    const result = await getNextTripTravelerUseCase.execute({
+      travelerId: traveler.id.toString(),
+    })
+
+    expect(result.isRight() && result.value.nextTrip).toBeNull()
   })
 })
