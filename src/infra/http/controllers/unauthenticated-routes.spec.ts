@@ -1,3 +1,4 @@
+import { env } from '@/env'
 import { app } from '@/infra/app'
 import { prisma } from '@/infra/database/prisma/prisma'
 import { createHmac, randomUUID } from 'node:crypto'
@@ -25,14 +26,17 @@ function encodeSegment(value: object) {
   return Buffer.from(JSON.stringify(value)).toString('base64url')
 }
 
-function makeTokenSignedWith(secret: string) {
+function makeTokenSignedWith(
+  secret: string,
+  payload: object = { sub: randomUUID() },
+) {
   const header = encodeSegment({ alg: 'HS256', typ: 'JWT' })
-  const payload = encodeSegment({ sub: randomUUID() })
+  const body = encodeSegment(payload)
   const signature = createHmac('sha256', secret)
-    .update(`${header}.${payload}`)
+    .update(`${header}.${body}`)
     .digest('base64url')
 
-  return `${header}.${payload}.${signature}`
+  return `${header}.${body}.${signature}`
 }
 
 function makeUnsignedToken() {
@@ -94,6 +98,45 @@ describe('Protected routes without authentication (E2E)', () => {
       method: 'GET',
       url: '/traveler/trips',
       headers: { authorization: `Bearer ${token}` },
+    })
+
+    expect(response.statusCode).toBe(200)
+  })
+
+  test.each(protectedRoutes)(
+    '[%s] %s returns 401 with an expired token',
+    async (method, url) => {
+      const now = Math.floor(Date.now() / 1000)
+      const expiredToken = makeTokenSignedWith(env.JWT_SECRET, {
+        sub: randomUUID(),
+        iat: now - 120,
+        exp: now - 60,
+      })
+
+      const response = await app.inject({
+        method,
+        url,
+        headers: { authorization: `Bearer ${expiredToken}` },
+      })
+
+      expect(response.statusCode).toBe(401)
+    },
+  )
+
+  test('[GET] /traveler/trips returns 200 with a token signed by the app secret that has not expired', async () => {
+    const { traveler } = await createAndAuthenticateTraveler(app)
+
+    const now = Math.floor(Date.now() / 1000)
+    const validToken = makeTokenSignedWith(env.JWT_SECRET, {
+      sub: traveler.id,
+      iat: now,
+      exp: now + 60,
+    })
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/traveler/trips',
+      headers: { authorization: `Bearer ${validToken}` },
     })
 
     expect(response.statusCode).toBe(200)

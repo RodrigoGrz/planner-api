@@ -7,7 +7,11 @@ export const authenticateBody = z.object({
 })
 
 export const authenticateResponse = z.object({
-  token: z.string().describe('JWT access token'),
+  token: z
+    .string()
+    .describe(
+      'JWT access token, expires after JWT_EXPIRES_IN (default 7 days)',
+    ),
   user: z.object({
     id: z.uuidv4(),
     name: z.string(),

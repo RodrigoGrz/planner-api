@@ -7,6 +7,10 @@ export const envSchema = z
       .enum(['development', 'test', 'production'])
       .default('development'),
     JWT_SECRET: z.string().min(1),
+    JWT_EXPIRES_IN: z
+      .string()
+      .regex(/^[1-9]\d*[smhd]$/)
+      .default('7d'),
     DATABASE_URL: z.url(),
     API_BASE_URL: z.url(),
     WEB_BASE_URL: z.url(),
