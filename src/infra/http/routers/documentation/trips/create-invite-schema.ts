@@ -29,13 +29,16 @@ export const createInviteSchema = {
           message: z.string(),
         })
         .describe('Não permitido'),
+      404: z
+        .object({
+          message: z.string(),
+        })
+        .describe('Recurso não encontrado.'),
       409: z
         .object({
           message: z.string(),
         })
-        .describe(
-          'Recurso não encontrado ou e-mail já convidado para a viagem.',
-        ),
+        .describe('E-mail já convidado para a viagem.'),
       429: tooManyRequestsResponse,
     },
   },

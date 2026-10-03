@@ -36,7 +36,7 @@ export async function uploadTripCoverImageController(
       case FileTypeInvalidError:
         return reply.status(415).send({ message: error.message })
       case ResourceNotExistsError:
-        return reply.status(409).send({ message: error.message })
+        return reply.status(404).send({ message: error.message })
       case NotAllowedError:
         return reply.status(403).send({ message: error.message })
       case TripModifiedConcurrentlyError:

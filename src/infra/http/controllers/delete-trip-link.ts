@@ -26,7 +26,7 @@ export async function deleteTripLinkController(
 
     switch (error.constructor) {
       case ResourceNotExistsError:
-        return reply.status(409).send({ message: error.message })
+        return reply.status(404).send({ message: error.message })
       case NotAllowedError:
         return reply.status(403).send({ message: error.message })
       default:

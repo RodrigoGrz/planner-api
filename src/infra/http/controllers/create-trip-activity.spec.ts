@@ -158,7 +158,7 @@ describe('Create Trip Activity (E2E)', () => {
     },
   )
 
-  test('[POST] /trips/activity/register returns 409 when the trip does not exist', async () => {
+  test('[POST] /trips/activity/register returns 404 when the trip does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
@@ -170,6 +170,30 @@ describe('Create Trip Activity (E2E)', () => {
         tripId: new UniqueEntityID().toString(),
       })
 
-    expect(result.statusCode).toBe(409)
+    expect(result.statusCode).toBe(404)
+  })
+
+  test('[POST] /trips/activity/register returns 422 for an activity outside the trip period', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+    })
+
+    const result = await request(app.server)
+      .post('/trips/activity/register')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title: 'Hotel Check-in',
+        occursAt: dayjs().add(2, 'month').toDate(),
+        tripId: trip.id.toString(),
+      })
+
+    expect(result.statusCode).toBe(422)
+    expect(
+      await prisma.activity.count({ where: { trip_id: trip.id.toString() } }),
+    ).toBe(0)
   })
 })

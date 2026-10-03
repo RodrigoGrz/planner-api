@@ -55,7 +55,7 @@ describe('Upload Trip Cover Image (E2E)', () => {
     expect(response.statusCode).toEqual(403)
   })
 
-  test('[POST] /trips/:tripId/image returns 409 when the trip does not exist', async () => {
+  test('[POST] /trips/:tripId/image returns 404 when the trip does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const response = await request(app.server)
@@ -63,7 +63,7 @@ describe('Upload Trip Cover Image (E2E)', () => {
       .set('Authorization', `Bearer ${token}`)
       .attach('file', './tests/e2e/upload/sample.jpg')
 
-    expect(response.statusCode).toEqual(409)
+    expect(response.statusCode).toEqual(404)
   })
 
   test('[POST] /trips/:tripId/image returns 415 for a text file declared as png', async () => {

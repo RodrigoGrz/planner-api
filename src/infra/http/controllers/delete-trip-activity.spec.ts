@@ -46,7 +46,7 @@ describe('Delete Trip Activity (E2E)', () => {
     expect(afterUpdated.length).toBe(1)
   })
 
-  test('[DELETE] /trip/activity/:activityId returns 409 when the activity does not exist', async () => {
+  test('[DELETE] /trip/activity/:activityId returns 404 when the activity does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const activityResponse = await request(app.server)
@@ -54,6 +54,6 @@ describe('Delete Trip Activity (E2E)', () => {
       .set('Authorization', `Bearer ${token}`)
       .send()
 
-    expect(activityResponse.statusCode).toBe(409)
+    expect(activityResponse.statusCode).toBe(404)
   })
 })

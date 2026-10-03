@@ -117,4 +117,15 @@ describe('Get Trip Activities (E2E)', () => {
       await prisma.activity.findUnique({ where: { id: activityId } }),
     ).toBeNull()
   })
+
+  test('[GET] /trips/:tripId/activities returns 404 when the trip does not exist', async () => {
+    const { token } = await createAndAuthenticateTraveler(app)
+
+    const response = await request(app.server)
+      .get(`/trips/${new UniqueEntityID().toString()}/activities`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(response.statusCode).toBe(404)
+  })
 })

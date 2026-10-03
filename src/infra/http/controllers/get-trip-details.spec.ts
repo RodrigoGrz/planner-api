@@ -47,7 +47,7 @@ describe('Get Trip Details (E2E)', () => {
     expect(tripResponse.body.trip.version).toBe(1)
   })
 
-  test('[GET] /trips/:id returns 409 when the trip does not exist', async () => {
+  test('[GET] /trips/:id returns 404 when the trip does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const tripResponse = await request(app.server)
@@ -55,6 +55,6 @@ describe('Get Trip Details (E2E)', () => {
       .set('Authorization', `Bearer ${token}`)
       .send()
 
-    expect(tripResponse.statusCode).toBe(409)
+    expect(tripResponse.statusCode).toBe(404)
   })
 })

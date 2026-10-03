@@ -30,13 +30,16 @@ export const createTripActivitySchema = {
           message: z.string(),
         })
         .describe('Não permitido'),
-      409: z
+      404: z
         .object({
           message: z.string(),
         })
-        .describe(
-          'Possible reasons: A data está fora das datas da viagem | Recurso não encontrado.',
-        ),
+        .describe('Recurso não encontrado.'),
+      422: z
+        .object({
+          message: z.string(),
+        })
+        .describe('A data está fora das datas da viagem.'),
     },
   },
 }

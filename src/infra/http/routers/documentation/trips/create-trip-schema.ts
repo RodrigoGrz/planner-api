@@ -37,12 +37,17 @@ export const createTripSchema = {
           message: z.string(),
         })
         .describe('Bad request'),
-      409: z
+      404: z
+        .object({
+          message: z.string(),
+        })
+        .describe('Recurso não encontrado.'),
+      422: z
         .object({
           message: z.string(),
         })
         .describe(
-          'Possible reasons: Data de início inválida. | Data de fim inválida. | A duração da viagem deve ter no máximo 30 dias. | Recurso não encontrado.',
+          'Possible reasons: Data de início inválida. | Data de fim inválida. | A duração da viagem deve ter no máximo 30 dias.',
         ),
       429: tooManyRequestsResponse,
     },

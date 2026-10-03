@@ -56,18 +56,28 @@ export const updateTripSchema = {
           message: z.string(),
         })
         .describe('Não permitido'),
+      404: z
+        .object({
+          message: z.string(),
+        })
+        .describe('Recurso não encontrado.'),
       409: z
         .object({
           message: z.string(),
         })
-        .describe(
-          'Possible reasons: Data de início inválida. | Data de fim inválida. | A duração da viagem deve ter no máximo 30 dias. | Recurso não encontrado. | A viagem foi alterada por outra requisição.',
-        ),
+        .describe('A viagem foi alterada por outra requisição.'),
       412: z
         .object({
           message: z.string(),
         })
         .describe('A viagem foi alterada desde a última leitura'),
+      422: z
+        .object({
+          message: z.string(),
+        })
+        .describe(
+          'Possible reasons: Data de início inválida. | Data de fim inválida. | A duração da viagem deve ter no máximo 30 dias.',
+        ),
     },
   },
 }
