@@ -87,4 +87,58 @@ describe('Env', () => {
 
     expect(result.data?.RATE_LIMIT_ENABLED).toBe(false)
   })
+
+  it('should be able to default CORS_ORIGINS to an empty list', () => {
+    const result = envSchema.safeParse(baseEnv)
+
+    expect(result.data?.CORS_ORIGINS).toEqual([])
+  })
+
+  it('should be able to split CORS_ORIGINS by comma', () => {
+    const result = envSchema.safeParse({
+      ...baseEnv,
+      CORS_ORIGINS: 'https://app.planner.com, https://admin.planner.com',
+    })
+
+    expect(result.data?.CORS_ORIGINS).toEqual([
+      'https://app.planner.com',
+      'https://admin.planner.com',
+    ])
+  })
+
+  it('should not be able to start with an invalid CORS_ORIGINS', () => {
+    const result = envSchema.safeParse({
+      ...baseEnv,
+      CORS_ORIGINS: 'not-a-url',
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error?.issues.map((issue) => issue.path[0])).toEqual([
+      'CORS_ORIGINS',
+    ])
+  })
+
+  it('should be able to normalize CORS_ORIGINS to the origin', () => {
+    const result = envSchema.safeParse({
+      ...baseEnv,
+      CORS_ORIGINS: 'https://app.planner.com/, http://localhost:8081/path',
+    })
+
+    expect(result.data?.CORS_ORIGINS).toEqual([
+      'https://app.planner.com',
+      'http://localhost:8081',
+    ])
+  })
+
+  it('should not be able to start with a CORS_ORIGINS that is not http or https', () => {
+    const result = envSchema.safeParse({
+      ...baseEnv,
+      CORS_ORIGINS: 'mailto:team@planner.com',
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error?.issues.map((issue) => issue.path[0])).toEqual([
+      'CORS_ORIGINS',
+    ])
+  })
 })

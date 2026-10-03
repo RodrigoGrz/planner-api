@@ -14,6 +14,22 @@ export const envSchema = z
     DATABASE_URL: z.url(),
     API_BASE_URL: z.url(),
     WEB_BASE_URL: z.url(),
+    CORS_ORIGINS: z
+      .string()
+      .default('')
+      .transform((value) =>
+        value
+          .split(',')
+          .map((origin) => origin.trim())
+          .filter(Boolean),
+      )
+      .pipe(
+        z.array(
+          z
+            .url({ protocol: /^https?$/ })
+            .transform((value) => new URL(value).origin),
+        ),
+      ),
     PORT: z.coerce.number().default(3333),
     RATE_LIMIT_ENABLED: z.stringbool().default(true),
 
