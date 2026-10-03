@@ -75,7 +75,7 @@ describe('Rate limit (E2E)', () => {
         payload: {
           name: faker.person.fullName(),
           email: faker.internet.email(),
-          password: '123456',
+          password: '12345678',
           phone: '11999999999',
         },
       })

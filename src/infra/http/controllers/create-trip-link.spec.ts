@@ -71,6 +71,55 @@ describe('Create Trip Link (E2E)', () => {
     ).toBe(0)
   })
 
+  test.each([
+    ['an empty title', '   '],
+    ['a title longer than 100 characters', 'a'.repeat(101)],
+  ])('[POST] /trips/link/register returns 400 for %s', async (_, title) => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const result = await request(app.server)
+      .post('/trips/link/register')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title,
+        url: 'https://example.com',
+        tripId: trip.id.toString(),
+      })
+
+    expect(result.statusCode).toBe(400)
+    expect(
+      await prisma.link.count({ where: { trip_id: trip.id.toString() } }),
+    ).toBe(0)
+  })
+
+  test('[POST] /trips/link/register stores the title trimmed', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const result = await request(app.server)
+      .post('/trips/link/register')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title: '  Booking  ',
+        url: 'https://example.com',
+        tripId: trip.id.toString(),
+      })
+
+    const link = await prisma.link.findUnique({
+      where: { id: result.body.linkId },
+    })
+
+    expect(result.statusCode).toBe(201)
+    expect(link?.title).toBe('Booking')
+  })
+
   test('[POST] /trips/link/register accepts an http url', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 

@@ -46,6 +46,33 @@ describe('Update Trip (E2E)', () => {
     expect(afterUpdated?.destination).toBe('London')
   })
 
+  test('[PUT] /trips/:tripId/update returns 400 for a destination longer than 100 characters', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      destination: 'Norway',
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const result = await request(app.server)
+      .put(`/trips/${trip.id.toString()}/update`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        destination: 'a'.repeat(101),
+        startsAt: dayjs().add(2, 'month').toDate(),
+        endsAt: dayjs().add(2, 'month').add(3, 'day').toDate(),
+      })
+
+    const afterUpdate = await prisma.trip.findUniqueOrThrow({
+      where: { id: trip.id.toString() },
+    })
+
+    expect(result.statusCode).toBe(400)
+    expect(afterUpdate.destination).toBe('Norway')
+  })
+
   test('[PUT] /trips/:tripId/update returns 409 for a trip longer than 30 days', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 

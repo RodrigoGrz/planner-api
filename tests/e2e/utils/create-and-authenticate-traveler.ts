@@ -13,14 +13,14 @@ export async function createAndAuthenticateTraveler(app: FastifyInstance) {
     data: {
       name,
       email: normalizeEmail(email),
-      password: await hash('1234567', 6),
+      password: await hash('12345678', 6),
       phone: faker.phone.number(),
     },
   })
 
   const authResponse = await request(app.server).post('/travelers/auth').send({
     email,
-    password: '1234567',
+    password: '12345678',
   })
 
   const { token } = authResponse.body

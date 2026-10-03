@@ -1,12 +1,21 @@
 import z from 'zod'
 import { emailAddress } from '../shared/email-address'
 import { tooManyRequestsResponse } from '../shared/too-many-requests-response'
+import { password } from '../shared/password'
 
 export const registerTravelerBody = z.object({
-  name: z.string().min(3).max(100).describe('Full name of the traveler'),
+  name: z.string().trim().min(3).max(100).describe('Full name of the traveler'),
   email: emailAddress.describe('Traveler email address'),
-  password: z.string().min(6).max(50).describe('Password (min 6 characters)'),
-  phone: z.string().min(10).max(15).describe('Phone number with country code'),
+  password,
+  phone: z
+    .string()
+    .trim()
+    .regex(/^[\d+\s()-]+$/)
+    .max(20)
+    .refine((value) => value.replace(/\D/g, '').length >= 10, {
+      message: 'Phone must have at least 10 digits',
+    })
+    .describe('Phone number with country code'),
 })
 
 export const registerTravelerSchema = {

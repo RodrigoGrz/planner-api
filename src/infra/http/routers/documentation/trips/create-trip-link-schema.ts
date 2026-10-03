@@ -1,7 +1,8 @@
 import z from 'zod'
+import { itemTitle } from '../shared/item-title'
 
 export const createTripLinkBody = z.object({
-  title: z.string(),
+  title: itemTitle,
   url: z.httpUrl().max(2048),
   tripId: z.uuid(),
 })

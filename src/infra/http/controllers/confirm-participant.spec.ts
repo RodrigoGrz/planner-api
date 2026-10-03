@@ -140,6 +140,24 @@ describe('Confirm Participant (E2E)', () => {
     expect(response.headers['content-type']).toContain('text/html')
   })
 
+  test('[GET] /participants/confirm returns 400 for a token longer than 100 characters', async () => {
+    const response = await request(app.server)
+      .get('/participants/confirm')
+      .query({ token: 'a'.repeat(101) })
+      .send()
+
+    expect(response.statusCode).toBe(400)
+  })
+
+  test('[POST] /participants/confirm returns 400 for a token longer than 100 characters', async () => {
+    const response = await request(app.server)
+      .post('/participants/confirm')
+      .type('form')
+      .send({ token: 'a'.repeat(101) })
+
+    expect(response.statusCode).toBe(400)
+  })
+
   test('[POST] /participants/confirm without a token', async () => {
     const response = await request(app.server)
       .post('/participants/confirm')

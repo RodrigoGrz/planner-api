@@ -20,8 +20,10 @@ import { requestLogSerializers } from './http/request-log-serializers'
 import { TOO_MANY_REQUESTS_MESSAGE } from './http/rate-limits'
 
 const MAX_UPLOAD_FILE_SIZE_IN_BYTES = 10 * 1024 * 1024
+const MAX_BODY_SIZE_IN_BYTES = 100 * 1024
 
 export const app = fastify({
+  bodyLimit: MAX_BODY_SIZE_IN_BYTES,
   logger: env.NODE_ENV !== 'test' && { serializers: requestLogSerializers },
 }).withTypeProvider<ZodTypeProvider>()
 
