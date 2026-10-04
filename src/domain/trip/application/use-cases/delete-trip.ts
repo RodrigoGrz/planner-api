@@ -9,7 +9,10 @@ interface DeleteTripUseCaseRequest {
   userId: string
 }
 
-type DeleteTripUseCaseResponse = Either<ResourceNotExistsError, null>
+type DeleteTripUseCaseResponse = Either<
+  ResourceNotExistsError | NotAllowedError,
+  null
+>
 
 export class DeleteTripUseCase {
   constructor(

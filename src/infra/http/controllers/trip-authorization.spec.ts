@@ -94,6 +94,27 @@ describe('Trip authorization (E2E)', () => {
     expect(activityAfter).not.toBeNull()
   })
 
+  test('[DELETE] /trip/:tripId returns 403 for a traveler who is not the owner', async () => {
+    const { traveler: owner } = await createAndAuthenticateTraveler(app)
+    const { token: intruderToken } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(owner.id),
+    })
+
+    const response = await request(app.server)
+      .delete(`/trip/${trip.id.toString()}`)
+      .set('Authorization', `Bearer ${intruderToken}`)
+      .send()
+
+    const tripAfter = await prisma.trip.findUnique({
+      where: { id: trip.id.toString() },
+    })
+
+    expect(response.statusCode).toBe(403)
+    expect(tripAfter).not.toBeNull()
+  })
+
   test('[GET] /trips/:id returns 403 for a traveler who is neither owner nor participant', async () => {
     const { traveler: owner } = await createAndAuthenticateTraveler(app)
     const { token: intruderToken } = await createAndAuthenticateTraveler(app)

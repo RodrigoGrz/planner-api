@@ -19,7 +19,7 @@ Node >= 24, TypeScript, Fastify 5, Zod 4 (`fastify-type-provider-zod`), Prisma 7
 | Interfaces de repositório | `src/domain/trip/application/repositories/` | `interface XRepository` com assinaturas que recebem/retornam entidades de domínio | entidades |
 | Portas de serviço | `src/domain/trip/application/{mail,storage,authorization,transaction}/` | Contratos abstratos (`Mailer`, `Uploader`, `TransactionManager`, ...) | entidades |
 | Use cases | `src/domain/trip/application/use-cases/` | **Somente regra de negócio.** Classe `XUseCase` com dependências no construtor (interfaces) e `execute(request): Promise<Either<Erro, Resultado>>` | entidades, interfaces, erros |
-| Erros | `src/domain/trip/application/use-cases/errors/` | `class XError extends Error implements UseCaseError`, mensagem em português | core |
+| Erros | `src/domain/trip/application/use-cases/errors/` | `class XError extends Error implements UseCaseError` com `readonly name = 'XError'` (discriminante: sem ele o TypeScript aceita qualquer erro em qualquer `Either`), mensagem em português | core |
 | Factories | `src/domain/trip/application/use-cases/factory/` | `xFactory()` instancia repositórios Prisma/serviços concretos e retorna o use case. **Único lugar que faz `new` das implementações concretas** | use case, infra |
 | Repositórios Prisma | `src/infra/database/prisma/repositories/prisma-x-repository.ts` | `class PrismaXRepository implements XRepository` | prisma, mappers |
 | Mappers | `src/infra/database/prisma/mappers/prisma-x-mapper.ts` | `toDomain(raw)` e `toPrisma(entity)` | entidades, `@prisma/client` |
