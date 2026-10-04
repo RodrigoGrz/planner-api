@@ -11,13 +11,14 @@ export async function deleteTripActivityController(
   request: FastifyRequest<{ Params: DeleteTripActivityParams }>,
   reply: FastifyReply,
 ) {
-  const { activityId } = request.params
+  const { tripId, activityId } = request.params
   const { sub } = request.user
 
   const deleteTripActivityUseCase = deleteTripActivityFactory()
 
   const result = await deleteTripActivityUseCase.execute({
     id: activityId,
+    tripId,
     travelerId: sub,
   })
 

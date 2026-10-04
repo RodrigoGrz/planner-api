@@ -1,17 +1,22 @@
 import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/errors/resource-not-exists-error'
 import { createTripLinkFactory } from '@/domain/trip/application/use-cases/factory/create-trip-link-factory'
 import { FastifyReply, FastifyRequest } from 'fastify'
-import { createTripLinkBody } from '../routers/documentation/trips/create-trip-link-schema'
+import {
+  createTripLinkBody,
+  createTripLinkParams,
+} from '../routers/documentation/trips/create-trip-link-schema'
 import { NotAllowedError } from '@/domain/trip/application/use-cases/errors/not-allowed-error'
 import z from 'zod'
 
+type CreateLinkParams = z.infer<typeof createTripLinkParams>
 type CreateLinkBody = z.infer<typeof createTripLinkBody>
 
 export async function createTripLinkController(
-  request: FastifyRequest<{ Body: CreateLinkBody }>,
+  request: FastifyRequest<{ Params: CreateLinkParams; Body: CreateLinkBody }>,
   reply: FastifyReply,
 ) {
-  const { title, url, tripId } = request.body
+  const { tripId } = request.params
+  const { title, url } = request.body
   const { sub } = request.user
 
   const createTripLinkUseCase = createTripLinkFactory()

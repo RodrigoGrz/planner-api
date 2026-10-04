@@ -12,12 +12,12 @@ import {
 
 export async function travelersRoute(app: FastifyInstance) {
   app.post(
-    '/travelers/auth',
+    '/sessions',
     { ...authenticateSchema, config: { rateLimit: authenticateRateLimit } },
     authenticateController,
   )
   app.post(
-    '/travelers/register',
+    '/travelers',
     {
       ...registerTravelerSchema,
       config: { rateLimit: registerTravelerRateLimit },

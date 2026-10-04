@@ -48,9 +48,9 @@ describe('Request body documentation (E2E)', () => {
   })
 
   test.each([
-    ['POST', '/trips/register', ['startsAt', 'endsAt']],
-    ['PUT', '/trips/{tripId}/update', ['startsAt', 'endsAt']],
-    ['POST', '/trips/activity/register', ['occursAt']],
+    ['POST', '/trips', ['startsAt', 'endsAt']],
+    ['PUT', '/trips/{tripId}', ['startsAt', 'endsAt']],
+    ['POST', '/trips/{tripId}/activities', ['occursAt']],
   ])(
     '[%s] %s documents its dates as ISO date-time strings',
     (method, path, fields) => {
@@ -65,8 +65,8 @@ describe('Request body documentation (E2E)', () => {
   )
 
   test.each([
-    ['/travelers/register', 'email'],
-    ['/travelers/auth', 'email'],
+    ['/travelers', 'email'],
+    ['/sessions', 'email'],
     ['/trips/{tripId}/invites', 'email'],
   ])('[POST] %s documents %s as an e-mail string', (path, field) => {
     const properties = getRequestBodyProperties(path, 'post')
@@ -76,8 +76,8 @@ describe('Request body documentation (E2E)', () => {
     )
   })
 
-  test('[POST] /trips/register documents emailsToInvite as e-mail strings', () => {
-    const properties = getRequestBodyProperties('/trips/register', 'post')
+  test('[POST] /trips documents emailsToInvite as e-mail strings', () => {
+    const properties = getRequestBodyProperties('/trips', 'post')
 
     expect(properties?.emailsToInvite?.items).toEqual(
       expect.objectContaining({ type: 'string', format: 'email' }),

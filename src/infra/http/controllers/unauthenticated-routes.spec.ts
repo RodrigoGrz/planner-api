@@ -6,19 +6,19 @@ import { createAndAuthenticateTraveler } from 'tests/e2e/utils/create-and-authen
 
 const protectedRoutes = [
   ['GET', `/trips/${randomUUID()}`],
-  ['POST', '/trips/register'],
-  ['POST', '/trips/link/register'],
-  ['POST', '/trips/activity/register'],
+  ['POST', '/trips'],
+  ['POST', `/trips/${randomUUID()}/links`],
+  ['POST', `/trips/${randomUUID()}/activities`],
   ['GET', `/trips/${randomUUID()}/links`],
   ['GET', `/trips/${randomUUID()}/activities`],
   ['GET', `/trips/${randomUUID()}/participants`],
-  ['GET', '/traveler/trips'],
-  ['GET', '/traveler/next/trip'],
-  ['PUT', `/trips/${randomUUID()}/update`],
-  ['POST', `/trips/${randomUUID()}/image`],
-  ['DELETE', `/trip/${randomUUID()}`],
-  ['DELETE', `/trip/link/${randomUUID()}`],
-  ['DELETE', `/trip/activity/${randomUUID()}`],
+  ['GET', '/me/trips'],
+  ['GET', '/me/trips/next'],
+  ['PUT', `/trips/${randomUUID()}`],
+  ['PUT', `/trips/${randomUUID()}/cover-image`],
+  ['DELETE', `/trips/${randomUUID()}`],
+  ['DELETE', `/trips/${randomUUID()}/links/${randomUUID()}`],
+  ['DELETE', `/trips/${randomUUID()}/activities/${randomUUID()}`],
   ['POST', `/trips/${randomUUID()}/invites`],
 ] as const
 
@@ -91,12 +91,12 @@ describe('Protected routes without authentication (E2E)', () => {
     },
   )
 
-  test('[GET] /traveler/trips returns 200 with a valid token', async () => {
+  test('[GET] /me/trips returns 200 with a valid token', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const response = await app.inject({
       method: 'GET',
-      url: '/traveler/trips',
+      url: '/me/trips',
       headers: { authorization: `Bearer ${token}` },
     })
 
@@ -123,7 +123,7 @@ describe('Protected routes without authentication (E2E)', () => {
     },
   )
 
-  test('[GET] /traveler/trips returns 200 with a token signed by the app secret that has not expired', async () => {
+  test('[GET] /me/trips returns 200 with a token signed by the app secret that has not expired', async () => {
     const { traveler } = await createAndAuthenticateTraveler(app)
 
     const now = Math.floor(Date.now() / 1000)
@@ -135,7 +135,7 @@ describe('Protected routes without authentication (E2E)', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: '/traveler/trips',
+      url: '/me/trips',
       headers: { authorization: `Bearer ${validToken}` },
     })
 

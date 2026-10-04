@@ -18,7 +18,7 @@ export function participantInviteFormat({
   const formattedTripStartDate = dayjs.utc(startsAt).format('D[ de ]MMMM')
   const formattedTripEndDate = dayjs.utc(endsAt).format('D[ de ]MMMM')
 
-  const confirmationLink = new URL('/participants/confirm', env.API_BASE_URL)
+  const confirmationLink = new URL('/invites/confirmation', env.API_BASE_URL)
   confirmationLink.searchParams.set('token', confirmationToken)
 
   const subjectDestination = destination.replace(/\s*[\r\n]+\s*/g, ' ').trim()

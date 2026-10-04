@@ -17,7 +17,7 @@ describe('Delete Trip (E2E)', () => {
     await app.close()
   })
 
-  test('[DELETE] /trip/:tripId', async () => {
+  test('[DELETE] /trips/:tripId', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -39,7 +39,7 @@ describe('Delete Trip (E2E)', () => {
     })
 
     const response = await request(app.server)
-      .delete(`/trip/${trip.id.toString()}`)
+      .delete(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .send()
 
@@ -74,11 +74,11 @@ describe('Delete Trip (E2E)', () => {
     expect(participantsAfterDelete.length).toBe(0)
   })
 
-  test('[DELETE] /trip/:tripId returns 404 when the trip does not exist', async () => {
+  test('[DELETE] /trips/:tripId returns 404 when the trip does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const response = await request(app.server)
-      .delete(`/trip/${new UniqueEntityID().toString()}`)
+      .delete(`/trips/${new UniqueEntityID().toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .send()
 

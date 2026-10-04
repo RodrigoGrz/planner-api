@@ -18,7 +18,7 @@ describe('Trip authorization (E2E)', () => {
     await app.close()
   })
 
-  test('[PUT] /trips/:tripId/update returns 403 for a traveler who is not the owner', async () => {
+  test('[PUT] /trips/:tripId returns 403 for a traveler who is not the owner', async () => {
     const { traveler: owner } = await createAndAuthenticateTraveler(app)
     const { token: intruderToken } = await createAndAuthenticateTraveler(app)
 
@@ -28,7 +28,7 @@ describe('Trip authorization (E2E)', () => {
     })
 
     const response = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${intruderToken}`)
       .send({
         destination: 'London',
@@ -44,7 +44,7 @@ describe('Trip authorization (E2E)', () => {
     expect(tripAfter.destination).toBe('Norway')
   })
 
-  test('[DELETE] /trip/link/:linkId returns 403 for a traveler who is not the owner', async () => {
+  test('[DELETE] /trips/:tripId/links/:linkId returns 403 for a traveler who is not the owner', async () => {
     const { traveler: owner } = await createAndAuthenticateTraveler(app)
     const { token: intruderToken } = await createAndAuthenticateTraveler(app)
 
@@ -57,7 +57,7 @@ describe('Trip authorization (E2E)', () => {
     })
 
     const response = await request(app.server)
-      .delete(`/trip/link/${link.id.toString()}`)
+      .delete(`/trips/${trip.id.toString()}/links/${link.id.toString()}`)
       .set('Authorization', `Bearer ${intruderToken}`)
       .send()
 
@@ -69,7 +69,7 @@ describe('Trip authorization (E2E)', () => {
     expect(linkAfter).not.toBeNull()
   })
 
-  test('[DELETE] /trip/activity/:activityId returns 403 for a traveler who is not the owner', async () => {
+  test('[DELETE] /trips/:tripId/activities/:activityId returns 403 for a traveler who is not the owner', async () => {
     const { traveler: owner } = await createAndAuthenticateTraveler(app)
     const { token: intruderToken } = await createAndAuthenticateTraveler(app)
 
@@ -82,7 +82,9 @@ describe('Trip authorization (E2E)', () => {
     })
 
     const response = await request(app.server)
-      .delete(`/trip/activity/${activity.id.toString()}`)
+      .delete(
+        `/trips/${trip.id.toString()}/activities/${activity.id.toString()}`,
+      )
       .set('Authorization', `Bearer ${intruderToken}`)
       .send()
 
@@ -94,7 +96,7 @@ describe('Trip authorization (E2E)', () => {
     expect(activityAfter).not.toBeNull()
   })
 
-  test('[DELETE] /trip/:tripId returns 403 for a traveler who is not the owner', async () => {
+  test('[DELETE] /trips/:tripId returns 403 for a traveler who is not the owner', async () => {
     const { traveler: owner } = await createAndAuthenticateTraveler(app)
     const { token: intruderToken } = await createAndAuthenticateTraveler(app)
 
@@ -103,7 +105,7 @@ describe('Trip authorization (E2E)', () => {
     })
 
     const response = await request(app.server)
-      .delete(`/trip/${trip.id.toString()}`)
+      .delete(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${intruderToken}`)
       .send()
 
@@ -115,7 +117,7 @@ describe('Trip authorization (E2E)', () => {
     expect(tripAfter).not.toBeNull()
   })
 
-  test('[GET] /trips/:id returns 403 for a traveler who is neither owner nor participant', async () => {
+  test('[GET] /trips/:tripId returns 403 for a traveler who is neither owner nor participant', async () => {
     const { traveler: owner } = await createAndAuthenticateTraveler(app)
     const { token: intruderToken } = await createAndAuthenticateTraveler(app)
 
@@ -152,7 +154,7 @@ describe('Trip authorization (E2E)', () => {
     expect(participants).toHaveLength(0)
   })
 
-  test('[GET] /trips/:id returns 200 for an unconfirmed participant', async () => {
+  test('[GET] /trips/:tripId returns 200 for an unconfirmed participant', async () => {
     const { traveler: owner } = await createAndAuthenticateTraveler(app)
     const { traveler: guest, token: guestToken } =
       await createAndAuthenticateTraveler(app)

@@ -8,7 +8,7 @@ import {
   confirmationExpiredPage,
   confirmationPromptPage,
 } from '@/utils/confirmation-pages'
-import { getInviteByTokenQuerystring } from '../routers/documentation/participants/confirm-participant-schema'
+import { getInviteByTokenQuerystring } from '../routers/documentation/invites/invite-confirmation-schema'
 
 type GetInviteByTokenQuerystring = z.infer<typeof getInviteByTokenQuerystring>
 

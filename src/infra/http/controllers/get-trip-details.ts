@@ -12,13 +12,13 @@ export async function getTripDetailsController(
   request: FastifyRequest<{ Params: GetTripsDetailsParams }>,
   reply: FastifyReply,
 ) {
-  const { id } = request.params
+  const { tripId } = request.params
   const { sub } = request.user
 
   const getTripDetailsUseCase = getTripDetailsFactory()
 
   const result = await getTripDetailsUseCase.execute({
-    id,
+    id: tripId,
     travelerId: sub,
   })
 

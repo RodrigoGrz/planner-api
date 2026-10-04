@@ -36,19 +36,19 @@ import { inviteEmailsRateLimit } from '../rate-limits'
 export async function tripsRoute(app: FastifyInstance) {
   app.addHook('onRequest', verifyJWT)
 
-  app.get('/trips/:id', getTripDetailsSchema, getTripDetailsController)
+  app.get('/trips/:tripId', getTripDetailsSchema, getTripDetailsController)
   app.post(
-    '/trips/register',
+    '/trips',
     { ...createTripSchema, config: { rateLimit: inviteEmailsRateLimit } },
     createTripController,
   )
   app.post(
-    '/trips/link/register',
+    '/trips/:tripId/links',
     createTripLinkSchema,
     createTripLinkController,
   )
   app.post(
-    '/trips/activity/register',
+    '/trips/:tripId/activities',
     createTripActivitySchema,
     createTripActivityController,
   )
@@ -64,18 +64,18 @@ export async function tripsRoute(app: FastifyInstance) {
     getTripParticipantsController,
   )
   app.get(
-    '/traveler/trips',
+    '/me/trips',
     getAllTravelersByTripSchema,
     getAllTravelersByTripController,
   )
   app.get(
-    '/traveler/next/trip',
+    '/me/trips/next',
     getNextTripTravelerSchema,
     getNextTripTravelerController,
   )
-  app.put('/trips/:tripId/update', updateTripSchema, updateTripController)
-  app.post(
-    '/trips/:tripId/image',
+  app.put('/trips/:tripId', updateTripSchema, updateTripController)
+  app.put(
+    '/trips/:tripId/cover-image',
     uploadTripCoverImageSchema,
     uploadTripCoverImageController,
   )
@@ -84,14 +84,14 @@ export async function tripsRoute(app: FastifyInstance) {
     { ...createInviteSchema, config: { rateLimit: inviteEmailsRateLimit } },
     createInviteController,
   )
-  app.delete('/trip/:tripId', deleteTripSchema, deleteTripController)
+  app.delete('/trips/:tripId', deleteTripSchema, deleteTripController)
   app.delete(
-    '/trip/link/:linkId',
+    '/trips/:tripId/links/:linkId',
     deleteTripLinkSchema,
     deleteTripLinkController,
   )
   app.delete(
-    '/trip/activity/:activityId',
+    '/trips/:tripId/activities/:activityId',
     deleteTripActivitySchema,
     deleteTripActivityController,
   )

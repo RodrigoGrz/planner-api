@@ -12,9 +12,9 @@ describe('Error handler (E2E)', () => {
     await app.close()
   })
 
-  test('[POST] /travelers/auth returns 400 for a malformed JSON body', async () => {
+  test('[POST] /sessions returns 400 for a malformed JSON body', async () => {
     const response = await request(app.server)
-      .post('/travelers/auth')
+      .post('/sessions')
       .set('Content-Type', 'application/json')
       .send('{')
 
@@ -22,16 +22,16 @@ describe('Error handler (E2E)', () => {
     expect(response.body.message).toEqual(expect.any(String))
   })
 
-  test('[POST] /travelers/auth returns 415 for an unsupported content type', async () => {
+  test('[POST] /sessions returns 415 for an unsupported content type', async () => {
     const response = await request(app.server)
-      .post('/travelers/auth')
+      .post('/sessions')
       .set('Content-Type', 'application/xml')
       .send('<email>john@planner.com</email>')
 
     expect(response.statusCode).toBe(415)
   })
 
-  test.each(['/travelers/register', '/travelers/auth'])(
+  test.each(['/travelers', '/sessions'])(
     '[POST] %s returns 415 for a form-encoded body',
     async (path) => {
       const response = await request(app.server).post(path).type('form').send({

@@ -1,7 +1,7 @@
 import z from 'zod'
 
 export const getTripsDetailsParams = z.object({
-  id: z.uuid().describe('Trip unique identifier'),
+  tripId: z.uuid().describe('Trip unique identifier'),
 })
 
 export const getTripsDetailsResponse = z.object({

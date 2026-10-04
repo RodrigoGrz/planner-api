@@ -21,7 +21,7 @@ describe('Upload Trip Cover Image (E2E)', () => {
     await app.close()
   })
 
-  test.skip('[POST] /trips/:tripId/image', async () => {
+  test.skip('[PUT] /trips/:tripId/cover-image', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -29,14 +29,14 @@ describe('Upload Trip Cover Image (E2E)', () => {
     })
 
     const response = await request(app.server)
-      .post(`/trips/${trip.id.toString()}/image`)
+      .put(`/trips/${trip.id.toString()}/cover-image`)
       .set('Authorization', `Bearer ${token}`)
       .attach('file', './tests/e2e/upload/sample.jpg')
 
     expect(response.statusCode).toEqual(204)
   })
 
-  test('[POST] /trips/:tripId/image returns 403 for a traveler who is not the owner', async () => {
+  test('[PUT] /trips/:tripId/cover-image returns 403 for a traveler who is not the owner', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
     const { traveler: owner } = await createAndAuthenticateTraveler(app)
 
@@ -45,7 +45,7 @@ describe('Upload Trip Cover Image (E2E)', () => {
     })
 
     const response = await request(app.server)
-      .post(`/trips/${trip.id.toString()}/image`)
+      .put(`/trips/${trip.id.toString()}/cover-image`)
       .set('Authorization', `Bearer ${token}`)
       .attach('file', largeJpeg, {
         filename: 'cover.jpg',
@@ -55,18 +55,18 @@ describe('Upload Trip Cover Image (E2E)', () => {
     expect(response.statusCode).toEqual(403)
   })
 
-  test('[POST] /trips/:tripId/image returns 404 when the trip does not exist', async () => {
+  test('[PUT] /trips/:tripId/cover-image returns 404 when the trip does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const response = await request(app.server)
-      .post(`/trips/${randomUUID()}/image`)
+      .put(`/trips/${randomUUID()}/cover-image`)
       .set('Authorization', `Bearer ${token}`)
       .attach('file', './tests/e2e/upload/sample.jpg')
 
     expect(response.statusCode).toEqual(404)
   })
 
-  test('[POST] /trips/:tripId/image returns 415 for a text file declared as png', async () => {
+  test('[PUT] /trips/:tripId/cover-image returns 415 for a text file declared as png', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -74,7 +74,7 @@ describe('Upload Trip Cover Image (E2E)', () => {
     })
 
     const response = await request(app.server)
-      .post(`/trips/${trip.id.toString()}/image`)
+      .put(`/trips/${trip.id.toString()}/cover-image`)
       .set('Authorization', `Bearer ${token}`)
       .attach('file', Buffer.from('not an image'), {
         filename: 'cover.png',
@@ -84,7 +84,7 @@ describe('Upload Trip Cover Image (E2E)', () => {
     expect(response.statusCode).toEqual(415)
   })
 
-  test('[POST] /trips/:tripId/image reads files larger than the JSON body limit', async () => {
+  test('[PUT] /trips/:tripId/cover-image reads files larger than the JSON body limit', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -92,7 +92,7 @@ describe('Upload Trip Cover Image (E2E)', () => {
     })
 
     const response = await request(app.server)
-      .post(`/trips/${trip.id.toString()}/image`)
+      .put(`/trips/${trip.id.toString()}/cover-image`)
       .set('Authorization', `Bearer ${token}`)
       .attach('file', Buffer.alloc(200 * 1024, 'a'), {
         filename: 'cover.png',
@@ -102,7 +102,7 @@ describe('Upload Trip Cover Image (E2E)', () => {
     expect(response.statusCode).toEqual(415)
   })
 
-  test('[POST] /trips/:tripId/image returns 413 for a file larger than 10MB', async () => {
+  test('[PUT] /trips/:tripId/cover-image returns 413 for a file larger than 10MB', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -110,7 +110,7 @@ describe('Upload Trip Cover Image (E2E)', () => {
     })
 
     const response = await request(app.server)
-      .post(`/trips/${trip.id.toString()}/image`)
+      .put(`/trips/${trip.id.toString()}/cover-image`)
       .set('Authorization', `Bearer ${token}`)
       .attach('file', Buffer.alloc(MAX_UPLOAD_FILE_SIZE_IN_BYTES + 1), {
         filename: 'cover.png',
@@ -120,7 +120,7 @@ describe('Upload Trip Cover Image (E2E)', () => {
     expect(response.statusCode).toEqual(413)
   })
 
-  test('[POST] /trips/:tripId/image returns 400 without a file', async () => {
+  test('[PUT] /trips/:tripId/cover-image returns 400 without a file', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -128,7 +128,7 @@ describe('Upload Trip Cover Image (E2E)', () => {
     })
 
     const response = await request(app.server)
-      .post(`/trips/${trip.id.toString()}/image`)
+      .put(`/trips/${trip.id.toString()}/cover-image`)
       .set('Authorization', `Bearer ${token}`)
       .field('description', 'no file here')
 

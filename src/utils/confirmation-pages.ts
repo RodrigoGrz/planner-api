@@ -60,7 +60,7 @@ export function confirmationPromptPage({
   return page({
     title: 'Confirme sua presença',
     message: `Você foi convidado(a) para a viagem para <strong style="color: #e2e8f0;">${escapeHtml(destination)}</strong>, de <strong style="color: #e2e8f0;">${formatTripDay(startsAt)} até ${formatTripDay(endsAt)}</strong>.`,
-    content: `<form method="post" action="/participants/confirm">
+    content: `<form method="post" action="/invites/confirmation">
         <input type="hidden" name="token" value="${escapeHtml(token)}" />
         <button type="submit" style="margin-top: 24px; padding: 12px 24px; font-size: 16px; border: 0; border-radius: 8px; background: #bef264; color: #1a2e05; cursor: pointer;">Confirmar presença</button>
       </form>`,

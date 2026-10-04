@@ -14,7 +14,7 @@ describe('participantInviteFormat', () => {
       confirmationToken: 'token-123',
     })
 
-    const expectedLink = new URL('/participants/confirm', env.API_BASE_URL)
+    const expectedLink = new URL('/invites/confirmation', env.API_BASE_URL)
     expectedLink.searchParams.set('token', 'token-123')
 
     expect(html).toContain(`href="${expectedLink.toString()}"`)

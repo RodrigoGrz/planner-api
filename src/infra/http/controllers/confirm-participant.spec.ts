@@ -58,11 +58,11 @@ describe('Confirm Participant (E2E)', () => {
     await app.close()
   })
 
-  test('[GET] /participants/confirm shows the confirmation page without confirming', async () => {
+  test('[GET] /invites/confirmation shows the confirmation page without confirming', async () => {
     const { participant, confirmationToken } = await makeInvite(upcomingTrip())
 
     const response = await request(app.server)
-      .get('/participants/confirm')
+      .get('/invites/confirmation')
       .query({ token: confirmationToken })
       .send()
 
@@ -70,7 +70,7 @@ describe('Confirm Participant (E2E)', () => {
     expect(response.headers['content-type']).toContain('text/html')
     expect(response.text).toContain('Norway')
     expect(response.text).toContain(
-      '<form method="post" action="/participants/confirm"',
+      '<form method="post" action="/invites/confirmation"',
     )
     expect(response.text).toContain(`value="${confirmationToken}"`)
 
@@ -80,11 +80,11 @@ describe('Confirm Participant (E2E)', () => {
     expect(stored.confirmation_token).toBe(confirmationToken)
   })
 
-  test('[POST] /participants/confirm confirms the participant', async () => {
+  test('[POST] /invites/confirmation confirms the participant', async () => {
     const { participant, confirmationToken } = await makeInvite(upcomingTrip())
 
     const response = await request(app.server)
-      .post('/participants/confirm')
+      .post('/invites/confirmation')
       .type('form')
       .send({ token: confirmationToken })
 
@@ -98,7 +98,7 @@ describe('Confirm Participant (E2E)', () => {
     expect(confirmed.confirmation_token).toBeNull()
   })
 
-  test('[POST] /participants/confirm links the participant to the traveler with the same e-mail', async () => {
+  test('[POST] /invites/confirmation links the participant to the traveler with the same e-mail', async () => {
     const invitedTraveler = await makePrismaTraveler()
 
     const { participant, confirmationToken } = await makeInvite(
@@ -107,7 +107,7 @@ describe('Confirm Participant (E2E)', () => {
     )
 
     const response = await request(app.server)
-      .post('/participants/confirm')
+      .post('/invites/confirmation')
       .type('form')
       .send({ token: confirmationToken })
 
@@ -120,9 +120,9 @@ describe('Confirm Participant (E2E)', () => {
     expect(confirmed.name).toBe(invitedTraveler.name)
   })
 
-  test('[GET] /participants/confirm with an invalid token', async () => {
+  test('[GET] /invites/confirmation with an invalid token', async () => {
     const response = await request(app.server)
-      .get('/participants/confirm')
+      .get('/invites/confirmation')
       .query({ token: randomUUID() })
       .send()
 
@@ -130,9 +130,9 @@ describe('Confirm Participant (E2E)', () => {
     expect(response.headers['content-type']).toContain('text/html')
   })
 
-  test('[POST] /participants/confirm with an invalid token', async () => {
+  test('[POST] /invites/confirmation with an invalid token', async () => {
     const response = await request(app.server)
-      .post('/participants/confirm')
+      .post('/invites/confirmation')
       .type('form')
       .send({ token: randomUUID() })
 
@@ -140,27 +140,27 @@ describe('Confirm Participant (E2E)', () => {
     expect(response.headers['content-type']).toContain('text/html')
   })
 
-  test('[GET] /participants/confirm returns 400 for a token longer than 100 characters', async () => {
+  test('[GET] /invites/confirmation returns 400 for a token longer than 100 characters', async () => {
     const response = await request(app.server)
-      .get('/participants/confirm')
+      .get('/invites/confirmation')
       .query({ token: 'a'.repeat(101) })
       .send()
 
     expect(response.statusCode).toBe(400)
   })
 
-  test('[POST] /participants/confirm returns 400 for a token longer than 100 characters', async () => {
+  test('[POST] /invites/confirmation returns 400 for a token longer than 100 characters', async () => {
     const response = await request(app.server)
-      .post('/participants/confirm')
+      .post('/invites/confirmation')
       .type('form')
       .send({ token: 'a'.repeat(101) })
 
     expect(response.statusCode).toBe(400)
   })
 
-  test('[POST] /participants/confirm without a token', async () => {
+  test('[POST] /invites/confirmation without a token', async () => {
     const response = await request(app.server)
-      .post('/participants/confirm')
+      .post('/invites/confirmation')
       .type('form')
       .send({})
 
@@ -169,10 +169,10 @@ describe('Confirm Participant (E2E)', () => {
   })
 
   test.each([
-    ['GET', () => request(app.server).get('/participants/confirm')],
-    ['POST', () => request(app.server).post('/participants/confirm')],
+    ['GET', () => request(app.server).get('/invites/confirmation')],
+    ['POST', () => request(app.server).post('/invites/confirmation')],
   ])(
-    '[%s] /participants/confirm returns the expired page for a finished trip',
+    '[%s] /invites/confirmation returns the expired page for a finished trip',
     async (method, buildRequest) => {
       const { participant, confirmationToken } =
         await makeInvite(finishedTrip())

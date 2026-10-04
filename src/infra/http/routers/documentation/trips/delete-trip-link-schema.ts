@@ -1,6 +1,7 @@
 import z from 'zod'
 
 export const deleteTripLinkParams = z.object({
+  tripId: z.uuid().describe('Trip unique identifier'),
   linkId: z.uuid().describe('Link unique identifier'),
 })
 

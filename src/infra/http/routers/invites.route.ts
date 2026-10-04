@@ -4,17 +4,17 @@ import fastifyFormbody from '@fastify/formbody'
 import {
   confirmParticipantSchema,
   getInviteByTokenSchema,
-} from './documentation/participants/confirm-participant-schema'
+} from './documentation/invites/invite-confirmation-schema'
 
 import { confirmParticipantController } from '../controllers/confirm-participant'
 import { getInviteByTokenController } from '../controllers/get-invite-by-token'
 import { participantConfirmRateLimit } from '../rate-limits'
 
-export async function participantsRoute(app: FastifyInstance) {
+export async function invitesRoute(app: FastifyInstance) {
   await app.register(fastifyFormbody)
 
   app.get(
-    '/participants/confirm',
+    '/invites/confirmation',
     {
       ...getInviteByTokenSchema,
       config: { rateLimit: participantConfirmRateLimit },
@@ -23,7 +23,7 @@ export async function participantsRoute(app: FastifyInstance) {
   )
 
   app.post(
-    '/participants/confirm',
+    '/invites/confirmation',
     {
       ...confirmParticipantSchema,
       config: { rateLimit: participantConfirmRateLimit },

@@ -57,7 +57,7 @@ describe('confirmationPromptPage', () => {
   it('should render a form that posts the token to confirm', () => {
     const html = confirmationPromptPage(invite)
 
-    expect(html).toContain('<form method="post" action="/participants/confirm"')
+    expect(html).toContain('<form method="post" action="/invites/confirmation"')
     expect(html).toContain(
       '<input type="hidden" name="token" value="token-123"',
     )

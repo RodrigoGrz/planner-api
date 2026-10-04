@@ -20,7 +20,7 @@ describe('Request logging (E2E)', () => {
       logger: { serializers: requestLogSerializers, stream },
     })
 
-    loggedApp.get('/participants/confirm', async () => ({ ok: true }))
+    loggedApp.get('/invites/confirmation', async () => ({ ok: true }))
 
     await loggedApp.ready()
   })
@@ -29,13 +29,13 @@ describe('Request logging (E2E)', () => {
     await loggedApp.close()
   })
 
-  test('[GET] /participants/confirm does not log the query string', async () => {
+  test('[GET] /invites/confirmation does not log the query string', async () => {
     await loggedApp.inject({
       method: 'GET',
-      url: '/participants/confirm?token=secret-confirmation-token',
+      url: '/invites/confirmation?token=secret-confirmation-token',
     })
 
-    expect(logOutput).toContain('/participants/confirm')
+    expect(logOutput).toContain('/invites/confirmation')
     expect(logOutput).not.toContain('secret-confirmation-token')
   })
 })

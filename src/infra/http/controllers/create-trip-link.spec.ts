@@ -15,7 +15,7 @@ describe('Create Trip Link (E2E)', () => {
     await app.close()
   })
 
-  test('[POST] /trips/link/register', async () => {
+  test('[POST] /trips/:tripId/links', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -23,12 +23,11 @@ describe('Create Trip Link (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .post('/trips/link/register')
+      .post(`/trips/${trip.id.toString()}/links`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         title: 'Google',
         url: 'https://google.com',
-        tripId: trip.id.toString(),
       })
 
     expect(result.statusCode).toBe(201)
@@ -48,7 +47,7 @@ describe('Create Trip Link (E2E)', () => {
       'a url longer than 2048 characters',
       `https://example.com/${'a'.repeat(2048)}`,
     ],
-  ])('[POST] /trips/link/register returns 400 for %s', async (_, url) => {
+  ])('[POST] /trips/:tripId/links returns 400 for %s', async (_, url) => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -56,12 +55,11 @@ describe('Create Trip Link (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .post('/trips/link/register')
+      .post(`/trips/${trip.id.toString()}/links`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         title: 'Link',
         url,
-        tripId: trip.id.toString(),
       })
 
     expect(result.statusCode).toBe(400)
@@ -74,7 +72,7 @@ describe('Create Trip Link (E2E)', () => {
   test.each([
     ['an empty title', '   '],
     ['a title longer than 100 characters', 'a'.repeat(101)],
-  ])('[POST] /trips/link/register returns 400 for %s', async (_, title) => {
+  ])('[POST] /trips/:tripId/links returns 400 for %s', async (_, title) => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -82,12 +80,11 @@ describe('Create Trip Link (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .post('/trips/link/register')
+      .post(`/trips/${trip.id.toString()}/links`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         title,
         url: 'https://example.com',
-        tripId: trip.id.toString(),
       })
 
     expect(result.statusCode).toBe(400)
@@ -96,7 +93,7 @@ describe('Create Trip Link (E2E)', () => {
     ).toBe(0)
   })
 
-  test('[POST] /trips/link/register stores the title trimmed', async () => {
+  test('[POST] /trips/:tripId/links stores the title trimmed', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -104,12 +101,11 @@ describe('Create Trip Link (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .post('/trips/link/register')
+      .post(`/trips/${trip.id.toString()}/links`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         title: '  Booking  ',
         url: 'https://example.com',
-        tripId: trip.id.toString(),
       })
 
     const link = await prisma.link.findUnique({
@@ -120,7 +116,7 @@ describe('Create Trip Link (E2E)', () => {
     expect(link?.title).toBe('Booking')
   })
 
-  test('[POST] /trips/link/register accepts an http url', async () => {
+  test('[POST] /trips/:tripId/links accepts an http url', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -128,12 +124,11 @@ describe('Create Trip Link (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .post('/trips/link/register')
+      .post(`/trips/${trip.id.toString()}/links`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         title: 'Example',
         url: 'http://example.com',
-        tripId: trip.id.toString(),
       })
 
     expect(result.statusCode).toBe(201)
@@ -145,18 +140,44 @@ describe('Create Trip Link (E2E)', () => {
     expect(link?.url).toBe('http://example.com')
   })
 
-  test('[POST] /trips/link/register returns 404 when the trip does not exist', async () => {
+  test('[POST] /trips/:tripId/links returns 404 when the trip does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
-      .post('/trips/link/register')
+      .post(`/trips/${new UniqueEntityID().toString()}/links`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         title: 'Google',
         url: 'https://google.com',
-        tripId: new UniqueEntityID().toString(),
       })
 
     expect(result.statusCode).toBe(404)
+  })
+
+  test('[POST] /trips/:tripId/links ignores a tripId sent in the body', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+    const anotherTrip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const result = await request(app.server)
+      .post(`/trips/${trip.id.toString()}/links`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title: 'Google',
+        url: 'https://google.com',
+        tripId: anotherTrip.id.toString(),
+      })
+
+    const link = await prisma.link.findUnique({
+      where: { id: result.body.linkId },
+    })
+
+    expect(result.statusCode).toBe(201)
+    expect(link?.trip_id).toBe(trip.id.toString())
   })
 })

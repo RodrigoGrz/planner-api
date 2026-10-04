@@ -13,7 +13,7 @@ describe('Authenticate (E2E)', () => {
     await app.close()
   })
 
-  test('[POST] /travelers/auth', async () => {
+  test('[POST] /sessions', async () => {
     const name = faker.person.firstName()
     const email = faker.internet.email()
 
@@ -23,17 +23,15 @@ describe('Authenticate (E2E)', () => {
       password: await hash('12345678', 8),
     })
 
-    const travelerResponse = await request(app.server)
-      .post('/travelers/auth')
-      .send({
-        email,
-        password: '12345678',
-      })
+    const travelerResponse = await request(app.server).post('/sessions').send({
+      email,
+      password: '12345678',
+    })
 
     expect(travelerResponse.body).toHaveProperty('token')
   })
 
-  test('[POST] /travelers/auth authenticates regardless of e-mail casing', async () => {
+  test('[POST] /sessions authenticates regardless of e-mail casing', async () => {
     const localPart = faker.string.alphanumeric(12).toLowerCase()
 
     await makePrismaTraveler({
@@ -42,7 +40,7 @@ describe('Authenticate (E2E)', () => {
     })
 
     const response = await request(app.server)
-      .post('/travelers/auth')
+      .post('/sessions')
       .send({
         email: `  ${localPart.toUpperCase()}@Planner.COM `,
         password: '12345678',
@@ -52,7 +50,7 @@ describe('Authenticate (E2E)', () => {
     expect(response.body).toHaveProperty('token')
   })
 
-  test('[POST] /travelers/auth returns a token that expires in 7 days', async () => {
+  test('[POST] /sessions returns a token that expires in 7 days', async () => {
     const email = faker.internet.email()
 
     await makePrismaTraveler({
@@ -60,7 +58,7 @@ describe('Authenticate (E2E)', () => {
       password: await hash('12345678', 8),
     })
 
-    const response = await request(app.server).post('/travelers/auth').send({
+    const response = await request(app.server).post('/sessions').send({
       email,
       password: '12345678',
     })
@@ -73,7 +71,7 @@ describe('Authenticate (E2E)', () => {
     expect((payload?.exp ?? 0) - (payload?.iat ?? 0)).toBe(7 * 24 * 60 * 60)
   })
 
-  test('[POST] /travelers/auth returns 400 for a password shorter than 8 characters', async () => {
+  test('[POST] /sessions returns 400 for a password shorter than 8 characters', async () => {
     const email = faker.internet.email()
 
     await makePrismaTraveler({
@@ -81,7 +79,7 @@ describe('Authenticate (E2E)', () => {
       password: await hash('1234567', 8),
     })
 
-    const response = await request(app.server).post('/travelers/auth').send({
+    const response = await request(app.server).post('/sessions').send({
       email,
       password: '1234567',
     })

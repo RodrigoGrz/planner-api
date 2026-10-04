@@ -17,7 +17,7 @@ describe('Update Trip (E2E)', () => {
     await app.close()
   })
 
-  test('[PUT] /trips/:tripId/update', async () => {
+  test('[PUT] /trips/:tripId', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -28,7 +28,7 @@ describe('Update Trip (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'London',
@@ -46,7 +46,7 @@ describe('Update Trip (E2E)', () => {
     expect(afterUpdated?.destination).toBe('London')
   })
 
-  test('[PUT] /trips/:tripId/update returns 400 for a destination longer than 100 characters', async () => {
+  test('[PUT] /trips/:tripId returns 400 for a destination longer than 100 characters', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -57,7 +57,7 @@ describe('Update Trip (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'a'.repeat(101),
@@ -73,7 +73,7 @@ describe('Update Trip (E2E)', () => {
     expect(afterUpdate.destination).toBe('Norway')
   })
 
-  test('[PUT] /trips/:tripId/update returns 422 for a trip longer than 30 days', async () => {
+  test('[PUT] /trips/:tripId returns 422 for a trip longer than 30 days', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -83,7 +83,7 @@ describe('Update Trip (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'London',
@@ -101,7 +101,7 @@ describe('Update Trip (E2E)', () => {
     expect(afterUpdate?.ends_at).toEqual(trip.endsAt)
   })
 
-  test('[PUT] /trips/:tripId/update renames an ongoing trip without changing dates', async () => {
+  test('[PUT] /trips/:tripId renames an ongoing trip without changing dates', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -112,7 +112,7 @@ describe('Update Trip (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'London',
@@ -134,37 +134,34 @@ describe('Update Trip (E2E)', () => {
     ['an empty destination', ''],
     ['a blank destination', '   '],
     ['a destination shorter than 3 characters', 'ab'],
-  ])(
-    '[PUT] /trips/:tripId/update returns 400 for %s',
-    async (_, destination) => {
-      const { token, traveler } = await createAndAuthenticateTraveler(app)
+  ])('[PUT] /trips/:tripId returns 400 for %s', async (_, destination) => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
 
-      const trip = await makePrismaTrip({
-        destination: 'Norway',
-        startsAt: dayjs().add(1, 'month').toDate(),
-        endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
-        ownerId: new UniqueEntityID(traveler.id),
+    const trip = await makePrismaTrip({
+      destination: 'Norway',
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const result = await request(app.server)
+      .put(`/trips/${trip.id.toString()}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        destination,
+        startsAt: trip.startsAt,
+        endsAt: trip.endsAt,
       })
 
-      const result = await request(app.server)
-        .put(`/trips/${trip.id.toString()}/update`)
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          destination,
-          startsAt: trip.startsAt,
-          endsAt: trip.endsAt,
-        })
+    const afterUpdate = await prisma.trip.findUnique({
+      where: {
+        id: trip.id.toString(),
+      },
+    })
 
-      const afterUpdate = await prisma.trip.findUnique({
-        where: {
-          id: trip.id.toString(),
-        },
-      })
-
-      expect(result.statusCode).toBe(400)
-      expect(afterUpdate?.destination).toBe('Norway')
-    },
-  )
+    expect(result.statusCode).toBe(400)
+    expect(afterUpdate?.destination).toBe('Norway')
+  })
 
   test.each([
     ['a number', (day: Dayjs) => day.valueOf()],
@@ -174,7 +171,7 @@ describe('Update Trip (E2E)', () => {
       (day: Dayjs) => day.format('YYYY-MM-DDTHH:mm:ss'),
     ],
   ])(
-    '[PUT] /trips/:tripId/update returns 400 when endsAt is %s',
+    '[PUT] /trips/:tripId returns 400 when endsAt is %s',
     async (_, buildEndsAt) => {
       const { token, traveler } = await createAndAuthenticateTraveler(app)
 
@@ -187,7 +184,7 @@ describe('Update Trip (E2E)', () => {
       })
 
       const result = await request(app.server)
-        .put(`/trips/${trip.id.toString()}/update`)
+        .put(`/trips/${trip.id.toString()}`)
         .set('Authorization', `Bearer ${token}`)
         .send({
           destination: trip.destination,
@@ -204,7 +201,7 @@ describe('Update Trip (E2E)', () => {
     },
   )
 
-  test('[PUT] /trips/:tripId/update returns 400 when endsAt is before startsAt', async () => {
+  test('[PUT] /trips/:tripId returns 400 when endsAt is before startsAt', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -214,7 +211,7 @@ describe('Update Trip (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'London',
@@ -225,7 +222,7 @@ describe('Update Trip (E2E)', () => {
     expect(result.statusCode).toBe(400)
   })
 
-  test('[PUT] /trips/:tripId/update keeps created_at', async () => {
+  test('[PUT] /trips/:tripId keeps created_at', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
     const createdAt = dayjs().subtract(1, 'year').startOf('second').toDate()
 
@@ -238,7 +235,7 @@ describe('Update Trip (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'London',
@@ -256,11 +253,11 @@ describe('Update Trip (E2E)', () => {
     expect(afterUpdated?.created_at).toEqual(createdAt)
   })
 
-  test('[PUT] /trips/:tripId/update returns 404 when the trip does not exist', async () => {
+  test('[PUT] /trips/:tripId returns 404 when the trip does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
-      .put(`/trips/${new UniqueEntityID().toString()}/update`)
+      .put(`/trips/${new UniqueEntityID().toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'London',
@@ -271,7 +268,7 @@ describe('Update Trip (E2E)', () => {
     expect(result.statusCode).toBe(404)
   })
 
-  test('[PUT] /trips/:tripId/update with the current version in If-Match', async () => {
+  test('[PUT] /trips/:tripId with the current version in If-Match', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -281,7 +278,7 @@ describe('Update Trip (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .set('If-Match', '"1"')
       .send({
@@ -298,7 +295,7 @@ describe('Update Trip (E2E)', () => {
     expect(detailsResponse.body.trip.version).toBe(2)
   })
 
-  test('[PUT] /trips/:tripId/update returns 412 with a stale If-Match', async () => {
+  test('[PUT] /trips/:tripId returns 412 with a stale If-Match', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -309,7 +306,7 @@ describe('Update Trip (E2E)', () => {
     })
 
     const firstEdit = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .set('If-Match', '"1"')
       .send({
@@ -319,7 +316,7 @@ describe('Update Trip (E2E)', () => {
       })
 
     const staleEdit = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .set('If-Match', '"1"')
       .send({
@@ -337,7 +334,7 @@ describe('Update Trip (E2E)', () => {
     expect(stored?.destination).toBe('London')
   })
 
-  test('[PUT] /trips/:tripId/update returns 400 with a malformed If-Match', async () => {
+  test('[PUT] /trips/:tripId returns 400 with a malformed If-Match', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -347,7 +344,7 @@ describe('Update Trip (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .set('If-Match', 'not-a-version')
       .send({
@@ -359,7 +356,7 @@ describe('Update Trip (E2E)', () => {
     expect(result.statusCode).toBe(400)
   })
 
-  test('[PUT] /trips/:tripId/update returns 400 with an If-Match out of range', async () => {
+  test('[PUT] /trips/:tripId returns 400 with an If-Match out of range', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -369,7 +366,7 @@ describe('Update Trip (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .set('If-Match', '"99999999999"')
       .send({
@@ -381,7 +378,7 @@ describe('Update Trip (E2E)', () => {
     expect(result.statusCode).toBe(400)
   })
 
-  test('[PUT] /trips/:tripId/update accepts If-Match * as no precondition', async () => {
+  test('[PUT] /trips/:tripId accepts If-Match * as no precondition', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -391,7 +388,7 @@ describe('Update Trip (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .set('If-Match', '*')
       .send({
@@ -403,7 +400,7 @@ describe('Update Trip (E2E)', () => {
     expect(result.statusCode).toBe(204)
   })
 
-  test('[PUT] /trips/:tripId/update without If-Match keeps working', async () => {
+  test('[PUT] /trips/:tripId without If-Match keeps working', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -413,7 +410,7 @@ describe('Update Trip (E2E)', () => {
     })
 
     const firstEdit = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'London',
@@ -422,7 +419,7 @@ describe('Update Trip (E2E)', () => {
       })
 
     const secondEdit = await request(app.server)
-      .put(`/trips/${trip.id.toString()}/update`)
+      .put(`/trips/${trip.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'Rome',

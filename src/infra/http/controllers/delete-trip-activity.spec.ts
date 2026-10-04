@@ -15,7 +15,7 @@ describe('Delete Trip Activity (E2E)', () => {
     await app.close()
   })
 
-  test('[DELETE] /trip/activity/:activityId', async () => {
+  test('[DELETE] /trips/:tripId/activities/:activityId', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -32,7 +32,9 @@ describe('Delete Trip Activity (E2E)', () => {
     })
 
     const activityResponse = await request(app.server)
-      .delete(`/trip/activity/${activity.id.toString()}`)
+      .delete(
+        `/trips/${trip.id.toString()}/activities/${activity.id.toString()}`,
+      )
       .set('Authorization', `Bearer ${token}`)
       .send()
 
@@ -46,14 +48,46 @@ describe('Delete Trip Activity (E2E)', () => {
     expect(afterUpdated.length).toBe(1)
   })
 
-  test('[DELETE] /trip/activity/:activityId returns 404 when the activity does not exist', async () => {
+  test('[DELETE] /trips/:tripId/activities/:activityId returns 404 when the activity does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const activityResponse = await request(app.server)
-      .delete(`/trip/activity/${new UniqueEntityID().toString()}`)
+      .delete(
+        `/trips/${new UniqueEntityID().toString()}/activities/${new UniqueEntityID().toString()}`,
+      )
       .set('Authorization', `Bearer ${token}`)
       .send()
 
     expect(activityResponse.statusCode).toBe(404)
+  })
+
+  test('[DELETE] /trips/:tripId/activities/:activityId returns 404 when the activity belongs to another trip', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+    const anotherTrip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const activity = await makePrismaActivity({
+      tripId: anotherTrip.id,
+    })
+
+    const response = await request(app.server)
+      .delete(
+        `/trips/${trip.id.toString()}/activities/${activity.id.toString()}`,
+      )
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    const activityAfter = await prisma.activity.findUnique({
+      where: { id: activity.id.toString() },
+    })
+
+    expect(response.statusCode).toBe(404)
+    expect(response.body.message).toBe('Recurso não encontrado.')
+    expect(activityAfter).not.toBeNull()
   })
 })

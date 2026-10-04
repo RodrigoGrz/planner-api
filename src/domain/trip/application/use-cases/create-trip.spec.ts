@@ -79,7 +79,7 @@ describe('Create Trip', () => {
     for (const token of tokens) {
       expect(
         mailer.sentMails.some((mail) =>
-          mail.html.includes(`/participants/confirm?token=${token}`),
+          mail.html.includes(`/invites/confirmation?token=${token}`),
         ),
       ).toBe(true)
     }
