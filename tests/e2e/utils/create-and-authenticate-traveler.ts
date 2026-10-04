@@ -18,7 +18,7 @@ export async function createAndAuthenticateTraveler(app: FastifyInstance) {
     },
   })
 
-  const authResponse = await request(app.server).post('/travelers/auth').send({
+  const authResponse = await request(app.server).post('/sessions').send({
     email,
     password: '12345678',
   })

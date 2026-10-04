@@ -5,7 +5,10 @@ import { itemTitle } from '../shared/item-title'
 export const createTripActivityBody = z.object({
   title: itemTitle,
   occursAt: isoDateTime,
-  tripId: z.uuid(),
+})
+
+export const createTripActivityParams = z.object({
+  tripId: z.uuid().describe('Trip unique identifier'),
 })
 
 export const createTripActivitySchema = {
@@ -13,6 +16,7 @@ export const createTripActivitySchema = {
     tags: ['Trip'],
     summary: 'Create a trip activity.',
     security: [{ bearerAuth: [] }],
+    params: createTripActivityParams,
     body: createTripActivityBody,
     response: {
       201: z

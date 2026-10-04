@@ -13,7 +13,7 @@ describe('Get Trip Details (E2E)', () => {
     await app.close()
   })
 
-  test('[GET] /trips/:id', async () => {
+  test('[GET] /trips/:tripId', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -31,7 +31,7 @@ describe('Get Trip Details (E2E)', () => {
     expect(tripResponse.body.trip.ownerName).toStrictEqual(expect.any(String))
   })
 
-  test('[GET] /trips/:id returns the trip version', async () => {
+  test('[GET] /trips/:tripId returns the trip version', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -47,7 +47,7 @@ describe('Get Trip Details (E2E)', () => {
     expect(tripResponse.body.trip.version).toBe(1)
   })
 
-  test('[GET] /trips/:id returns 404 when the trip does not exist', async () => {
+  test('[GET] /trips/:tripId returns 404 when the trip does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const tripResponse = await request(app.server)

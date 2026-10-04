@@ -17,7 +17,7 @@ describe('Create Trip Activity (E2E)', () => {
     await app.close()
   })
 
-  test('[POST] /trips/activity/register', async () => {
+  test('[POST] /trips/:tripId/activities', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -27,12 +27,11 @@ describe('Create Trip Activity (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .post('/trips/activity/register')
+      .post(`/trips/${trip.id.toString()}/activities`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         title: 'Hotel Check-in',
         occursAt: dayjs().add(1, 'month').add(1, 'hour').toDate(),
-        tripId: trip.id.toString(),
       })
 
     expect(result.statusCode).toBe(201)
@@ -46,31 +45,33 @@ describe('Create Trip Activity (E2E)', () => {
   test.each([
     ['an empty title', '   '],
     ['a title longer than 100 characters', 'a'.repeat(101)],
-  ])('[POST] /trips/activity/register returns 400 for %s', async (_, title) => {
-    const { token, traveler } = await createAndAuthenticateTraveler(app)
+  ])(
+    '[POST] /trips/:tripId/activities returns 400 for %s',
+    async (_, title) => {
+      const { token, traveler } = await createAndAuthenticateTraveler(app)
 
-    const trip = await makePrismaTrip({
-      ownerId: new UniqueEntityID(traveler.id),
-      startsAt: dayjs().add(1, 'month').toDate(),
-      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
-    })
-
-    const result = await request(app.server)
-      .post('/trips/activity/register')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        title,
-        occursAt: dayjs().add(1, 'month').add(1, 'hour').toDate(),
-        tripId: trip.id.toString(),
+      const trip = await makePrismaTrip({
+        ownerId: new UniqueEntityID(traveler.id),
+        startsAt: dayjs().add(1, 'month').toDate(),
+        endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
       })
 
-    expect(result.statusCode).toBe(400)
-    expect(
-      await prisma.activity.count({ where: { trip_id: trip.id.toString() } }),
-    ).toBe(0)
-  })
+      const result = await request(app.server)
+        .post(`/trips/${trip.id.toString()}/activities`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          title,
+          occursAt: dayjs().add(1, 'month').add(1, 'hour').toDate(),
+        })
 
-  test('[POST] /trips/activity/register stores the title trimmed', async () => {
+      expect(result.statusCode).toBe(400)
+      expect(
+        await prisma.activity.count({ where: { trip_id: trip.id.toString() } }),
+      ).toBe(0)
+    },
+  )
+
+  test('[POST] /trips/:tripId/activities stores the title trimmed', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -80,12 +81,11 @@ describe('Create Trip Activity (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .post('/trips/activity/register')
+      .post(`/trips/${trip.id.toString()}/activities`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         title: '  Hotel Check-in  ',
         occursAt: dayjs().add(1, 'month').add(1, 'hour').toDate(),
-        tripId: trip.id.toString(),
       })
 
     const activity = await prisma.activity.findUnique({
@@ -96,7 +96,7 @@ describe('Create Trip Activity (E2E)', () => {
     expect(activity?.title).toBe('Hotel Check-in')
   })
 
-  test('[POST] /trips/activity/register accepts an activity in the afternoon of the last day', async () => {
+  test('[POST] /trips/:tripId/activities accepts an activity in the afternoon of the last day', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const firstDay = dayjs.utc().add(1, 'month').startOf('day')
@@ -109,12 +109,11 @@ describe('Create Trip Activity (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .post('/trips/activity/register')
+      .post(`/trips/${trip.id.toString()}/activities`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         title: 'Farewell dinner',
         occursAt: lastDay.hour(14).toDate(),
-        tripId: trip.id.toString(),
       })
 
     expect(result.statusCode).toBe(201)
@@ -128,7 +127,7 @@ describe('Create Trip Activity (E2E)', () => {
       (day: Dayjs) => day.format('YYYY-MM-DD HH:mm'),
     ],
   ])(
-    '[POST] /trips/activity/register returns 400 when occursAt is %s',
+    '[POST] /trips/:tripId/activities returns 400 when occursAt is %s',
     async (_, buildOccursAt) => {
       const { token, traveler } = await createAndAuthenticateTraveler(app)
 
@@ -141,12 +140,11 @@ describe('Create Trip Activity (E2E)', () => {
       })
 
       const result = await request(app.server)
-        .post('/trips/activity/register')
+        .post(`/trips/${trip.id.toString()}/activities`)
         .set('Authorization', `Bearer ${token}`)
         .send({
           title: 'Strict date',
           occursAt: buildOccursAt(firstDay.add(1, 'day').hour(10)),
-          tripId: trip.id.toString(),
         })
 
       expect(result.statusCode).toBe(400)
@@ -158,22 +156,21 @@ describe('Create Trip Activity (E2E)', () => {
     },
   )
 
-  test('[POST] /trips/activity/register returns 404 when the trip does not exist', async () => {
+  test('[POST] /trips/:tripId/activities returns 404 when the trip does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
-      .post('/trips/activity/register')
+      .post(`/trips/${new UniqueEntityID().toString()}/activities`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         title: 'Hotel Check-in',
         occursAt: dayjs().add(1, 'month').add(1, 'hour').toDate(),
-        tripId: new UniqueEntityID().toString(),
       })
 
     expect(result.statusCode).toBe(404)
   })
 
-  test('[POST] /trips/activity/register returns 422 for an activity outside the trip period', async () => {
+  test('[POST] /trips/:tripId/activities returns 422 for an activity outside the trip period', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -183,12 +180,11 @@ describe('Create Trip Activity (E2E)', () => {
     })
 
     const result = await request(app.server)
-      .post('/trips/activity/register')
+      .post(`/trips/${trip.id.toString()}/activities`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         title: 'Hotel Check-in',
         occursAt: dayjs().add(2, 'month').toDate(),
-        tripId: trip.id.toString(),
       })
 
     expect(result.statusCode).toBe(422)

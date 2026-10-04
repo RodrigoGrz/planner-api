@@ -1,6 +1,7 @@
 import z from 'zod'
 
 export const deleteTripActivityParams = z.object({
+  tripId: z.uuid().describe('Trip unique identifier'),
   activityId: z.uuid().describe('Activity unique identifier'),
 })
 

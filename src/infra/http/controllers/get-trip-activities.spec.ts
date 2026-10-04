@@ -108,7 +108,7 @@ describe('Get Trip Activities (E2E)', () => {
     const activityId = listResponse.body.activities[0].activities[0].id
 
     const deleteResponse = await request(app.server)
-      .delete(`/trip/activity/${activityId}`)
+      .delete(`/trips/${trip.id.toString()}/activities/${activityId}`)
       .set('Authorization', `Bearer ${token}`)
       .send()
 

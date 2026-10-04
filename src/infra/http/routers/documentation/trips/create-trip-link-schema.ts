@@ -4,7 +4,10 @@ import { itemTitle } from '../shared/item-title'
 export const createTripLinkBody = z.object({
   title: itemTitle,
   url: z.httpUrl().max(2048),
-  tripId: z.uuid(),
+})
+
+export const createTripLinkParams = z.object({
+  tripId: z.uuid().describe('Trip unique identifier'),
 })
 
 export const createTripLinkSchema = {
@@ -12,6 +15,7 @@ export const createTripLinkSchema = {
     tags: ['Trip'],
     summary: 'Create a new trip link.',
     security: [{ bearerAuth: [] }],
+    params: createTripLinkParams,
     body: createTripLinkBody,
     response: {
       201: z

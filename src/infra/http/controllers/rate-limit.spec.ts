@@ -23,7 +23,7 @@ describe('Rate limit (E2E)', () => {
     await app.close()
   })
 
-  test('[POST] /travelers/auth returns 429 after 10 attempts from the same IP', async () => {
+  test('[POST] /sessions returns 429 after 10 attempts from the same IP', async () => {
     const email = faker.internet.email().toLowerCase()
 
     await makePrismaTraveler({ email, password: await hash('123456', 8) })
@@ -31,7 +31,7 @@ describe('Rate limit (E2E)', () => {
     const attempt = () =>
       app.inject({
         method: 'POST',
-        url: '/travelers/auth',
+        url: '/sessions',
         remoteAddress: '10.0.0.1',
         payload: { email, password: 'wrong-password' },
       })
@@ -47,11 +47,11 @@ describe('Rate limit (E2E)', () => {
     expect(blocked.headers['retry-after']).toBeDefined()
   })
 
-  test('[POST] /travelers/auth counts attempts with different e-mails from the same IP', async () => {
+  test('[POST] /sessions counts attempts with different e-mails from the same IP', async () => {
     const attempt = () =>
       app.inject({
         method: 'POST',
-        url: '/travelers/auth',
+        url: '/sessions',
         remoteAddress: '10.0.0.2',
         payload: {
           email: faker.internet.email().toLowerCase(),
@@ -66,11 +66,11 @@ describe('Rate limit (E2E)', () => {
     expect((await attempt()).statusCode).toBe(429)
   })
 
-  test('[POST] /travelers/register returns 429 after 5 registrations from the same IP', async () => {
+  test('[POST] /travelers returns 429 after 5 registrations from the same IP', async () => {
     const register = () =>
       app.inject({
         method: 'POST',
-        url: '/travelers/register',
+        url: '/travelers',
         remoteAddress: '10.0.0.3',
         payload: {
           name: faker.person.fullName(),
@@ -90,14 +90,14 @@ describe('Rate limit (E2E)', () => {
     expect(blocked.json()).toEqual(TOO_MANY_REQUESTS_BODY)
   })
 
-  test('[POST] /trips/register returns 429 after 20 requests per hour per traveler', async () => {
+  test('[POST] /trips returns 429 after 20 requests per hour per traveler', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
     const { token: otherToken } = await createAndAuthenticateTraveler(app)
 
     const createTrip = (authToken: string) =>
       app.inject({
         method: 'POST',
-        url: '/trips/register',
+        url: '/trips',
         headers: { authorization: `Bearer ${authToken}` },
         payload: {
           destination: 'Norway',
@@ -123,7 +123,7 @@ describe('Rate limit (E2E)', () => {
 
     const trip = await app.inject({
       method: 'POST',
-      url: '/trips/register',
+      url: '/trips',
       headers: { authorization: `Bearer ${token}` },
       payload: {
         destination: 'Norway',
@@ -151,11 +151,11 @@ describe('Rate limit (E2E)', () => {
     expect(blocked.json()).toEqual(TOO_MANY_REQUESTS_BODY)
   })
 
-  test('[GET] /participants/confirm returns 429 after 20 requests from the same IP', async () => {
+  test('[GET] /invites/confirmation returns 429 after 20 requests from the same IP', async () => {
     const page = () =>
       app.inject({
         method: 'GET',
-        url: `/participants/confirm?token=${randomUUID()}`,
+        url: `/invites/confirmation?token=${randomUUID()}`,
         remoteAddress: '10.0.0.5',
       })
 
@@ -166,11 +166,11 @@ describe('Rate limit (E2E)', () => {
     expect((await page()).statusCode).toBe(429)
   })
 
-  test('[POST] /participants/confirm returns 429 after 20 requests from the same IP', async () => {
+  test('[POST] /invites/confirmation returns 429 after 20 requests from the same IP', async () => {
     const confirm = () =>
       app.inject({
         method: 'POST',
-        url: '/participants/confirm',
+        url: '/invites/confirmation',
         remoteAddress: '10.0.0.7',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
         payload: `token=${randomUUID()}`,
@@ -183,13 +183,13 @@ describe('Rate limit (E2E)', () => {
     expect((await confirm()).statusCode).toBe(429)
   })
 
-  test('[GET] /traveler/trips returns 429 after 100 requests per minute from the same IP', async () => {
+  test('[GET] /me/trips returns 429 after 100 requests per minute from the same IP', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const listTrips = () =>
       app.inject({
         method: 'GET',
-        url: '/traveler/trips',
+        url: '/me/trips',
         remoteAddress: '10.0.0.6',
         headers: { authorization: `Bearer ${token}` },
       })

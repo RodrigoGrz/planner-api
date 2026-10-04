@@ -8,7 +8,7 @@ import {
   confirmationExpiredPage,
   confirmationSuccessPage,
 } from '@/utils/confirmation-pages'
-import { confirmParticipantBody } from '../routers/documentation/participants/confirm-participant-schema'
+import { confirmParticipantBody } from '../routers/documentation/invites/invite-confirmation-schema'
 
 type ConfirmParticipantBody = z.infer<typeof confirmParticipantBody>
 

@@ -14,7 +14,7 @@ import fastifyRateLimit from '@fastify/rate-limit'
 import { env } from '@/env'
 import { travelersRoute } from './http/routers/travelers.route'
 import { tripsRoute } from './http/routers/trips.route'
-import { participantsRoute } from './http/routers/participants.route'
+import { invitesRoute } from './http/routers/invites.route'
 import { errorHandler } from './http/error-handler'
 import { requestLogSerializers } from './http/request-log-serializers'
 import { TOO_MANY_REQUESTS_MESSAGE } from './http/rate-limits'
@@ -87,9 +87,10 @@ app.register(fastifyMultipart, {
 
 app.register(fastifyCors, {
   origin: env.CORS_ORIGINS,
+  methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'],
   credentials: false,
 })
 
 app.register(travelersRoute)
 app.register(tripsRoute)
-app.register(participantsRoute)
+app.register(invitesRoute)

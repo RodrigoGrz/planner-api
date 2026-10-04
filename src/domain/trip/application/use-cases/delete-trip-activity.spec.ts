@@ -54,6 +54,7 @@ describe('Delete trip activity', () => {
 
     const result = await deleteTripActivityUseCase.execute({
       id: activity.id.toString(),
+      tripId: trip.id.toString(),
       travelerId: owner.id.toString(),
     })
 
@@ -65,6 +66,7 @@ describe('Delete trip activity', () => {
   it('should not be able to delete a trip activity if ID is wrong', async () => {
     const result = await deleteTripActivityUseCase.execute({
       id: 'wrong-id',
+      tripId: 'any-trip',
       travelerId: 'any-traveler',
     })
 
@@ -92,11 +94,34 @@ describe('Delete trip activity', () => {
 
     const result = await deleteTripActivityUseCase.execute({
       id: activity.id.toString(),
+      tripId: trip.id.toString(),
       travelerId: intruder.id.toString(),
     })
 
     expect(result.isLeft()).toBeTruthy()
     expect(result.value).toBeInstanceOf(NotAllowedError)
+    expect(activitiesRepository.items).toHaveLength(1)
+  })
+
+  it('should not be able to delete an activity that belongs to another trip', async () => {
+    const owner = await makeTraveler()
+    travelersRepository.items.push(owner)
+
+    const trip = await makeTrip({ ownerId: owner.id })
+    const anotherTrip = await makeTrip({ ownerId: owner.id })
+    tripsRepository.items.push(trip, anotherTrip)
+
+    const activity = await makeActivity({ tripId: anotherTrip.id })
+    activitiesRepository.items.push(activity)
+
+    const result = await deleteTripActivityUseCase.execute({
+      id: activity.id.toString(),
+      tripId: trip.id.toString(),
+      travelerId: owner.id.toString(),
+    })
+
+    expect(result.isLeft()).toBeTruthy()
+    expect(result.value).toBeInstanceOf(ResourceNotExistsError)
     expect(activitiesRepository.items).toHaveLength(1)
   })
 })

@@ -7,6 +7,7 @@ import { isTripOwner } from '../authorization/trip-access'
 
 interface DeleteTripLinkUseCaseRequest {
   id: string
+  tripId: string
   travelerId: string
 }
 
@@ -23,11 +24,12 @@ export class DeleteTripLinkUseCase {
 
   async execute({
     id,
+    tripId,
     travelerId,
   }: DeleteTripLinkUseCaseRequest): Promise<DeleteTripLinkUseCaseResponse> {
     const link = await this.linksRepository.findById(id)
 
-    if (!link) {
+    if (!link || link.tripId.toString() !== tripId) {
       return left(new ResourceNotExistsError())
     }
 

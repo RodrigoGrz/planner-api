@@ -7,6 +7,7 @@ import { isTripOwner } from '../authorization/trip-access'
 
 interface DeleteTripActivityUseCaseRequest {
   id: string
+  tripId: string
   travelerId: string
 }
 
@@ -23,11 +24,12 @@ export class DeleteTripActivityUseCase {
 
   async execute({
     id,
+    tripId,
     travelerId,
   }: DeleteTripActivityUseCaseRequest): Promise<DeleteTripActivityUseCaseResponse> {
     const activity = await this.activitiesRepository.findById(id)
 
-    if (!activity) {
+    if (!activity || activity.tripId.toString() !== tripId) {
       return left(new ResourceNotExistsError())
     }
 

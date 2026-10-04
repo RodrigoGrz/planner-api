@@ -15,7 +15,7 @@ describe('Get All Travelers By Trip (E2E)', () => {
     await app.close()
   })
 
-  test('[GET] /traveler/trips', async () => {
+  test('[GET] /me/trips', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip1 = await makePrismaTrip({
@@ -48,7 +48,7 @@ describe('Get All Travelers By Trip (E2E)', () => {
     })
 
     const participantTripsResponse = await request(app.server)
-      .get('/traveler/trips')
+      .get('/me/trips')
       .set('Authorization', `Bearer ${token}`)
       .send()
 

@@ -39,6 +39,12 @@ Direção de dependência: `infra -> application -> enterprise -> core`. O domí
 - Use case: `interface XUseCaseRequest`, `type XUseCaseResponse = Either<ErroA | ErroB, { ... }>`.
 - Controller: `export async function xController(request, reply)`; tipos de body/params via `z.infer<typeof schema>`; erros mapeados com `switch (error.constructor)`.
 - Repositórios recebem e retornam entidades de domínio, nunca tipos do Prisma.
+- Rotas REST:
+  - recursos no plural e sem verbo na URL (`POST /trips`, `PUT /trips/:tripId`);
+  - filhos aninhados na viagem (`/trips/:tripId/links/:linkId`), com o use case validando que o filho pertence ao `tripId` da URL (senão, `ResourceNotExistsError`);
+  - traveler logado em `/me` (`GET /me/trips`);
+  - sessão em `POST /sessions`;
+  - tokens só na query ou no body, nunca no path, porque o serializer de log descarta a query.
 - Mudanças de banco: `prisma/schema.prisma` + migration (`npm run db:migrate`).
 - Descrições de teste em inglês (`it('should be able to ...')`, `it('should not be able to ...')`).
 

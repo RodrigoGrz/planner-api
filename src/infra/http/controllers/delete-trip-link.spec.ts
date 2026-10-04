@@ -15,7 +15,7 @@ describe('Delete Trip Links (E2E)', () => {
     await app.close()
   })
 
-  test('[DELETE] /trip/link/:linkId', async () => {
+  test('[DELETE] /trips/:tripId/links/:linkId', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip = await makePrismaTrip({
@@ -32,7 +32,7 @@ describe('Delete Trip Links (E2E)', () => {
     })
 
     const linkResponse = await request(app.server)
-      .delete(`/trip/link/${link.id.toString()}`)
+      .delete(`/trips/${trip.id.toString()}/links/${link.id.toString()}`)
       .set('Authorization', `Bearer ${token}`)
       .send()
 
@@ -46,14 +46,44 @@ describe('Delete Trip Links (E2E)', () => {
     expect(afterUpdated.length).toBe(1)
   })
 
-  test('[DELETE] /trip/link/:linkId returns 404 when the link does not exist', async () => {
+  test('[DELETE] /trips/:tripId/links/:linkId returns 404 when the link does not exist', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const linkResponse = await request(app.server)
-      .delete(`/trip/link/${new UniqueEntityID().toString()}`)
+      .delete(
+        `/trips/${new UniqueEntityID().toString()}/links/${new UniqueEntityID().toString()}`,
+      )
       .set('Authorization', `Bearer ${token}`)
       .send()
 
     expect(linkResponse.statusCode).toBe(404)
+  })
+
+  test('[DELETE] /trips/:tripId/links/:linkId returns 404 when the link belongs to another trip', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+    const anotherTrip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const link = await makePrismaLink({
+      tripId: anotherTrip.id,
+    })
+
+    const response = await request(app.server)
+      .delete(`/trips/${trip.id.toString()}/links/${link.id.toString()}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    const linkAfter = await prisma.link.findUnique({
+      where: { id: link.id.toString() },
+    })
+
+    expect(response.statusCode).toBe(404)
+    expect(response.body.message).toBe('Recurso não encontrado.')
+    expect(linkAfter).not.toBeNull()
   })
 })

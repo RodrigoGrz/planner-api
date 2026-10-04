@@ -15,7 +15,7 @@ describe('Get Next Trip Traveler (E2E)', () => {
     await app.close()
   })
 
-  test('[GET] /traveler/next/trip', async () => {
+  test('[GET] /me/trips/next', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const trip1 = await makePrismaTrip({
@@ -55,7 +55,7 @@ describe('Get Next Trip Traveler (E2E)', () => {
     })
 
     const participantTripsResponse = await request(app.server)
-      .get('/traveler/next/trip')
+      .get('/me/trips/next')
       .set('Authorization', `Bearer ${token}`)
       .send()
 
@@ -63,7 +63,7 @@ describe('Get Next Trip Traveler (E2E)', () => {
     expect(participantTripsResponse.body.nextTrip.destination).toBe('Norway')
   })
 
-  test('[GET] /traveler/next/trip returns an ongoing trip', async () => {
+  test('[GET] /me/trips/next returns an ongoing trip', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
     const today = dayjs.utc().startOf('day')
 
@@ -92,7 +92,7 @@ describe('Get Next Trip Traveler (E2E)', () => {
     })
 
     const response = await request(app.server)
-      .get('/traveler/next/trip')
+      .get('/me/trips/next')
       .set('Authorization', `Bearer ${token}`)
       .send()
 

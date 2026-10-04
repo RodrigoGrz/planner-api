@@ -3,17 +3,25 @@ import { FastifyReply, FastifyRequest } from 'fastify'
 import { InvalidDate } from '@/domain/trip/application/use-cases/errors/invalid-date-error'
 import { ResourceNotExistsError } from '@/domain/trip/application/use-cases/errors/resource-not-exists-error'
 import { createTripActivityFactory } from '@/domain/trip/application/use-cases/factory/create-trip-activity-factory'
-import { createTripActivityBody } from '../routers/documentation/trips/create-trip-activity-schema'
+import {
+  createTripActivityBody,
+  createTripActivityParams,
+} from '../routers/documentation/trips/create-trip-activity-schema'
 import { NotAllowedError } from '@/domain/trip/application/use-cases/errors/not-allowed-error'
 import z from 'zod'
 
+type CreateTripActivityParams = z.infer<typeof createTripActivityParams>
 type CreateTripActivityBody = z.infer<typeof createTripActivityBody>
 
 export async function createTripActivityController(
-  request: FastifyRequest<{ Body: CreateTripActivityBody }>,
+  request: FastifyRequest<{
+    Params: CreateTripActivityParams
+    Body: CreateTripActivityBody
+  }>,
   reply: FastifyReply,
 ) {
-  const { title, occursAt, tripId } = request.body
+  const { tripId } = request.params
+  const { title, occursAt } = request.body
   const { sub } = request.user
 
   const createTripActivityUseCase = createTripActivityFactory()

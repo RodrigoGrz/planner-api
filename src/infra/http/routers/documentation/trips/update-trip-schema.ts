@@ -39,7 +39,7 @@ export const updateTripHeaders = z.object({
 export const updateTripSchema = {
   schema: {
     tags: ['Trip'],
-    summary: 'Update a new trip.',
+    summary: 'Update a trip.',
     security: [{ bearerAuth: [] }],
     params: updateTripParams,
     headers: updateTripHeaders,

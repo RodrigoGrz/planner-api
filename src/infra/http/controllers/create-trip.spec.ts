@@ -14,11 +14,11 @@ describe('Create Trip (E2E)', () => {
     await app.close()
   })
 
-  test('[POST] /trips/register', async () => {
+  test('[POST] /trips', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
-      .post('/trips/register')
+      .post('/trips')
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'Test',
@@ -30,11 +30,11 @@ describe('Create Trip (E2E)', () => {
     expect(result.statusCode).toBe(201)
   })
 
-  test('[POST] /trips/register should not allow invalid e-mails', async () => {
+  test('[POST] /trips should not allow invalid e-mails', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
-      .post('/trips/register')
+      .post('/trips')
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'Test',
@@ -50,13 +50,13 @@ describe('Create Trip (E2E)', () => {
     ['a leading space', ' application/json'],
     ['a leading tab', '\tapplication/json'],
   ])(
-    '[POST] /trips/register should validate body when content-type has %s',
+    '[POST] /trips should validate body when content-type has %s',
     async (_, contentType) => {
       const { token, traveler } = await createAndAuthenticateTraveler(app)
 
       const result = await app.inject({
         method: 'POST',
-        url: '/trips/register',
+        url: '/trips',
         headers: {
           authorization: `Bearer ${token}`,
           'content-type': contentType,
@@ -87,14 +87,14 @@ describe('Create Trip (E2E)', () => {
       (day: Dayjs) => day.format('YYYY-MM-DDTHH:mm:ss'),
     ],
   ])(
-    '[POST] /trips/register returns 400 when startsAt is %s',
+    '[POST] /trips returns 400 when startsAt is %s',
     async (_, buildStartsAt) => {
       const { token, traveler } = await createAndAuthenticateTraveler(app)
 
       const firstDay = dayjs.utc().add(1, 'month').startOf('day')
 
       const result = await request(app.server)
-        .post('/trips/register')
+        .post('/trips')
         .set('Authorization', `Bearer ${token}`)
         .send({
           destination: 'Strict dates',
@@ -111,7 +111,7 @@ describe('Create Trip (E2E)', () => {
     },
   )
 
-  test('[POST] /trips/register accepts startsAt and endsAt with a numeric offset', async () => {
+  test('[POST] /trips accepts startsAt and endsAt with a numeric offset', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const firstDay = dayjs.utc().add(1, 'month').format('YYYY-MM-DD')
@@ -122,7 +122,7 @@ describe('Create Trip (E2E)', () => {
       .format('YYYY-MM-DD')
 
     const result = await request(app.server)
-      .post('/trips/register')
+      .post('/trips')
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'Offset dates',
@@ -134,13 +134,13 @@ describe('Create Trip (E2E)', () => {
     expect(result.statusCode).toBe(201)
   })
 
-  test('[POST] /trips/register accepts start and end on the same UTC day regardless of time', async () => {
+  test('[POST] /trips accepts start and end on the same UTC day regardless of time', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const tripDay = dayjs.utc().add(1, 'month').startOf('day')
 
     const result = await request(app.server)
-      .post('/trips/register')
+      .post('/trips')
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'Same day',
@@ -152,14 +152,14 @@ describe('Create Trip (E2E)', () => {
     expect(result.statusCode).toBe(201)
   })
 
-  test('[POST] /trips/register stores the dates at midnight UTC', async () => {
+  test('[POST] /trips stores the dates at midnight UTC', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const firstDay = dayjs.utc().add(1, 'month').startOf('day')
     const lastDay = firstDay.add(3, 'day')
 
     const result = await request(app.server)
-      .post('/trips/register')
+      .post('/trips')
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'Normalized',
@@ -177,11 +177,11 @@ describe('Create Trip (E2E)', () => {
     expect(trip?.ends_at).toEqual(lastDay.toDate())
   })
 
-  test('[POST] /trips/register does not invite the owner when the e-mail casing differs', async () => {
+  test('[POST] /trips does not invite the owner when the e-mail casing differs', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
-      .post('/trips/register')
+      .post('/trips')
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'Owner casing',
@@ -198,11 +198,11 @@ describe('Create Trip (E2E)', () => {
     ).toBe(1)
   })
 
-  test('[POST] /trips/register returns 400 for a blank destination', async () => {
+  test('[POST] /trips returns 400 for a blank destination', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
-      .post('/trips/register')
+      .post('/trips')
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: '   ',
@@ -217,11 +217,11 @@ describe('Create Trip (E2E)', () => {
     )
   })
 
-  test('[POST] /trips/register returns 400 for a destination longer than 100 characters', async () => {
+  test('[POST] /trips returns 400 for a destination longer than 100 characters', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
-      .post('/trips/register')
+      .post('/trips')
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'a'.repeat(101),
@@ -236,11 +236,11 @@ describe('Create Trip (E2E)', () => {
     )
   })
 
-  test('[POST] /trips/register returns 413 for a body larger than 100KB', async () => {
+  test('[POST] /trips returns 413 for a body larger than 100KB', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
-      .post('/trips/register')
+      .post('/trips')
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'Norway',
@@ -256,11 +256,11 @@ describe('Create Trip (E2E)', () => {
     )
   })
 
-  test('[POST] /trips/register returns 422 for a start date before today', async () => {
+  test('[POST] /trips returns 422 for a start date before today', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
-      .post('/trips/register')
+      .post('/trips')
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'Norway',
@@ -275,11 +275,11 @@ describe('Create Trip (E2E)', () => {
     )
   })
 
-  test('[POST] /trips/register returns 422 for a trip longer than 30 days', async () => {
+  test('[POST] /trips returns 422 for a trip longer than 30 days', async () => {
     const { token, traveler } = await createAndAuthenticateTraveler(app)
 
     const result = await request(app.server)
-      .post('/trips/register')
+      .post('/trips')
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'Test',
@@ -294,13 +294,13 @@ describe('Create Trip (E2E)', () => {
     )
   })
 
-  test('[POST] /trips/register should not allow more than 20 invites', async () => {
+  test('[POST] /trips should not allow more than 20 invites', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const emails = Array.from({ length: 21 }, (_, i) => `test${i}@planner.com`)
 
     const result = await request(app.server)
-      .post('/trips/register')
+      .post('/trips')
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'Test',
@@ -312,13 +312,13 @@ describe('Create Trip (E2E)', () => {
     expect(result.statusCode).toBe(400)
   })
 
-  test('[POST] /trips/register should not create duplicate participants per trip', async () => {
+  test('[POST] /trips should not create duplicate participants per trip', async () => {
     const { token } = await createAndAuthenticateTraveler(app)
 
     const emails = ['test@planner.com', 'test@planner.com', 'test@planner.com']
 
     const result = await request(app.server)
-      .post('/trips/register')
+      .post('/trips')
       .set('Authorization', `Bearer ${token}`)
       .send({
         destination: 'Test',
