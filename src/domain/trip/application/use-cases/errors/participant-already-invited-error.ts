@@ -4,6 +4,8 @@ export class ParticipantAlreadyInvitedError
   extends Error
   implements UseCaseError
 {
+  readonly name = 'ParticipantAlreadyInvitedError'
+
   constructor() {
     super('Esse e-mail já foi convidado para a viagem.')
   }

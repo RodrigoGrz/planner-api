@@ -36,7 +36,7 @@ Se o E2E não puder rodar (banco fora do ar), reporte como **não verificado**, 
 - [ ] Todo método de repositório existe na interface, no fake (`tests/repositories`) e no Prisma.
 - [ ] Repositórios usam mapper e não vazam tipos do Prisma para o domínio.
 - [ ] Domínio não importa de `@/infra` (exceto factories).
-- [ ] Erros novos em `use-cases/errors/`, estendendo `Error` e implementando `UseCaseError`.
+- [ ] Erros novos em `use-cases/errors/`, estendendo `Error`, implementando `UseCaseError` e com `readonly name` igual ao nome da classe.
 - [ ] Erros mapeados para status HTTP coerentes no controller.
 - [ ] Resposta via presenter; schema Zod documentado em `routers/documentation`.
 - [ ] Nenhum comentário no código.
