@@ -4,6 +4,8 @@ import { ParticipantWithTripProps } from '../../enterprise/entities/value-object
 export interface ParticipantsRepository {
   create(participant: Participant): Promise<void>
   update(participant: Participant): Promise<void>
+  delete(id: string): Promise<void>
+  findById(id: string): Promise<Participant | null>
   findByConfirmationToken(token: string): Promise<Participant | null>
   findByTripAndTravelerId(
     tripId: string,

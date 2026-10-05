@@ -20,6 +20,7 @@ const protectedRoutes = [
   ['DELETE', `/trips/${randomUUID()}/links/${randomUUID()}`],
   ['DELETE', `/trips/${randomUUID()}/activities/${randomUUID()}`],
   ['POST', `/trips/${randomUUID()}/invites`],
+  ['DELETE', `/trips/${randomUUID()}/participants/${randomUUID()}`],
 ] as const
 
 function encodeSegment(value: object) {

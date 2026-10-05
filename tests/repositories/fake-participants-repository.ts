@@ -34,6 +34,14 @@ export class FakeParticipantsRepository implements ParticipantsRepository {
     this.items[index] = participant
   }
 
+  async delete(id: string): Promise<void> {
+    this.items = this.items.filter((item) => item.id.toString() !== id)
+  }
+
+  async findById(id: string): Promise<Participant | null> {
+    return this.items.find((item) => item.id.toString() === id) ?? null
+  }
+
   async findByConfirmationToken(token: string): Promise<Participant | null> {
     const participant = this.items.find(
       (item) => item.confirmationToken === token,
