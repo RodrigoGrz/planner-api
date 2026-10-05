@@ -80,7 +80,6 @@ export const TripScalarFieldEnum = {
   starts_at: 'starts_at',
   ends_at: 'ends_at',
   owner_id: 'owner_id',
-  is_confirmed: 'is_confirmed',
   created_at: 'created_at',
   updated_at: 'updated_at',
   cover_image_url: 'cover_image_url',
