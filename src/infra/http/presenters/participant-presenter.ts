@@ -4,7 +4,7 @@ export class ParticipantPresenter {
   static toHTTP(participant: Participant) {
     return {
       id: participant.id.toString(),
-      name: participant.name ?? '',
+      name: participant.name ?? null,
       email: participant.email,
       isConfirmed: participant.isConfirmed,
     }

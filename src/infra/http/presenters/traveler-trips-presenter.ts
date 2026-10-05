@@ -6,7 +6,7 @@ export class TravelerTripsPresenter {
     return {
       participantId: participant.participantId.toString(),
       tripId: participant.tripId.toString(),
-      name: participant.name,
+      name: participant.name ?? null,
       email: participant.email,
       isConfirmed: participant.isConfirmed,
       destination: participant.destination,

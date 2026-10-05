@@ -66,4 +66,28 @@ describe('Get Trip Participants (E2E)', () => {
 
     expect(response.statusCode).toBe(404)
   })
+
+  test('[GET] /trips/:tripId/participants returns a null name for an invited person without account', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+    })
+
+    const invited = await makePrismaParticipant({
+      name: null,
+      tripId: trip.id,
+      travelerId: null,
+    })
+
+    const response = await request(app.server)
+      .get(`/trips/${trip.id.toString()}/participants`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(response.statusCode).toBe(200)
+    expect(response.body.participants).toEqual([
+      expect.objectContaining({ id: invited.id.toString(), name: null }),
+    ])
+  })
 })

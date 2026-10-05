@@ -99,4 +99,28 @@ describe('Get Next Trip Traveler (E2E)', () => {
     expect(response.statusCode).toBe(200)
     expect(response.body.nextTrip.tripId).toBe(ongoingTrip.id.toString())
   })
+
+  test('[GET] /me/trips/next returns a null name instead of failing', async () => {
+    const { token, traveler } = await createAndAuthenticateTraveler(app)
+
+    const trip = await makePrismaTrip({
+      ownerId: new UniqueEntityID(traveler.id),
+      startsAt: dayjs().add(1, 'month').toDate(),
+      endsAt: dayjs().add(1, 'month').add(3, 'day').toDate(),
+    })
+
+    await makePrismaParticipant({
+      name: null,
+      tripId: trip.id,
+      travelerId: new UniqueEntityID(traveler.id),
+    })
+
+    const response = await request(app.server)
+      .get('/me/trips/next')
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(response.statusCode).toBe(200)
+    expect(response.body.nextTrip.name).toBeNull()
+  })
 })

@@ -8,7 +8,12 @@ export const getTripParticipantsResponse = z.object({
   participants: z.array(
     z.object({
       id: z.uuidv4(),
-      name: z.string(),
+      name: z
+        .string()
+        .nullable()
+        .describe(
+          'Participant name; null while the invited person has no account',
+        ),
       email: z.email(),
       isConfirmed: z.boolean(),
     }),
