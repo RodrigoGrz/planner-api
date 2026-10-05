@@ -9,7 +9,7 @@ export class PrismaParticipantsMapper {
   static toDomain(raw: PrismaParticipant): Participant {
     return Participant.create(
       {
-        name: raw.name ?? '',
+        name: raw.name,
         email: raw.email,
         isConfirmed: raw.is_confirmed,
         confirmationToken: raw.confirmation_token,

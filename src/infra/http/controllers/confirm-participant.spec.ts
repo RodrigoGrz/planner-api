@@ -98,6 +98,24 @@ describe('Confirm Participant (E2E)', () => {
     expect(confirmed.confirmation_token).toBeNull()
   })
 
+  test('[POST] /invites/confirmation keeps a null participant name', async () => {
+    const { participant, confirmationToken } = await makeInvite(
+      upcomingTrip(),
+      { name: null },
+    )
+
+    const response = await request(app.server)
+      .post('/invites/confirmation')
+      .type('form')
+      .send({ token: confirmationToken })
+
+    const confirmed = await findParticipant(participant.id.toString())
+
+    expect(response.statusCode).toBe(200)
+    expect(confirmed.is_confirmed).toBe(true)
+    expect(confirmed.name).toBeNull()
+  })
+
   test('[POST] /invites/confirmation links the participant to the traveler with the same e-mail', async () => {
     const invitedTraveler = await makePrismaTraveler()
 

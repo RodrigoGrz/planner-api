@@ -3,6 +3,8 @@ import { makeParticipant } from 'tests/factories/make-participant'
 import { makePrismaTraveler } from 'tests/factories/make-traveler'
 import { makePrismaTrip } from 'tests/factories/make-trip'
 import { PrismaParticipantsRepository } from './prisma-participants-repository'
+import { prisma } from '@/infra/database/prisma/prisma'
+import { randomUUID } from 'node:crypto'
 
 let repository: PrismaParticipantsRepository
 
@@ -34,6 +36,38 @@ describe('PrismaParticipantsRepository (integration)', () => {
     expect(found?.confirmationToken).toBe('token-round-trip')
     expect(found?.tripId.toString()).toBe(trip.id.toString())
     expect(found?.travelerId?.toString()).toBe(owner.id.toString())
+  })
+
+  it('should keep a null name after updating a participant', async () => {
+    const owner = await makePrismaTraveler()
+    const trip = await makePrismaTrip({ ownerId: owner.id })
+    const confirmationToken = randomUUID()
+
+    const participant = await makeParticipant({
+      name: null,
+      tripId: trip.id,
+      travelerId: null,
+      confirmationToken,
+    })
+
+    await repository.create(participant)
+
+    const stored = await repository.findByConfirmationToken(confirmationToken)
+
+    if (!stored) {
+      throw new Error('Participant was not persisted')
+    }
+
+    stored.confirm()
+
+    await repository.update(stored)
+
+    const raw = await prisma.participant.findUniqueOrThrow({
+      where: { id: participant.id.toString() },
+    })
+
+    expect(stored.name).toBeNull()
+    expect(raw.name).toBeNull()
   })
 
   it('should clear the confirmation token when a participant is confirmed', async () => {
