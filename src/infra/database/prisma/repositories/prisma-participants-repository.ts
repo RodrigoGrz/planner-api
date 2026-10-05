@@ -28,6 +28,24 @@ export class PrismaParticipantsRepository implements ParticipantsRepository {
     })
   }
 
+  async delete(id: string): Promise<void> {
+    await getPrismaClient().participant.delete({
+      where: { id },
+    })
+  }
+
+  async findById(id: string): Promise<Participant | null> {
+    const participant = await getPrismaClient().participant.findUnique({
+      where: { id },
+    })
+
+    if (!participant) {
+      return null
+    }
+
+    return PrismaParticipantsMapper.toDomain(participant)
+  }
+
   async findByConfirmationToken(token: string): Promise<Participant | null> {
     const participant = await getPrismaClient().participant.findUnique({
       where: {

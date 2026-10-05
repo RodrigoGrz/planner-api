@@ -32,6 +32,8 @@ import { deleteTripController } from '../controllers/delete-trip'
 import { createInviteSchema } from './documentation/trips/create-invite-schema'
 import { createInviteController } from '../controllers/create-invite'
 import { inviteEmailsRateLimit } from '../rate-limits'
+import { removeTripParticipantSchema } from './documentation/trips/remove-trip-participant-schema'
+import { removeTripParticipantController } from '../controllers/remove-trip-participant'
 
 export async function tripsRoute(app: FastifyInstance) {
   app.addHook('onRequest', verifyJWT)
@@ -94,5 +96,10 @@ export async function tripsRoute(app: FastifyInstance) {
     '/trips/:tripId/activities/:activityId',
     deleteTripActivitySchema,
     deleteTripActivityController,
+  )
+  app.delete(
+    '/trips/:tripId/participants/:participantId',
+    removeTripParticipantSchema,
+    removeTripParticipantController,
   )
 }
