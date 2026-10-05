@@ -411,6 +411,10 @@ export type ParticipantUncheckedUpdateManyWithoutTripNestedInput = {
   deleteMany?: Prisma.ParticipantScalarWhereInput | Prisma.ParticipantScalarWhereInput[]
 }
 
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
 export type ParticipantCreateNestedManyWithoutTravelerInput = {
   create?: Prisma.XOR<Prisma.ParticipantCreateWithoutTravelerInput, Prisma.ParticipantUncheckedCreateWithoutTravelerInput> | Prisma.ParticipantCreateWithoutTravelerInput[] | Prisma.ParticipantUncheckedCreateWithoutTravelerInput[]
   connectOrCreate?: Prisma.ParticipantCreateOrConnectWithoutTravelerInput | Prisma.ParticipantCreateOrConnectWithoutTravelerInput[]

@@ -40,7 +40,6 @@ export type TripMinAggregateOutputType = {
   starts_at: Date | null
   ends_at: Date | null
   owner_id: string | null
-  is_confirmed: boolean | null
   created_at: Date | null
   updated_at: Date | null
   cover_image_url: string | null
@@ -53,7 +52,6 @@ export type TripMaxAggregateOutputType = {
   starts_at: Date | null
   ends_at: Date | null
   owner_id: string | null
-  is_confirmed: boolean | null
   created_at: Date | null
   updated_at: Date | null
   cover_image_url: string | null
@@ -66,7 +64,6 @@ export type TripCountAggregateOutputType = {
   starts_at: number
   ends_at: number
   owner_id: number
-  is_confirmed: number
   created_at: number
   updated_at: number
   cover_image_url: number
@@ -89,7 +86,6 @@ export type TripMinAggregateInputType = {
   starts_at?: true
   ends_at?: true
   owner_id?: true
-  is_confirmed?: true
   created_at?: true
   updated_at?: true
   cover_image_url?: true
@@ -102,7 +98,6 @@ export type TripMaxAggregateInputType = {
   starts_at?: true
   ends_at?: true
   owner_id?: true
-  is_confirmed?: true
   created_at?: true
   updated_at?: true
   cover_image_url?: true
@@ -115,7 +110,6 @@ export type TripCountAggregateInputType = {
   starts_at?: true
   ends_at?: true
   owner_id?: true
-  is_confirmed?: true
   created_at?: true
   updated_at?: true
   cover_image_url?: true
@@ -215,7 +209,6 @@ export type TripGroupByOutputType = {
   starts_at: Date
   ends_at: Date
   owner_id: string
-  is_confirmed: boolean
   created_at: Date
   updated_at: Date | null
   cover_image_url: string | null
@@ -251,7 +244,6 @@ export type TripWhereInput = {
   starts_at?: Prisma.DateTimeFilter<"Trip"> | Date | string
   ends_at?: Prisma.DateTimeFilter<"Trip"> | Date | string
   owner_id?: Prisma.StringFilter<"Trip"> | string
-  is_confirmed?: Prisma.BoolFilter<"Trip"> | boolean
   created_at?: Prisma.DateTimeFilter<"Trip"> | Date | string
   updated_at?: Prisma.DateTimeNullableFilter<"Trip"> | Date | string | null
   cover_image_url?: Prisma.StringNullableFilter<"Trip"> | string | null
@@ -268,7 +260,6 @@ export type TripOrderByWithRelationInput = {
   starts_at?: Prisma.SortOrder
   ends_at?: Prisma.SortOrder
   owner_id?: Prisma.SortOrder
-  is_confirmed?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrderInput | Prisma.SortOrder
   cover_image_url?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -288,7 +279,6 @@ export type TripWhereUniqueInput = Prisma.AtLeast<{
   starts_at?: Prisma.DateTimeFilter<"Trip"> | Date | string
   ends_at?: Prisma.DateTimeFilter<"Trip"> | Date | string
   owner_id?: Prisma.StringFilter<"Trip"> | string
-  is_confirmed?: Prisma.BoolFilter<"Trip"> | boolean
   created_at?: Prisma.DateTimeFilter<"Trip"> | Date | string
   updated_at?: Prisma.DateTimeNullableFilter<"Trip"> | Date | string | null
   cover_image_url?: Prisma.StringNullableFilter<"Trip"> | string | null
@@ -305,7 +295,6 @@ export type TripOrderByWithAggregationInput = {
   starts_at?: Prisma.SortOrder
   ends_at?: Prisma.SortOrder
   owner_id?: Prisma.SortOrder
-  is_confirmed?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrderInput | Prisma.SortOrder
   cover_image_url?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -326,7 +315,6 @@ export type TripScalarWhereWithAggregatesInput = {
   starts_at?: Prisma.DateTimeWithAggregatesFilter<"Trip"> | Date | string
   ends_at?: Prisma.DateTimeWithAggregatesFilter<"Trip"> | Date | string
   owner_id?: Prisma.StringWithAggregatesFilter<"Trip"> | string
-  is_confirmed?: Prisma.BoolWithAggregatesFilter<"Trip"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Trip"> | Date | string
   updated_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Trip"> | Date | string | null
   cover_image_url?: Prisma.StringNullableWithAggregatesFilter<"Trip"> | string | null
@@ -338,7 +326,6 @@ export type TripCreateInput = {
   destination: string
   starts_at: Date | string
   ends_at: Date | string
-  is_confirmed?: boolean
   created_at?: Date | string
   updated_at?: Date | string | null
   cover_image_url?: string | null
@@ -355,7 +342,6 @@ export type TripUncheckedCreateInput = {
   starts_at: Date | string
   ends_at: Date | string
   owner_id: string
-  is_confirmed?: boolean
   created_at?: Date | string
   updated_at?: Date | string | null
   cover_image_url?: string | null
@@ -370,7 +356,6 @@ export type TripUpdateInput = {
   destination?: Prisma.StringFieldUpdateOperationsInput | string
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cover_image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -387,7 +372,6 @@ export type TripUncheckedUpdateInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner_id?: Prisma.StringFieldUpdateOperationsInput | string
-  is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cover_image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -403,7 +387,6 @@ export type TripCreateManyInput = {
   starts_at: Date | string
   ends_at: Date | string
   owner_id: string
-  is_confirmed?: boolean
   created_at?: Date | string
   updated_at?: Date | string | null
   cover_image_url?: string | null
@@ -415,7 +398,6 @@ export type TripUpdateManyMutationInput = {
   destination?: Prisma.StringFieldUpdateOperationsInput | string
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cover_image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -428,7 +410,6 @@ export type TripUncheckedUpdateManyInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner_id?: Prisma.StringFieldUpdateOperationsInput | string
-  is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cover_image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -441,7 +422,6 @@ export type TripCountOrderByAggregateInput = {
   starts_at?: Prisma.SortOrder
   ends_at?: Prisma.SortOrder
   owner_id?: Prisma.SortOrder
-  is_confirmed?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   cover_image_url?: Prisma.SortOrder
@@ -458,7 +438,6 @@ export type TripMaxOrderByAggregateInput = {
   starts_at?: Prisma.SortOrder
   ends_at?: Prisma.SortOrder
   owner_id?: Prisma.SortOrder
-  is_confirmed?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   cover_image_url?: Prisma.SortOrder
@@ -471,7 +450,6 @@ export type TripMinOrderByAggregateInput = {
   starts_at?: Prisma.SortOrder
   ends_at?: Prisma.SortOrder
   owner_id?: Prisma.SortOrder
-  is_confirmed?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   cover_image_url?: Prisma.SortOrder
@@ -503,10 +481,6 @@ export type StringFieldUpdateOperationsInput = {
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
-}
-
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
 }
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
@@ -614,7 +588,6 @@ export type TripCreateWithoutParticipantsInput = {
   destination: string
   starts_at: Date | string
   ends_at: Date | string
-  is_confirmed?: boolean
   created_at?: Date | string
   updated_at?: Date | string | null
   cover_image_url?: string | null
@@ -630,7 +603,6 @@ export type TripUncheckedCreateWithoutParticipantsInput = {
   starts_at: Date | string
   ends_at: Date | string
   owner_id: string
-  is_confirmed?: boolean
   created_at?: Date | string
   updated_at?: Date | string | null
   cover_image_url?: string | null
@@ -660,7 +632,6 @@ export type TripUpdateWithoutParticipantsInput = {
   destination?: Prisma.StringFieldUpdateOperationsInput | string
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cover_image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -676,7 +647,6 @@ export type TripUncheckedUpdateWithoutParticipantsInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner_id?: Prisma.StringFieldUpdateOperationsInput | string
-  is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cover_image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -690,7 +660,6 @@ export type TripCreateWithoutActivitiesInput = {
   destination: string
   starts_at: Date | string
   ends_at: Date | string
-  is_confirmed?: boolean
   created_at?: Date | string
   updated_at?: Date | string | null
   cover_image_url?: string | null
@@ -706,7 +675,6 @@ export type TripUncheckedCreateWithoutActivitiesInput = {
   starts_at: Date | string
   ends_at: Date | string
   owner_id: string
-  is_confirmed?: boolean
   created_at?: Date | string
   updated_at?: Date | string | null
   cover_image_url?: string | null
@@ -736,7 +704,6 @@ export type TripUpdateWithoutActivitiesInput = {
   destination?: Prisma.StringFieldUpdateOperationsInput | string
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cover_image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -752,7 +719,6 @@ export type TripUncheckedUpdateWithoutActivitiesInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner_id?: Prisma.StringFieldUpdateOperationsInput | string
-  is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cover_image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -766,7 +732,6 @@ export type TripCreateWithoutLinksInput = {
   destination: string
   starts_at: Date | string
   ends_at: Date | string
-  is_confirmed?: boolean
   created_at?: Date | string
   updated_at?: Date | string | null
   cover_image_url?: string | null
@@ -782,7 +747,6 @@ export type TripUncheckedCreateWithoutLinksInput = {
   starts_at: Date | string
   ends_at: Date | string
   owner_id: string
-  is_confirmed?: boolean
   created_at?: Date | string
   updated_at?: Date | string | null
   cover_image_url?: string | null
@@ -812,7 +776,6 @@ export type TripUpdateWithoutLinksInput = {
   destination?: Prisma.StringFieldUpdateOperationsInput | string
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cover_image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -828,7 +791,6 @@ export type TripUncheckedUpdateWithoutLinksInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner_id?: Prisma.StringFieldUpdateOperationsInput | string
-  is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cover_image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -842,7 +804,6 @@ export type TripCreateWithoutOwnerInput = {
   destination: string
   starts_at: Date | string
   ends_at: Date | string
-  is_confirmed?: boolean
   created_at?: Date | string
   updated_at?: Date | string | null
   cover_image_url?: string | null
@@ -857,7 +818,6 @@ export type TripUncheckedCreateWithoutOwnerInput = {
   destination: string
   starts_at: Date | string
   ends_at: Date | string
-  is_confirmed?: boolean
   created_at?: Date | string
   updated_at?: Date | string | null
   cover_image_url?: string | null
@@ -902,7 +862,6 @@ export type TripScalarWhereInput = {
   starts_at?: Prisma.DateTimeFilter<"Trip"> | Date | string
   ends_at?: Prisma.DateTimeFilter<"Trip"> | Date | string
   owner_id?: Prisma.StringFilter<"Trip"> | string
-  is_confirmed?: Prisma.BoolFilter<"Trip"> | boolean
   created_at?: Prisma.DateTimeFilter<"Trip"> | Date | string
   updated_at?: Prisma.DateTimeNullableFilter<"Trip"> | Date | string | null
   cover_image_url?: Prisma.StringNullableFilter<"Trip"> | string | null
@@ -914,7 +873,6 @@ export type TripCreateManyOwnerInput = {
   destination: string
   starts_at: Date | string
   ends_at: Date | string
-  is_confirmed?: boolean
   created_at?: Date | string
   updated_at?: Date | string | null
   cover_image_url?: string | null
@@ -926,7 +884,6 @@ export type TripUpdateWithoutOwnerInput = {
   destination?: Prisma.StringFieldUpdateOperationsInput | string
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cover_image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -941,7 +898,6 @@ export type TripUncheckedUpdateWithoutOwnerInput = {
   destination?: Prisma.StringFieldUpdateOperationsInput | string
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cover_image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -956,7 +912,6 @@ export type TripUncheckedUpdateManyWithoutOwnerInput = {
   destination?: Prisma.StringFieldUpdateOperationsInput | string
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  is_confirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cover_image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1018,7 +973,6 @@ export type TripSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   starts_at?: boolean
   ends_at?: boolean
   owner_id?: boolean
-  is_confirmed?: boolean
   created_at?: boolean
   updated_at?: boolean
   cover_image_url?: boolean
@@ -1036,7 +990,6 @@ export type TripSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   starts_at?: boolean
   ends_at?: boolean
   owner_id?: boolean
-  is_confirmed?: boolean
   created_at?: boolean
   updated_at?: boolean
   cover_image_url?: boolean
@@ -1050,7 +1003,6 @@ export type TripSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   starts_at?: boolean
   ends_at?: boolean
   owner_id?: boolean
-  is_confirmed?: boolean
   created_at?: boolean
   updated_at?: boolean
   cover_image_url?: boolean
@@ -1064,14 +1016,13 @@ export type TripSelectScalar = {
   starts_at?: boolean
   ends_at?: boolean
   owner_id?: boolean
-  is_confirmed?: boolean
   created_at?: boolean
   updated_at?: boolean
   cover_image_url?: boolean
   version?: boolean
 }
 
-export type TripOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "destination" | "starts_at" | "ends_at" | "owner_id" | "is_confirmed" | "created_at" | "updated_at" | "cover_image_url" | "version", ExtArgs["result"]["trip"]>
+export type TripOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "destination" | "starts_at" | "ends_at" | "owner_id" | "created_at" | "updated_at" | "cover_image_url" | "version", ExtArgs["result"]["trip"]>
 export type TripInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   activities?: boolean | Prisma.Trip$activitiesArgs<ExtArgs>
   links?: boolean | Prisma.Trip$linksArgs<ExtArgs>
@@ -1100,7 +1051,6 @@ export type $TripPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     starts_at: Date
     ends_at: Date
     owner_id: string
-    is_confirmed: boolean
     created_at: Date
     updated_at: Date | null
     cover_image_url: string | null
@@ -1537,7 +1487,6 @@ export interface TripFieldRefs {
   readonly starts_at: Prisma.FieldRef<"Trip", 'DateTime'>
   readonly ends_at: Prisma.FieldRef<"Trip", 'DateTime'>
   readonly owner_id: Prisma.FieldRef<"Trip", 'String'>
-  readonly is_confirmed: Prisma.FieldRef<"Trip", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"Trip", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"Trip", 'DateTime'>
   readonly cover_image_url: Prisma.FieldRef<"Trip", 'String'>
